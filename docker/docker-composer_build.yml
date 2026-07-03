@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # Dịch vụ cơ sở dữ liệu MySQL
+  mysql:
+    # image: docker.jsdelivr.fyi/mysql:8.0
+    image: mysql:8.0
+    container_name: milestones-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: milestones_admin
+    ports:
+      - '23306:3306' # Không cần ánh xạ cũng được
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --skip-ssl
+    networks:
+      - milestones-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-ppassword']
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+
+  # Dịch vụ Redis (bộ nhớ đệm)
+  redis:
+    # image: docker.jsdelivr.fyi/redis:7-alpine
+    image: redis:7-alpine
+    container_name: milestones-redis
+    ports:
+      - '6379:6379'
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ chương trình chính
+  main-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.main
+    container_name: milestones-main-server
+    ports:
+      - '18989:8989' # Cổng WebSocket
+      - '12883:2883' # Cổng MQTT
+    depends_on:
+      - mysql
+      - backend
+      - redis
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=milestones_admin
+      - BACKEND_URL=http://backend:8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ../config:/workspace/config
+      - ../logs:/workspace/logs
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ quản lý backend
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: milestones-backend
+    ports:
+      - '28080:8080' # Cổng backend quản lý
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=milestones_admin
+    volumes:
+      - ../manager/backend/config:/root/config
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ quản lý frontend
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: milestones-frontend
+    ports:
+      - '18080:80' # Cổng frontend quản lý
+    depends_on:
+      - backend
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  milestones-network:
+    driver: bridge

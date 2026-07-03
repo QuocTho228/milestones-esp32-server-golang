@@ -1,0 +1,166 @@
+version: "3.8"
+
+services:
+  # Dịch vụ cơ sở dữ liệu MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: milestones-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: milestones_admin
+    ports:
+      - "23306:3306" # Không cần ánh xạ cũng được
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --skip-ssl
+    networks:
+      - milestones-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysql",
+          "-h",
+          "localhost",
+          "-P",
+          "3306",
+          "-u",
+          "root",
+          "-ppassword",
+          "-e",
+          "SELECT 1",
+        ]
+      timeout: 5s
+      retries: 3
+      interval: 10s
+      start_period: 180s
+
+  # Dịch vụ Redis (bộ nhớ đệm)
+  redis:
+    image: redis:7-alpine
+    container_name: milestones-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ chương trình chính
+  main-server:
+    image: ghcr.io/hackers365/milestones_server:0.6.0
+    container_name: milestones-main-server
+    command:
+      [
+        "/workspace/bin/milestones_server",
+        "-c",
+        "/workspace/config/config.yaml",
+      ]
+    ports:
+      - "8989:8989" # Cổng WebSocket
+      - "2883:2883" # Cổng MQTT server
+      - "8888:8888/udp" # Cổng UDP server
+    depends_on:
+      mysql:
+        condition: service_healthy
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=milestones_admin
+      - BACKEND_URL=http://backend:8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ../../config:/workspace/config
+      - ../../logs:/workspace/logs
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ quản lý backend
+  backend:
+    image: ghcr.io/hackers365/milestones_manager_backend:0.6.0
+    container_name: milestones-backend
+    ports:
+      - "8081:8080" # Cổng backend quản lý
+    depends_on:
+      mysql:
+        condition: service_healthy
+      voice-server:
+        condition: service_started
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=milestones_admin
+      - AUDIO_BASE_PATH=/data/chat_history/audio
+      - SPEAKER_SERVICE_URL=http://voice-server:8080
+    volumes:
+      - ../../manager/backend/config:/root/config
+      - backend_audio_data:/data/chat_history/audio
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ quản lý frontend
+  frontend:
+    image: ghcr.io/hackers365/milestones_manager_frontend:0.6.0
+    container_name: milestones-frontend
+    ports:
+      - "8080:80" # Cổng frontend quản lý
+    depends_on:
+      - backend
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ cơ sở dữ liệu vector Qdrant (dùng cho nhận dạng người nói)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: milestones-qdrant
+    ports:
+      - "6333:6333" # Cổng REST API
+      - "6334:6334" # Cổng gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # Dịch vụ nhận dạng giọng nói ASR (nhận dạng người nói)
+  voice-server:
+    image: ghcr.io/hackers365/voice_server:0.1.2
+    container_name: milestones-voice-server
+    ports:
+      - "8082:8080" # Cổng dịch vụ ASR
+    depends_on:
+      - qdrant
+    environment:
+      - VAD_ASR_SPEAKER_ENABLED=true
+      - VAD_ASR_SPEAKER_VECTOR_DB_HOST=qdrant
+      - VAD_ASR_SPEAKER_VECTOR_DB_PORT=6334
+      - VAD_ASR_SPEAKER_VECTOR_DB_COLLECTION_NAME=speaker_embeddings
+      - VAD_ASR_SPEAKER_THRESHOLD=0.6
+      - VAD_ASR_LOGGING_LEVEL=info
+    volumes:
+      - asr_data:/app/data
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  backend_audio_data:
+  qdrant_data:
+  asr_data:
+
+networks:
+  milestones-network:
+    driver: bridge
