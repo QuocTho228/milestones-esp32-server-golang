@@ -1,180 +1,168 @@
 # 🚀 milestones-esp32-server-golang
 
-> **Milestones AI Backend for ESP32 Devices**
+> **Backend AI Milestones cho thiết bị ESP32**
 
 ---
 
-## 项目简介 | Project Overview
+## Giới thiệu dự án | Project Overview
 
-milestones-esp32-server-golang 是一款高性能、全流式的 AI 后端服务，专为物联网与智能语音场景设计。项目基于 Go 语言开发，集成了 ASR（自动语音识别）、LLM（大语言模型）、TTS（语音合成）等核心能力，支持大规模并发与多协议接入，助力智能终端与边缘设备的 AI 语音交互。
-
----
-
-## ✨ 主要特性 | Key Features
-
-- ⚡ **端到端全流式 AI 语音链路**：ASR → LLM → TTS 全流程流式处理，低延迟实时交互
-- 🎙️ **声纹识别与动态TTS切换**：根据说话人身份自动切换TTS音色，个性化语音体验
-- 🔌 **Transport 接口层抽象**：WebSocket / MQTT UDP 统一抽象，灵活注入主逻辑，便于协议扩展
-- 📬 **消息队列化处理**：LLM 与 TTS 采用消息队列异步处理，支持业务逻辑灵活注入
-- 🌐 **多协议高并发接入**：支持大规模设备并发接入与消息推送
-- ♻️ **高效资源池与连接复用**：外部资源连接池机制，降低响应耗时，提升系统吞吐
-- 🤖 **多引擎AI能力集成**：基于 Eino 框架，支持 FunASR、OpenAI 兼容、Ollama、Doubao、EdgeTTS、CosyVoice 等多种引擎
-- 🧩 **模块化可扩展架构**：VAD/ASR/LLM/TTS/MCP/视觉等核心模块独立可插拔
-- 🎵 **MCP Audio Server**：音频资源分页获取与流式处理，音乐播放与音量控制
-- 🦞 **OpenClaw 智能体接入**：按智能体生成专属 OpenClaw Endpoint，支持连接状态查看、会话测试、进入/退出关键词路由（默认“打开龙虾/进入龙虾”与“关闭龙虾/退出龙虾”）
-- 🖥️ **全功能Web管理控制台**：可视化配置向导、VAD/ASR/LLM/TTS全链路可用性测试、设备管理与消息注入、实时延迟监控与OTA验证
-- 🧠 **高级业务功能**：MCP 市场聚合与导入、声音复刻、知识库（Dify/RAGFlow/WeKnora）、设备/智能体维度 MCP 远程调用调试
-- 📦 **易用的一键部署方案**：预编译 aio 包开箱即用（主程序+控制台+声纹服务）、Docker 一键部署、支持 Linux/Windows/macOS 本地编译
-- 🔐 **安全与权限体系**（规划中）：预留用户认证与权限管理接口
+milestones-esp32-server-golang là một dịch vụ backend AI hiệu năng cao, hỗ trợ xử lý streaming toàn trình (full-streaming), được thiết kế chuyên biệt cho các kịch bản IoT và tương tác thoại thông minh. Dự án được phát triển bằng ngôn ngữ Go, tích hợp các năng lực lõi như ASR (nhận dạng giọng nói tự động), LLM (mô hình ngôn ngữ lớn), TTS (tổng hợp giọng nói), hỗ trợ xử lý đồng thời (concurrency) quy mô lớn và kết nối đa giao thức, giúp các thiết bị đầu cuối thông minh và thiết bị biên (edge devices) thực hiện tương tác thoại AI.
 
 ---
 
-[deepwiki 架构分析](https://deepwiki.com/hackers365/milestones-esp32-server-golang)
+## ✨ Tính năng chính | Key Features
 
-## 🚀 快速开始 | Quick Start
+- ⚡ **Chuỗi thoại AI full-streaming end-to-end**: Toàn bộ quy trình ASR → LLM → TTS đều xử lý streaming, tương tác thời gian thực với độ trễ thấp
+- 🎙️ **Nhận dạng vân giọng và chuyển đổi TTS động**: Tự động chuyển đổi âm sắc TTS theo danh tính người nói, mang lại trải nghiệm giọng nói cá nhân hóa
+- 🔌 **Trừu tượng hóa tầng giao diện Transport**: Trừu tượng hóa thống nhất WebSocket / MQTT UDP, có thể linh hoạt tiêm (inject) logic nghiệp vụ chính, thuận tiện mở rộng giao thức
+- 📬 **Xử lý theo hàng đợi tin nhắn (message queue)**: LLM và TTS sử dụng hàng đợi tin nhắn để xử lý bất đồng bộ, hỗ trợ tiêm linh hoạt logic nghiệp vụ
+- 🌐 **Kết nối đa giao thức, đồng thời cao**: Hỗ trợ kết nối và đẩy tin nhắn cho số lượng lớn thiết bị đồng thời
+- ♻️ **Pool tài nguyên và tái sử dụng kết nối hiệu quả**: Cơ chế connection pool cho tài nguyên bên ngoài, giảm thời gian phản hồi, nâng cao thông lượng hệ thống
+- 🤖 **Tích hợp năng lực AI đa engine**: Dựa trên framework Eino, hỗ trợ nhiều engine như FunASR, tương thích OpenAI, Ollama, Doubao, EdgeTTS, CosyVoice...
+- 🧩 **Kiến trúc module hóa, dễ mở rộng**: Các module lõi VAD/ASR/LLM/TTS/MCP/thị giác... độc lập và có thể cắm-rút (pluggable)
+- 🎵 **MCP Audio Server**: Lấy tài nguyên âm thanh theo trang (pagination) và xử lý streaming, phát nhạc và điều khiển âm lượng
+- 🦞 **Tích hợp agent OpenClaw**: Sinh endpoint OpenClaw riêng theo từng agent, hỗ trợ xem trạng thái kết nối, kiểm thử phiên (session), định tuyến theo từ khóa vào/ra (mặc định là "打开龙虾/进入龙虾" để bật và "关闭龙虾/退出龙虾" để tắt)
+- 🖥️ **Bảng điều khiển quản trị Web đầy đủ tính năng**: Trình hướng dẫn cấu hình trực quan, kiểm thử khả dụng toàn chuỗi VAD/ASR/LLM/TTS, quản lý thiết bị và tiêm tin nhắn, giám sát độ trễ thời gian thực và xác thực OTA
+- 🧠 **Tính năng nghiệp vụ nâng cao**: Tổng hợp và nhập MCP Marketplace, nhân bản giọng nói (voice clone), knowledge base (Dify/RAGFlow/WeKnora), debug gọi MCP từ xa theo chiều thiết bị/agent
+- 📦 **Giải pháp triển khai một-cú-nhấp dễ dùng**: Gói aio đã biên dịch sẵn, dùng ngay (chương trình chính + control panel + dịch vụ vân giọng), triển khai Docker một-cú-nhấp, hỗ trợ biên dịch cục bộ trên Linux/Windows/macOS
+- 🔐 **Hệ thống bảo mật và phân quyền** (đang lên kế hoạch): Đã dự trù interface xác thực người dùng và quản lý quyền
 
-### 方式一：一键启动包（推荐）
+---
 
-下载对应平台的压缩包，解压后运行即可：
+[Phân tích kiến trúc trên deepwiki](https://deepwiki.com/quoctho228/milestones-esp32-server-golang)
 
-- **Release 页面**：<https://github.com/hackers365/milestones-esp32-server-golang/releases>
-- **使用教程**：[doc/quickstart_bundle_tutorial.md](doc/quickstart_bundle_tutorial.md)
+## 🚀 Bắt đầu nhanh | Quick Start
 
-启动后访问 **http://<服务器IP或域名>:8080** 进入 Web 控制台进行配置。
+### Cách 1: Gói khởi động một-cú-nhấp (khuyến nghị)
 
-### 方式二：Docker 部署
+Tải gói nén phù hợp với nền tảng của bạn, giải nén rồi chạy trực tiếp:
 
-- [Docker Compose（带控制台）](doc/docker_compose.md)
-- [Docker（无控制台）](doc/docker.md)
+- **Trang Release**: <https://github.com/quoctho228/milestones-esp32-server-golang/releases>
+- **Hướng dẫn sử dụng**: [doc/quickstart_bundle_tutorial.md](doc/quickstart_bundle_tutorial.md)
 
-### 方式三：本地编译
+Sau khi khởi động, truy cập **http://<IP máy chủ hoặc domain>:8080** để vào Web Console và cấu hình.
 
-适用于开发环境或需要定制编译的场景。
+### Cách 2: Triển khai bằng Docker
 
-**安装依赖**（以 Ubuntu 为例）
+- [Docker Compose (kèm control panel)](doc/docker_compose.md)
+- [Docker (không kèm control panel)](doc/docker.md)
+
+### Cách 3: Biên dịch cục bộ
+
+Phù hợp với môi trường phát triển hoặc các trường hợp cần tùy biến khi biên dịch.
+
+**Cài đặt phụ thuộc** (lấy ví dụ trên Ubuntu)
 
 ```bash
 # Go 1.24+
-# Opus 编解码
+# Bộ codec Opus
 sudo apt-get install -y pkg-config libopus0 libopusfile-dev
 
-# ONNX Runtime（1.21.0）
+# ONNX Runtime (1.21.0)
 wget https://github.com/microsoft/onnxruntime/releases/download/v1.21.0/onnxruntime-linux-x64-1.21.0.tgz
 tar -xzf onnxruntime-linux-x64-1.21.0.tgz
 sudo cp -r onnxruntime-linux-x64-1.21.0/include/* /usr/local/include/onnxruntime/
 sudo cp -r onnxruntime-linux-x64-1.21.0/lib/* /usr/local/lib/
 sudo ldconfig
 
-# ten_vad 运行时依赖
+# Các phụ thuộc runtime của ten_vad
 sudo apt install -y libc++1 libc++abi1
 ```
 
-> 📖 完整依赖说明与 Windows/macOS 配置请参考 [config.md](doc/config.md)
+> 📖 Mô tả đầy đủ về phụ thuộc và cấu hình cho Windows/macOS, xem tại [config.md](doc/config.md)
 
-主程序、控制台前后端、声纹服务的分离编译与 AIO 打包流程请参考 [doc/compile_deploy.md](doc/compile_deploy.md)
+Quy trình biên dịch tách rời cho chương trình chính, frontend/backend của control panel, dịch vụ vân giọng, và đóng gói AIO, xem tại [doc/compile_deploy.md](doc/compile_deploy.md)
 
-参考 [FunASR 官方文档](https://github.com/modelscope/FunASR/blob/main/runtime/docs/SDK_advanced_guide_online_zh.md) 部署。
+Tham khảo [tài liệu chính thức của FunASR](https://github.com/modelscope/FunASR/blob/main/runtime/docs/SDK_advanced_guide_online_zh.md) để triển khai.
 
-**编译与启动**
+**Biên dịch và khởi động**
 
 ```bash
-# 编译
+# Biên dịch
 go build -o milestones_server ./cmd/server/
 
-# 启动（配置文件详见 config/config.yaml）
+# Khởi động (chi tiết file cấu hình xem tại config/config.yaml)
 ./milestones_server -c config/config.yaml
 ```
 
 ---
 
-## 📚 文档导航 | Docs
+## 📚 Điều hướng tài liệu | Docs
 
-### 部署相关
+### Liên quan đến triển khai
 
-- [一键启动包教程](doc/quickstart_bundle_tutorial.md)
-- [Docker Compose 部署](doc/docker_compose.md)
-- [Docker 部署](doc/docker.md)
-- [编译与部署指南](doc/compile_deploy.md)
-- [配置详解](doc/config.md)
+- [Hướng dẫn gói khởi động một-cú-nhấp](doc/quickstart_bundle_tutorial.md)
+- [Triển khai Docker Compose](doc/docker_compose.md)
+- [Triển khai Docker](doc/docker.md)
+- [Hướng dẫn biên dịch và triển khai](doc/compile_deploy.md)
+- [Giải thích chi tiết cấu hình](doc/config.md)
 
-### 使用指南
+### Hướng dẫn sử dụng
 
-- [管理后台使用指南](doc/manager_console_guide.md)
-- [WebSocket 服务与 OTA 配置](doc/websocket_server.md)
-- [MQTT + UDP 配置](doc/mqtt_udp.md)
-- [MQTT UDP 协议](doc/mqtt_udp_protocol.md)
+- [Hướng dẫn sử dụng trang quản trị](doc/manager_console_guide.md)
+- [Dịch vụ WebSocket và cấu hình OTA](doc/websocket_server.md)
+- [Cấu hình MQTT + UDP](doc/mqtt_udp.md)
+- [Giao thức MQTT UDP](doc/mqtt_udp_protocol.md)
 
-### 功能模块
+### Các module chức năng
 
-- [视觉能力](doc/vision.md)
-- [声纹识别](doc/speaker_identification.md)
-- [MCP 架构](doc/mcp.md)
-- [MCP 音频资源](doc/mcp_resource.md)
-- [MCP 市场（市场发现/导入/热更新）](doc/mcp_market.md)
-- [OpenClaw 智能体接入（Endpoint/关键词路由/会话测试）](doc/openclaw_integration.md)
-- [声音复刻（用户操作与管理员额度）](doc/voice_clone.md)
-- [知识库（Provider 配置/同步/召回测试/RAG）](doc/knowledge_base.md)
-- [设备/智能体维度 MCP 远程调用（Endpoint/Tools/Call）](doc/mcp_remote_call_agent_device.md)
+- [Năng lực thị giác](doc/vision.md)
+- [Nhận dạng vân giọng](doc/speaker_identification.md)
+- [Kiến trúc MCP](doc/mcp.md)
+- [Tài nguyên âm thanh MCP](doc/mcp_resource.md)
+- [MCP Marketplace (khám phá/nhập/cập nhật nóng)](doc/mcp_market.md)
+- [Tích hợp agent OpenClaw (Endpoint/định tuyến từ khóa/kiểm thử phiên)](doc/openclaw_integration.md)
+- [Nhân bản giọng nói (thao tác người dùng và hạn mức quản trị viên)](doc/voice_clone.md)
+- [Knowledge base (cấu hình provider/đồng bộ/kiểm thử truy hồi/RAG)](doc/knowledge_base.md)
+- [Gọi MCP từ xa theo chiều thiết bị/agent (Endpoint/Tools/Call)](doc/mcp_remote_call_agent_device.md)
 
-### 设备接入
+### Kết nối thiết bị
 
-- [ESP32 端接入指南](doc/esp32_milestones_backend_guide.md)
-- [OTA MQTT 授权说明](doc/ota_mqtt_auth.md)
-
----
-
-## 🧩 模块架构 | Module Overview
-
-| 模块          | 功能简介                                                      | 技术栈                                                                                         |
-| ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| VAD           | 语音活动检测                                                  | Silero VAD / WebRTC VAD / ten_vad                                                              |
-| ASR           | 语音识别                                                      | FunASR / Doubao ASR                                                                            |
-| LLM           | 大模型推理                                                    | Eino 框架兼容、OpenAI、Ollama 等                                                               |
-| TTS           | 语音合成                                                      | Doubao / EdgeTTS / CosyVoice                                                                   |
-| MCP           | 多协议接入、MCP 市场发现导入、设备/智能体维度远程调用调试     | MCP Server / 接入点 / MCP Market / SSE / StreamableHTTP / WebSocket Controller / MCP Tool Call |
-| OpenClaw      | 智能体维度接入点、进入/退出关键词模式切换、会话消息转发与测试 | OpenClaw WebSocket / Agent Endpoint / Chat Router                                              |
-| 视觉          | 视觉处理                                                      | Doubao / 阿里云视觉                                                                            |
-| 声纹识别      | 说话人识别                                                    | sherpa-onnx + 向量数据库                                                                       |
-| 声音复刻      | 用户侧复刻音色创建与试听                                      | Minimax / CosyVoice / 千问                                                                     |
-| 知识库（RAG） | 文档同步、召回测试与对话检索                                  | Dify / RAGFlow / WeKnora                                                                       |
+- [Hướng dẫn kết nối backend Milestones cho ESP32](doc/esp32_milestones_backend_guide.md)
+- [Giải thích xác thực OTA MQTT](doc/ota_mqtt_auth.md)
 
 ---
 
-## 📈 性能与测试 | Performance & Testing
+## 🧩 Tổng quan kiến trúc module | Module Overview
 
-- [延迟测试报告](doc/delay_test.md)
-- 管理后台提供 VAD/ASR/LLM/TTS 可用性与延迟测试入口
-
----
-
-## 🛠️ 规划中 | Roadmap
-
-- 主动式ai
-
----
-
-## 🤝 贡献 | Contributing
-
-欢迎提交 Issue、PR 或建议！
+| Module               | Mô tả chức năng                                                                                              | Công nghệ sử dụng                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| VAD                  | Phát hiện hoạt động giọng nói (Voice Activity Detection)                                                     | Silero VAD / WebRTC VAD / ten_vad                                                                    |
+| ASR                  | Nhận dạng giọng nói                                                                                          | FunASR / Doubao ASR                                                                                  |
+| LLM                  | Suy luận mô hình lớn                                                                                         | Tương thích framework Eino, OpenAI, Ollama, v.v.                                                     |
+| TTS                  | Tổng hợp giọng nói                                                                                           | Doubao / EdgeTTS / CosyVoice                                                                         |
+| MCP                  | Kết nối đa giao thức, khám phá/nhập MCP Marketplace, debug gọi từ xa theo chiều thiết bị/agent               | MCP Server / điểm kết nối / MCP Market / SSE / StreamableHTTP / WebSocket Controller / MCP Tool Call |
+| OpenClaw             | Điểm kết nối theo chiều agent, chuyển đổi chế độ bằng từ khóa vào/ra, chuyển tiếp và kiểm thử tin nhắn phiên | OpenClaw WebSocket / Agent Endpoint / Chat Router                                                    |
+| Thị giác             | Xử lý thị giác                                                                                               | Doubao / Thị giác Alibaba Cloud                                                                      |
+| Nhận dạng vân giọng  | Nhận dạng người nói                                                                                          | sherpa-onnx + cơ sở dữ liệu vector                                                                   |
+| Nhân bản giọng nói   | Tạo và nghe thử âm sắc nhân bản phía người dùng                                                              | Minimax / CosyVoice / Qwen                                                                           |
+| Knowledge base (RAG) | Đồng bộ tài liệu, kiểm thử truy hồi và tìm kiếm trong hội thoại                                              | Dify / RAGFlow / WeKnora                                                                             |
 
 ---
 
-## 📄 License
+## 📈 Hiệu năng & Kiểm thử | Performance & Testing
 
-MIT License
-
----
-
-## 📬 联系方式 | Contact
-
-**个人微信**：hackers365 （加微信拉你进交流群）
-
-![个人微信](https://github.com/user-attachments/assets/6b8d3d11-7bf5-4fa4-a73e-5109019dab85)
-
-**开源不易，您的赞助会让项目持续更新**
-
-<img width="250" height="250" alt="eab0f4d3d8b6f977863a7bef36e3d64b" src="https://github.com/user-attachments/assets/9a949cb3-d788-446b-a0b9-8542edbb0842" />
+- [Báo cáo kiểm thử độ trễ](doc/delay_test.md)
+- Trang quản trị cung cấp cổng kiểm thử khả dụng và độ trễ cho VAD/ASR/LLM/TTS
 
 ---
 
-> © 2024 milestones-esp32-server-golang
+## 🛠️ Đang lên kế hoạch | Roadmap
+
+- AI chủ động (proactive AI)
+
+---
+
+## 🤝 Đóng góp | Contributing
+
+Hoan nghênh gửi Issue, PR hoặc góp ý!
+
+---
+
+## 📄 Giấy phép
+
+Giấy phép MIT
+
+---
+
+> © 2026 milestones-esp32-server-golang

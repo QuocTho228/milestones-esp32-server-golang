@@ -1,121 +1,121 @@
-# asr_server 合入方案（与 manager/backend 同形式）
+# Phương án hợp nhất asr_server (theo cùng hình thức với manager/backend)
 
-## 目标
+## Mục tiêu
 
-- **asr_server 保持独立仓库形态**：拥有自己的 `go.mod`、`main.go`，可单独克隆、构建、运行。
-- **主程序可初始化**：像 `manager/backend` 一样，主进程通过 `replace` 引用子目录，并在需要时在进程内启动 asr_server 的 HTTP 服务（独立端口），无需单独起进程。
+- **asr_server vẫn giữ hình thức là một repository độc lập**: có `go.mod`, `main.go` riêng, có thể clone, build, chạy độc lập.
+- **Chương trình chính có thể khởi tạo (init) nó**: giống như `manager/backend`, tiến trình chính sẽ dùng `replace` để tham chiếu tới thư mục con này, và khi cần có thể khởi động dịch vụ HTTP của asr_server ngay bên trong tiến trình (ở một cổng riêng), không cần chạy thành một tiến trình tách biệt.
 
-## 引入方式：推荐使用 Git Submodule
+## Cách đưa vào: khuyến nghị dùng Git Submodule
 
-主仓可以通过两种方式得到 `asr_server/` 目录：
+Repo chính có thể lấy được thư mục `asr_server/` bằng hai cách:
 
-| 方式                      | 说明                                                                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Git Submodule（推荐）** | asr_server 保持独立 Git 仓库；主仓用 `git submodule add` 引用，得到的是“指向 asr_server 某次提交”的目录，主仓只记录子模块路径和提交号。 |
-| 拷贝/移动代码             | 将 asr_server 的代码直接放进主仓目录，asr_server 与主仓共用一个 Git 历史（或作为主仓一部分）。                                          |
+| Cách thực hiện                  | Mô tả                                                                                                                                                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Git Submodule (khuyến nghị)** | asr_server vẫn là một Git repo độc lập; repo chính dùng `git submodule add` để tham chiếu, kết quả là một thư mục "trỏ tới một commit cụ thể của asr_server"; repo chính chỉ ghi lại đường dẫn submodule và số commit. |
+| Copy/di chuyển mã nguồn         | Đưa trực tiếp mã nguồn của asr_server vào thư mục repo chính; asr_server và repo chính dùng chung một lịch sử Git (hoặc trở thành một phần của repo chính).                                                            |
 
-下面以 **Submodule** 方式为准说明步骤；主仓侧 `replace` 与内嵌启动逻辑与“拷贝方式”相同。
+Phần dưới đây trình bày các bước theo hướng **Submodule** là chính; logic `replace` và khởi động nhúng (embed) ở phía repo chính giống hệt như cách "copy mã nguồn".
 
-## 参考：manager/backend 的合入形式
+## Tham khảo: hình thức hợp nhất của manager/backend
 
-| 项         | manager/backend 做法                                                                       |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| 目录       | 主仓库下 `manager/backend/`                                                                |
-| 模块名     | `milestones/manager/backend`（backend 内 go.mod）                                          |
-| 主仓引用   | `replace milestones/manager/backend => ./manager/backend`                                  |
-| 独立运行   | `manager/backend/main.go`：LoadWithPath → database.Init → router.Setup → r.Run()           |
-| 主程序内嵌 | `cmd/server/manager_http.go`：同套 config/database/router，自己起 `http.Server` 在另一端口 |
+| Mục                          | Cách làm của manager/backend                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Thư mục                      | `manager/backend/` nằm trong repo chính                                                                      |
+| Tên module                   | `milestones/manager/backend` (khai báo trong go.mod của backend)                                             |
+| Tham chiếu ở repo chính      | `replace milestones/manager/backend => ./manager/backend`                                                    |
+| Chạy độc lập                 | `manager/backend/main.go`: LoadWithPath → database.Init → router.Setup → r.Run()                             |
+| Nhúng vào chương trình chính | `cmd/server/manager_http.go`: dùng cùng bộ config/database/router, tự khởi tạo `http.Server` ở một cổng khác |
 
-## asr_server 合入设计（对齐上述形式）
+## Thiết kế hợp nhất asr_server (theo đúng hình thức trên)
 
-### 1. 目录与模块（Submodule 方式）
+### 1. Thư mục và module (theo cách Submodule)
 
-- **asr_server 须先有独立 Git 仓库**（若当前在 monorepo 里，可先拆成独立 repo，或使用现有 asr_server 仓库的 URL）。
-- **在主仓中添加 submodule**（在主仓根目录执行，且 `asr_server` 目录尚不存在）：
+- **asr_server cần có sẵn một Git repo độc lập trước** (nếu hiện đang nằm trong monorepo, có thể tách ra thành repo độc lập, hoặc dùng URL của repo asr_server hiện có).
+- **Thêm submodule vào repo chính** (thực hiện tại thư mục gốc của repo chính, và thư mục `asr_server` chưa tồn tại):
   ```bash
   cd milestones-esp32-server-golang
-  git submodule add <asr_server 仓库 URL> asr_server
+  git submodule add <URL repo asr_server> asr_server
   ```
-  完成后主仓会多出：
-  - 目录 `asr_server/`（内容为 asr_server 仓库当前检出的一次提交）
-  - 文件 `.gitmodules`，以及 `git submodule status` 可看到的子模块记录
-- **目录路径**：主仓内为 `milestones-esp32-server-golang/asr_server/`，与“拷贝方式”一致，主仓 go 代码和 go.mod 的 `replace` 都指向 `./asr_server`。
-- **模块名**：保持 asr_server 现有模块名 **`voice_server`**（便于其作为独立仓库时直接 `go build`，无需改 import）。
-- **主仓 go.mod**：增加一行：
+  Sau khi hoàn tất, repo chính sẽ có thêm:
+  - Thư mục `asr_server/` (nội dung là bản checkout hiện tại của repo asr_server tại một commit)
+  - File `.gitmodules`, và có thể xem bản ghi submodule bằng `git submodule status`
+- **Đường dẫn thư mục**: trong repo chính là `milestones-esp32-server-golang/asr_server/`, nhất quán với "cách copy mã nguồn"; mã Go và `replace` trong go.mod của repo chính đều trỏ tới `./asr_server`.
+- **Tên module**: giữ nguyên tên module hiện tại của asr_server là **`voice_server`** (để khi dùng như repo độc lập có thể `go build` trực tiếp, không cần sửa import).
+- **go.mod của repo chính**: thêm một dòng:
   - `replace voice_server => ./asr_server`
-- **asr_server 的 go.mod**：保持 `module voice_server`，不引用主仓；独立仓库时无 replace，合入主仓后仅主仓侧 replace 即可。
+- **go.mod của asr_server**: vẫn giữ `module voice_server`, không tham chiếu đến repo chính; khi là repo độc lập thì không có replace, sau khi hợp nhất vào repo chính chỉ cần phía repo chính có replace là đủ.
 
-**克隆主仓时拉取 submodule**（任选其一）：
+**Khi clone repo chính cần kéo theo submodule** (chọn một trong hai cách):
 
 ```bash
-# 克隆时一次性拉取子模块
-git clone --recurse-submodules <主仓 URL>
+# Clone và kéo submodule luôn trong một lần
+git clone --recurse-submodules <URL repo chính>
 
-# 或先克隆再初始化子模块
-git clone <主仓 URL>
+# Hoặc clone trước rồi khởi tạo submodule sau
+git clone <URL repo chính>
 cd milestones-esp32-server-golang
 git submodule update --init --recursive
 ```
 
-**CI / 自动化构建**：若主仓需要构建依赖 asr_server 的代码，需在构建前执行 `git submodule update --init --recursive`（或使用 `--recurse-submodules` 克隆）。
+**CI / build tự động**: nếu repo chính cần build mã có phụ thuộc vào asr_server, cần chạy `git submodule update --init --recursive` trước khi build (hoặc dùng `--recurse-submodules` khi clone).
 
-### 2. 独立运行（asr_server 仍是“独立仓库”）
+### 2. Chạy độc lập (asr_server vẫn là "repo độc lập")
 
-- 单独克隆/打开 `asr_server` 目录时：
+- Khi clone/mở riêng thư mục `asr_server`:
   - `go build -o asr_server .`
-  - `./asr_server` 使用 `config.json`（或 `-config` 指定路径），行为与现在一致。
-- 不依赖主仓；主仓的 `replace` 只影响主仓的构建。
+  - `./asr_server` sử dụng `config.json` (hoặc chỉ định đường dẫn bằng `-config`), hành vi giống như hiện tại.
+- Không phụ thuộc vào repo chính; `replace` của repo chính chỉ ảnh hưởng tới việc build của repo chính.
 
-### 3. 主程序初始化（内嵌 asr_server）
+### 3. Khởi tạo ở chương trình chính (nhúng asr_server)
 
-- **入口**：在主仓增加 `cmd/server/asr_server_http.go`（与 `manager_http.go` 同级）。
-- **逻辑**（与 manager_http 一致）：
-  1. 由主进程在启动时按配置决定是否调用（例如 `-asr-enable` + `-asr-config`）。
-  2. 使用 asr_server 的包：
-     - `voice_server/config`：`InitConfig(configPath)`，再 `GetConfig()` 得到 `*Config`。
-     - `voice_server/internal/bootstrap`：`InitApp(cfg)` 得到 `*AppDependencies`。
-     - `voice_server/internal/router`：`NewRouter(deps)` 得到 `*gin.Engine`。
-  3. 用 `deps.RateLimiter.Middleware(r)` 作为 Handler，在**单独端口**（如 8080）起 `http.Server`，在 goroutine 中 `ListenAndServe`。
-  4. 退出时提供 `StopAsrServerHTTP()`，对 `http.Server` 做 `Shutdown`，并做必要的资源释放（如 bootstrap 中需要 Close 的组件）。
-- **配置**：asr_server 仍用自身 `config.json`；内嵌时配置文件路径由主进程参数或主仓配置指定（如 `asr_server/config.json` 或 `config/asr_server.json`）。
+- **Điểm vào**: thêm file `cmd/server/asr_server_http.go` trong repo chính (cùng cấp với `manager_http.go`).
+- **Logic** (giống hệt manager_http):
+  1. Tiến trình chính khi khởi động sẽ dựa vào cấu hình để quyết định có gọi hay không (ví dụ tham số `-asr-enable` + `-asr-config`).
+  2. Sử dụng các package của asr_server:
+     - `voice_server/config`: gọi `InitConfig(configPath)`, sau đó `GetConfig()` để lấy `*Config`.
+     - `voice_server/internal/bootstrap`: gọi `InitApp(cfg)` để lấy `*AppDependencies`.
+     - `voice_server/internal/router`: gọi `NewRouter(deps)` để lấy `*gin.Engine`.
+  3. Dùng `deps.RateLimiter.Middleware(r)` làm Handler, khởi tạo `http.Server` ở **một cổng riêng** (ví dụ 8080), chạy `ListenAndServe` trong một goroutine.
+  4. Khi thoát, cung cấp hàm `StopAsrServerHTTP()` để gọi `Shutdown` cho `http.Server`, đồng thời giải phóng các tài nguyên cần thiết (ví dụ các thành phần trong bootstrap cần được Close).
+- **Cấu hình**: asr_server vẫn dùng file `config.json` của riêng nó; khi nhúng, đường dẫn file cấu hình do tham số của tiến trình chính hoặc cấu hình của repo chính chỉ định (ví dụ `asr_server/config.json` hoặc `config/asr_server.json`).
 
-### 4. 主仓改动清单（Submodule 方式）
+### 4. Danh sách thay đổi ở repo chính (theo cách Submodule)
 
-| 位置                                                                | 改动                                                                                                                                                                                             |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 主仓根                                                              | 执行 `git submodule add <asr_server 仓库 URL> asr_server`，得到 `asr_server/` 目录及 `.gitmodules`（asr_server 需先有独立 Git 仓库）                                                             |
-| `milestones-esp32-server-golang/go.mod`                             | 增加 `replace voice_server => ./asr_server`；若主仓代码要 import voice_server，再在 `require` 中加 `voice_server`（或由 `go mod tidy` 自动补）                                                   |
-| `milestones-esp32-server-golang/cmd/server/main.go`                 | 解析 `-asr-enable`、`-asr-config`；若 enable，在 `Run()` 前调用 `StartAsrServerHTTP(configPath)`；在 `<-quit` 后调用 `StopAsrServerHTTP()`                                                       |
-| 新增 `milestones-esp32-server-golang/cmd/server/asr_server_http.go` | 实现 `StartAsrServerHTTP(configPath string)`、`StopAsrServerHTTP()`，内部使用 `voice_server/config`、`voice_server/internal/bootstrap`、`voice_server/internal/router`，与 manager_http 模式一致 |
+| Vị trí                                                                  | Thay đổi                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gốc repo chính                                                          | Chạy `git submodule add <URL repo asr_server> asr_server`, để có được thư mục `asr_server/` và file `.gitmodules` (asr_server cần có sẵn repo Git độc lập trước)                                                       |
+| `milestones-esp32-server-golang/go.mod`                                 | Thêm `replace voice_server => ./asr_server`; nếu mã của repo chính cần import voice_server, thêm `voice_server` vào `require` (hoặc để `go mod tidy` tự bổ sung)                                                       |
+| `milestones-esp32-server-golang/cmd/server/main.go`                     | Parse tham số `-asr-enable`, `-asr-config`; nếu enable, gọi `StartAsrServerHTTP(configPath)` trước khi `Run()`; sau `<-quit` thì gọi `StopAsrServerHTTP()`                                                             |
+| Thêm mới `milestones-esp32-server-golang/cmd/server/asr_server_http.go` | Triển khai `StartAsrServerHTTP(configPath string)`, `StopAsrServerHTTP()`, bên trong dùng `voice_server/config`, `voice_server/internal/bootstrap`, `voice_server/internal/router`, theo đúng mô hình của manager_http |
 
-### 5. asr_server 侧需要配合的暴露
+### 5. Những phần cần asr_server hỗ trợ expose ra ngoài
 
-- **config**：已有 `InitConfig(path)`、`GetConfig()`，主进程可直接用。
-- **bootstrap**：已有 `InitApp(cfg *config.Config)`，返回 `*AppDependencies`，主进程可直接用。
-- **router**：已有 `NewRouter(deps) *gin.Engine`；主进程用 `deps.RateLimiter.Middleware(r)` 作为 Handler 即可。
-- **优雅退出**：若 bootstrap 内有需要 `Close()` 的资源（如 VAD 池、全局 recognizer 等），需在 asr_server 内提供统一的 `Shutdown(deps *AppDependencies)` 或类似函数，供 `StopAsrServerHTTP()` 调用；若当前没有，可先只做 `Server.Shutdown`，后续再补。
+- **config**: đã có sẵn `InitConfig(path)`, `GetConfig()`, tiến trình chính có thể dùng trực tiếp.
+- **bootstrap**: đã có sẵn `InitApp(cfg *config.Config)`, trả về `*AppDependencies`, tiến trình chính có thể dùng trực tiếp.
+- **router**: đã có sẵn `NewRouter(deps) *gin.Engine`; tiến trình chính dùng `deps.RateLimiter.Middleware(r)` làm Handler là đủ.
+- **Thoát an toàn (graceful shutdown)**: nếu bên trong bootstrap có tài nguyên cần `Close()` (ví dụ pool VAD, recognizer toàn cục, v.v.), cần cung cấp một hàm thống nhất kiểu `Shutdown(deps *AppDependencies)` trong asr_server để `StopAsrServerHTTP()` gọi tới; nếu hiện tại chưa có, có thể tạm thời chỉ làm `Server.Shutdown` trước, bổ sung sau.
 
-### 6. 依赖与构建
+### 6. Phụ thuộc và build
 
-- asr_server 的依赖（sherpa-onnx、qdrant、ten-vad 等）保留在 **asr_server/go.mod** 中；主仓**不**把 asr_server 的依赖提升到主 go.mod 的 require 中，仅通过 `require voice_server`（或等价）引用子模块，由 `go mod tidy` 在主仓拉齐依赖。
-- 若主仓构建时出现缺少依赖，再在主仓 go.mod 的 `require` 中显式添加 asr_server 用到的直接依赖即可。
-- CGO、本地 lib（如 ten_vad、sherpa-onnx 的 so/dll）仍按 asr_server 现有方式放在 asr_server 目录或主仓统一 `lib/`，构建脚本/文档中说明即可。
+- Các phụ thuộc của asr_server (sherpa-onnx, qdrant, ten-vad, v.v.) vẫn giữ trong **asr_server/go.mod**; repo chính **không** đưa các phụ thuộc của asr_server lên `require` của go.mod chính, chỉ tham chiếu submodule qua `require voice_server` (hoặc tương đương), để `go mod tidy` tự đồng bộ phụ thuộc trong repo chính.
+- Nếu khi build repo chính bị thiếu phụ thuộc, có thể thêm trực tiếp các phụ thuộc trực tiếp mà asr_server dùng vào `require` của go.mod repo chính.
+- CGO, các thư viện local (như file so/dll của ten_vad, sherpa-onnx) vẫn đặt theo cách hiện tại của asr_server trong thư mục asr_server, hoặc gom về thư mục `lib/` chung của repo chính, chỉ cần ghi rõ trong script build/tài liệu.
 
-### 7. 与 manager/backend 的差异说明
+### 7. Điểm khác biệt so với manager/backend
 
-- manager/backend 模块名是 `milestones/manager/backend`，asr_server 保持 `voice_server`，这样 asr_server 作为独立仓库时无需改 import。
-- 主仓用 `replace voice_server => ./asr_server` 即可，无需改 asr_server 内部包路径。
-- 主程序“初始化”方式一致：不调 asr_server 的 `main()`，只复用 config + bootstrap + router，在主进程内起一个带独立端口的 HTTP 服务。
+- Tên module của manager/backend là `milestones/manager/backend`, còn asr_server giữ nguyên `voice_server`, nhờ vậy khi asr_server đóng vai trò repo độc lập thì không cần sửa import.
+- Repo chính chỉ cần `replace voice_server => ./asr_server` là đủ, không cần sửa đường dẫn package nội bộ của asr_server.
+- Cách "khởi tạo" ở chương trình chính là nhất quán: không gọi hàm `main()` của asr_server, chỉ tái sử dụng config + bootstrap + router, khởi tạo một dịch vụ HTTP với cổng riêng ngay bên trong tiến trình chính.
 
-### 8. 小结（Submodule 方式）
+### 8. Tóm tắt (theo cách Submodule)
 
-- **独立仓库**：asr_server 是独立 Git 仓库，拥有自己的 `go.mod`（`module voice_server`）和 `main.go`，可单独克隆、构建、运行。
-- **合入主仓**：主仓用 **Git submodule** 引用 asr_server，得到 `asr_server/` 目录；主仓 `replace voice_server => ./asr_server`；克隆主仓后需执行 `git submodule update --init`（或 `git clone --recurse-submodules`）。
-- **主程序初始化**：主仓新增 `asr_server_http.go`，按配置在进程内启动 asr_server 的 HTTP 服务（独立端口），逻辑与 `manager_http.go` 对齐。
+- **Repo độc lập**: asr_server là một Git repo độc lập, có `go.mod` riêng (`module voice_server`) và `main.go`, có thể clone, build, chạy độc lập.
+- **Hợp nhất vào repo chính**: repo chính dùng **Git submodule** để tham chiếu asr_server, tạo ra thư mục `asr_server/`; repo chính có `replace voice_server => ./asr_server`; sau khi clone repo chính cần chạy `git submodule update --init` (hoặc `git clone --recurse-submodules`).
+- **Khởi tạo ở chương trình chính**: repo chính thêm mới `asr_server_http.go`, dựa theo cấu hình để khởi động dịch vụ HTTP của asr_server ngay trong tiến trình (ở cổng riêng), logic nhất quán với `manager_http.go`.
 
-**构建说明**：asr_server 依赖 sherpa-onnx（CGO），主仓通过**构建标签**将内嵌设为可选：
+**Ghi chú về build**: asr_server phụ thuộc vào sherpa-onnx (CGO), repo chính dùng **build tag** để biến việc nhúng thành tùy chọn (optional):
 
-- **默认构建**（不启用内嵌 asr_server）：`go build -o milestones_server ./cmd/server`，此时 `-asr-enable` 会打出“未编译进本二进制”的提示。
-- **启用内嵌 asr_server**：`go build -tags asr_server -o milestones_server ./cmd/server`，需本机具备 CGO 及 sherpa-onnx 所需环境。
+- **Build mặc định** (không bật nhúng asr_server): `go build -o milestones_server ./cmd/server`, lúc này nếu dùng `-asr-enable` sẽ in ra thông báo "chưa được biên dịch vào binary này".
+- **Bật nhúng asr_server**: `go build -tags asr_server -o milestones_server ./cmd/server`, yêu cầu máy build phải có sẵn môi trường CGO và các thư viện cần thiết cho sherpa-onnx.
 
-如确认按此方案实施，可再细化：asr_server 内 `Shutdown(deps)` 的职责列表、默认端口与配置路径、以及主仓 `main.go` 的参数命名与默认值。
+Nếu xác nhận triển khai theo phương án này, có thể tiếp tục làm rõ thêm: danh sách trách nhiệm của `Shutdown(deps)` bên trong asr_server, cổng mặc định và đường dẫn cấu hình mặc định, cũng như cách đặt tên và giá trị mặc định cho các tham số trong `main.go` của repo chính.

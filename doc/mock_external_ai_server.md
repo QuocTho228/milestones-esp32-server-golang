@@ -1,99 +1,98 @@
-# 独立 Mock ASR/LLM/TTS 服务（不改主程序）
+# Dịch vụ Mock ASR/LLM/TTS bên ngoài độc lập (không sửa chương trình chính)
 
-本方案提供一个**独立运行**的 mock 服务进程，用于在压测时替代真实 ASR/LLM/TTS 云服务。
+Phương án này cung cấp một tiến trình dịch vụ mock **chạy độc lập**, dùng để thay thế các dịch vụ cloud ASR/LLM/TTS thực tế khi thực hiện kiểm thử tải (load test/stress test).
 
-## 1. 启动
+## 1. Khởi động
 
 ```bash
 go run ./cmd/mock_ai_server \
   -addr :18080 \
-  -asr-text "你好，这是压测mock识别结果" \
-  -llm-reply "这是mock llm回复" \
+  -asr-text "Xin chào, đây là kết quả nhận dạng mock khi stress test" \
+  -llm-reply "Đây là phản hồi mock của llm" \
   -tts-mode silence
 ```
 
-健康检查：
+Kiểm tra sức khỏe (health check):
 
 ```bash
 curl http://127.0.0.1:18080/healthz
 ```
 
-## 2. 暴露接口
+## 2. Các giao diện được cung cấp
 
 - `ws://127.0.0.1:18080/asr/`
-  - 兼容 FunASR 风格 ws 输入（接收音频二进制帧）
-  - 收到 `{"is_speaking": false}` 后返回最终识别结果
+  - Tương thích với input dạng ws kiểu FunASR (nhận các frame nhị phân âm thanh)
+  - Sau khi nhận được `{"is_speaking": false}` sẽ trả về kết quả nhận dạng cuối cùng
 
 - `POST http://127.0.0.1:18080/v1/chat/completions`
-  - OpenAI Chat Completions 兼容接口
-  - 支持 `stream=false/true`
+  - Giao diện tương thích với OpenAI Chat Completions
+  - Hỗ trợ `stream=false/true`
 
 - `POST http://127.0.0.1:18080/v1/audio/speech`
-  - OpenAI TTS 兼容接口
-  - 返回 `audio/wav`（静音或beep）
+  - Giao diện tương thích với OpenAI TTS
+  - Trả về `audio/wav` (dạng im lặng hoặc tiếng bíp)
 
-## 3. 主程序配置建议（仅改配置，不改代码）
+## 3. Đề xuất cấu hình chương trình chính (chỉ sửa cấu hình, không sửa code)
 
-### ASR（FunASR）
+### ASR (FunASR)
 
 - `host=127.0.0.1`
 - `port=18080`
-- 协议路径按当前实现使用 `ws://host:port/`，若你的配置层要求路径，请使用 `/asr/`。
+- Đường dẫn giao thức theo triển khai hiện tại sử dụng `ws://host:port/`, nếu tầng cấu hình của bạn yêu cầu có path, vui lòng dùng `/asr/`.
 
-> 如果你当前 ASR 适配器强依赖 `ws://host:port/` 根路径，也可以在网关层把 `/` 转发到 `/asr/`。
+> Nếu adapter ASR hiện tại của bạn phụ thuộc chặt (strongly depend) vào path gốc `ws://host:port/`, cũng có thể ở tầng gateway chuyển tiếp (forward) `/` sang `/asr/`.
 
-### LLM（OpenAI 兼容）
+### LLM (Tương thích OpenAI)
 
-- provider 选择 `eino`（`type=openai`）
+- Chọn provider là `eino` (`type=openai`)
 - `base_url=http://127.0.0.1:18080/v1`
-- `api_key` 任意非空值
-- `model_name` 任意值（例如 `mock-gpt`）
+- `api_key` bất kỳ giá trị nào khác rỗng
+- `model_name` bất kỳ giá trị nào (ví dụ `mock-gpt`)
 
-### TTS（OpenAI 兼容）
+### TTS (Tương thích OpenAI)
 
-- provider 选择 `openai`
+- Chọn provider là `openai`
 - `api_url=http://127.0.0.1:18080/v1/audio/speech`
 - `response_format=wav`
-- `api_key` 任意非空值
+- `api_key` bất kỳ giá trị nào khác rỗng
 
-## 4. 可调参数
+## 4. Các tham số có thể điều chỉnh
 
 ```bash
--asr-delay-ms         # ASR最终返回延迟
--llm-first-delay-ms   # LLM首token延迟
--llm-chunk-delay-ms   # LLM流式chunk间延迟
--tts-first-delay-ms   # TTS首包延迟
--tts-mode             # silence|beep
--tts-duration-ms      # 返回音频时长
+-asr-delay-ms         # Độ trễ trả kết quả cuối cùng của ASR
+-llm-first-delay-ms   # Độ trễ token đầu tiên của LLM
+-llm-chunk-delay-ms   # Độ trễ giữa các chunk khi LLM stream
+-tts-first-delay-ms   # Độ trễ gói tin đầu tiên của TTS
+-tts-mode             # silence|beep (im lặng|tiếng bíp)
+-tts-duration-ms      # Thời lượng audio trả về
 ```
 
-## 5. 压测建议
+## 5. Đề xuất khi kiểm thử tải (stress test)
 
-1. 先本地单连接验通（确保设备能走完整链路并收到音频）。
-2. 再用 `ws_multi` 做并发阶梯（如 50/100/200/500）。
-3. 用不同 delay 组合模拟真实外部依赖波动，观测 P95/P99 与错误率。
+1. Trước tiên chạy thử với một kết nối đơn tại local để xác nhận (đảm bảo thiết bị có thể đi hết toàn bộ luồng liên kết và nhận được âm thanh).
+2. Sau đó dùng `ws_multi` để tăng dần số lượng kết nối song song (ví dụ 50/100/200/500).
+3. Sử dụng các tổ hợp delay khác nhau để mô phỏng biến động thực tế của các dependency bên ngoài, quan sát P95/P99 và tỷ lệ lỗi.
 
+## 6. Đánh giá về việc có cần tối ưu/thay đổi `ws_multi` hay không
 
-## 6. ws_multi 是否需要更改优化（评估）
+Kết luận: **Khuyến nghị tối ưu ở mức nhỏ, không bắt buộc phải tái cấu trúc lớn**. Hiện tại có thể dùng trực tiếp để stress test, nhưng để đo lường "hiệu năng của dịch vụ chính" một cách chân thực hơn thay vì "nút thắt cổ chai (bottleneck) của client stress test", nên bổ sung các năng lực sau:
 
-结论：**建议做小幅优化，非必须重构**。当前可直接用于压测，但为了更真实衡量“主服务性能”而不是“压测客户端瓶颈”，建议补以下能力：
+1. **Bổ sung chế độ phát lại âm thanh thuần túy (khuyến nghị ưu tiên)**
+   - Cách làm phổ biến hiện nay là chạy TTS local trước rồi mới đẩy âm thanh, điều này sẽ khiến thời gian xử lý TTS của client bị trộn lẫn vào kết quả đo.
+   - Khuyến nghị thêm `-audio_file`/`-audio_dir`, gửi trực tiếp các frame opus đã mã hóa sẵn hoặc wav đã chuyển sang opus.
 
-1. **增加纯音频回放模式（推荐优先）**
-   - 现在常见做法是先本地TTS再推音频，这会把客户端TTS耗时混进结果。
-   - 建议加 `-audio_file`/`-audio_dir`，直接发送预编码opus或wav转opus后的帧。
+2. **Xuất kết quả thống kê độ trễ theo cấu trúc**
+   - Bổ sung thống kê RT (response time) của frame đầu tiên, RT hoàn tất toàn bộ luồng, phân loại mã lỗi.
+   - Khuyến nghị xuất định dạng JSONL, thuận tiện cho việc xử lý và tổng hợp P95/P99 sau này.
 
-2. **延迟统计结构化输出**
-   - 增加首帧RT、全链路完成RT、错误码分类统计。
-   - 建议输出 JSONL，便于后处理聚合 P95/P99。
+3. **Kiểm soát điều tiết (throttle) kết nối và gửi dữ liệu**
+   - Bổ sung tính năng tạo kết nối theo lô (ví dụ mỗi giây khởi tạo N client), tránh việc tạo kết nối đồng loạt tức thời làm phóng đại độ rung (jitter) phía client.
+   - Bổ sung tham số jitter khi gửi gói tin, để mô phỏng mạng thực tế của thiết bị.
 
-3. **连接与发送节流控制**
-   - 增加分批建连（例如每秒启动N个客户端），避免瞬时建连放大客户端侧抖动。
-   - 增加发包抖动参数，模拟真实设备网络。
+4. **Chính sách thử lại và timeout khi thất bại có thể cấu hình**
+   - Ví dụ `-dial_timeout`, `-read_timeout`, `-retry`, nâng cao độ ổn định khi stress test dài hạn.
 
-4. **失败重试与超时策略可配置**
-   - 如 `-dial_timeout`、`-read_timeout`、`-retry`，提升长压测稳定性。
+5. **Thu thập chỉ số tài nguyên (tùy chọn)**
+   - Ghi lại CPU/bộ nhớ của bản thân client, thuận tiện để phân biệt "nút thắt phía server" và "nút thắt phía máy chạy stress test".
 
-5. **资源指标采集（可选）**
-   - 记录客户端自身CPU/内存，便于区分“服务端瓶颈”与“压测机瓶颈”。
-
-在你这个“独立mock服务”方案下，`ws_multi` **不改也能跑**，但建议至少做第1和第2项，压测结论会明显更可信。
+Trong phương án "dịch vụ mock độc lập" của bạn, `ws_multi` **không sửa vẫn có thể chạy**, nhưng khuyến nghị nên làm ít nhất mục 1 và mục 2, để kết luận stress test đáng tin cậy hơn rõ rệt.

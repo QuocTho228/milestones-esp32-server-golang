@@ -1,20 +1,20 @@
-# 播放音乐功能
+# Chức năng phát nhạc
 
-这个模块提供了从URL流式播放音乐的功能，支持从网络URL获取音频文件并实时解码为音频帧流。
+Module này cung cấp chức năng phát nhạc dạng streaming từ URL, hỗ trợ lấy file âm thanh từ URL trên mạng và giải mã thời gian thực thành luồng khung âm thanh (audio frame stream).
 
-## 功能特性
+## Đặc điểm chức năng
 
-- ✅ **流式播放**: 支持从URL实时下载和播放音乐
-- ✅ **格式支持**: 主要支持MP3格式，自动解码为Opus音频帧
-- ✅ **音频解码**: 基于成熟的音频解码器，高效稳定
-- ✅ **上下文控制**: 支持通过context取消和超时控制
-- ✅ **连接池优化**: 使用HTTP连接池，提高网络性能
-- ✅ **配置灵活**: 可配置帧时长和音频格式
-- ✅ **统计信息**: 提供播放统计和状态监控
+- ✅ **Phát dạng streaming**: Hỗ trợ tải và phát nhạc theo thời gian thực từ URL
+- ✅ **Hỗ trợ định dạng**: Chủ yếu hỗ trợ định dạng MP3, tự động giải mã thành khung âm thanh Opus
+- ✅ **Giải mã âm thanh**: Dựa trên bộ giải mã âm thanh (decoder) đã hoàn thiện, hiệu quả và ổn định
+- ✅ **Kiểm soát context**: Hỗ trợ hủy và kiểm soát timeout thông qua context
+- ✅ **Tối ưu connection pool**: Sử dụng connection pool HTTP, nâng cao hiệu năng mạng
+- ✅ **Cấu hình linh hoạt**: Có thể cấu hình thời lượng khung (frame duration) và định dạng âm thanh
+- ✅ **Thông tin thống kê**: Cung cấp thống kê phát và giám sát trạng thái
 
-## 快速开始
+## Bắt đầu nhanh
 
-### 1. 基础使用
+### 1. Sử dụng cơ bản
 
 ```go
 package main
@@ -27,43 +27,43 @@ import (
 )
 
 func main() {
-    // 创建音乐播放器
+    // Tạo trình phát nhạc
     config := play_music.DefaultMusicPlayerConfig()
     player := play_music.NewMusicPlayer(config.ToMap())
 
-    // 开始播放音乐
+    // Bắt đầu phát nhạc
     ctx := context.Background()
     audioChan, err := player.PlayMusicStream(ctx, "https://example.com/music.mp3")
     if err != nil {
         panic(err)
     }
 
-    // 处理音频帧
+    // Xử lý khung âm thanh
     for audioFrame := range audioChan {
-        fmt.Printf("收到音频帧: %d 字节\n", len(audioFrame))
-        // 这里可以将音频帧发送到播放设备或其他处理
+        fmt.Printf("Đã nhận khung âm thanh: %d byte\n", len(audioFrame))
+        // Ở đây có thể gửi khung âm thanh tới thiết bị phát hoặc xử lý khác
     }
 }
 ```
 
-### 2. 自定义配置
+### 2. Cấu hình tùy chỉnh
 
 ```go
-// 创建自定义配置
+// Tạo cấu hình tùy chỉnh
 config := &play_music.MusicPlayerConfig{
-    FrameDuration: 20,   // 20ms帧时长
+    FrameDuration: 20,   // Thời lượng khung 20ms
 }
 
 player := play_music.NewMusicPlayer(config.ToMap())
 
-// 或者直接传入配置映射
+// Hoặc truyền trực tiếp bản đồ cấu hình
 player := play_music.NewMusicPlayer(map[string]interface{}{
     "frame_duration": 20,
     "audio_format":   "mp3",
 })
 ```
 
-### 3. 带统计信息的完整示例
+### 3. Ví dụ đầy đủ kèm thông tin thống kê
 
 ```go
 package main
@@ -88,7 +88,7 @@ func main() {
         panic(err)
     }
 
-    // 统计信息
+    // Thông tin thống kê
     stats := &play_music.StreamingStats{
         StartTime: time.Now().UnixMilli(),
     }
@@ -101,73 +101,73 @@ func main() {
 
         if frameCount == 1 {
             stats.FirstFrameTime = time.Now().UnixMilli()
-            fmt.Printf("首帧延迟: %d ms\n", stats.FirstFrameTime - stats.StartTime)
+            fmt.Printf("Độ trễ khung đầu tiên: %d ms\n", stats.FirstFrameTime - stats.StartTime)
         }
 
-        // 处理音频帧...
+        // Xử lý khung âm thanh...
     }
 
-    fmt.Printf("播放完成，总帧数: %d\n", frameCount)
+    fmt.Printf("Phát hoàn tất, tổng số khung: %d\n", frameCount)
 }
 ```
 
-## API 参考
+## Tham khảo API
 
 ### MusicPlayer
 
-主要的音乐播放器结构体。
+Struct trình phát nhạc chính.
 
-#### 方法
+#### Các phương thức
 
 ##### `NewMusicPlayer(config map[string]interface{}) *MusicPlayer`
 
-创建新的音乐播放器实例。
+Tạo một instance trình phát nhạc mới.
 
-**参数:**
+**Tham số:**
 
-- `config`: 配置参数映射
+- `config`: Bản đồ tham số cấu hình
 
-**配置选项:**
+**Các tùy chọn cấu hình:**
 
-- `frame_duration` (int): 帧时长(ms)，默认20
-- `audio_format` (string): 音频格式，默认"mp3"
+- `frame_duration` (int): Thời lượng khung (ms), mặc định 20
+- `audio_format` (string): Định dạng âm thanh, mặc định "mp3"
 
 ##### `PlayMusicStream(ctx context.Context, url string) (chan []byte, error)`
 
-从URL开始流式播放音乐。
+Bắt đầu phát nhạc dạng streaming từ URL.
 
-**参数:**
+**Tham số:**
 
-- `ctx`: 上下文对象，用于取消和超时控制
-- `url`: 音乐文件的URL地址
+- `ctx`: Đối tượng context, dùng để kiểm soát hủy và timeout
+- `url`: Địa chỉ URL của file nhạc
 
-**返回:**
+**Trả về:**
 
-- `chan []byte`: 音频帧数据通道
-- `error`: 错误信息
+- `chan []byte`: Channel dữ liệu khung âm thanh
+- `error`: Thông tin lỗi
 
 ##### `GetPlayerInfo() map[string]interface{}`
 
-获取播放器配置信息。
+Lấy thông tin cấu hình của trình phát.
 
 ##### `Stop() error`
 
-停止播放器并清理资源。
+Dừng trình phát và dọn dẹp tài nguyên.
 
-### 配置类型
+### Các kiểu cấu hình
 
 #### `MusicPlayerConfig`
 
 ```go
 type MusicPlayerConfig struct {
-    FrameDuration int    `json:"frame_duration"` // 帧时长(ms)
-    AudioFormat   string `json:"audio_format"`   // 音频格式，默认"mp3"
+    FrameDuration int    `json:"frame_duration"` // Thời lượng khung (ms)
+    AudioFormat   string `json:"audio_format"`   // Định dạng âm thanh, mặc định "mp3"
 }
 ```
 
 #### `StreamingStats`
 
-播放统计信息结构体，用于监控播放状态。
+Struct thông tin thống kê phát, dùng để giám sát trạng thái phát.
 
 ```go
 type StreamingStats struct {
@@ -181,54 +181,54 @@ type StreamingStats struct {
 }
 ```
 
-## 测试
+## Kiểm thử (Testing)
 
-运行测试示例：
+Chạy ví dụ test:
 
 ```bash
 cd test/music_player
 go run main.go "https://example.com/music.mp3"
 ```
 
-## 支持的音频格式
+## Các định dạng âm thanh được hỗ trợ
 
-目前主要支持：
+Hiện tại chủ yếu hỗ trợ:
 
-- **MP3**: 完全支持，推荐使用
-- **WAV**: 部分支持（通过通用解码器）
+- **MP3**: Hỗ trợ hoàn toàn, khuyến nghị sử dụng
+- **WAV**: Hỗ trợ một phần (thông qua bộ giải mã chung)
 
-## 错误处理
+## Xử lý lỗi
 
-播放器提供了简洁的错误处理机制：
+Trình phát cung cấp cơ chế xử lý lỗi gọn gàng:
 
-1. **连接池优化**: 使用HTTP连接池提高网络稳定性
-2. **上下文控制**: 支持通过context取消操作
-3. **优雅退出**: 遇到错误时优雅关闭通道
+1. **Tối ưu connection pool**: Sử dụng connection pool HTTP để nâng cao độ ổn định mạng
+2. **Kiểm soát context**: Hỗ trợ hủy thao tác thông qua context
+3. **Thoát an toàn (graceful exit)**: Đóng channel một cách an toàn khi gặp lỗi
 
-## 性能优化建议
+## Đề xuất tối ưu hiệu năng
 
-1. **合理设置帧时长**: 默认20ms适合大多数场景
-2. **网络优化**: 使用稳定的网络连接，播放器已优化HTTP连接池
-3. **内存管理**: 及时处理音频帧数据，避免通道阻塞
-4. **并发控制**: 避免同时播放过多音频流
+1. **Thiết lập thời lượng khung hợp lý**: Mặc định 20ms phù hợp với hầu hết các kịch bản
+2. **Tối ưu mạng**: Sử dụng kết nối mạng ổn định, trình phát đã được tối ưu connection pool HTTP
+3. **Quản lý bộ nhớ**: Xử lý kịp thời dữ liệu khung âm thanh, tránh tắc nghẽn channel
+4. **Kiểm soát đồng thời**: Tránh phát quá nhiều luồng âm thanh cùng lúc
 
-## 集成示例
+## Ví dụ tích hợp
 
-### 与WebSocket集成
+### Tích hợp với WebSocket
 
 ```go
 func streamToWebSocket(audioChan <-chan []byte, ws *websocket.Conn) {
     for frame := range audioChan {
         err := ws.WriteMessage(websocket.BinaryMessage, frame)
         if err != nil {
-            log.Errorf("发送WebSocket消息失败: %v", err)
+            log.Errorf("Gửi tin nhắn WebSocket thất bại: %v", err)
             return
         }
     }
 }
 ```
 
-### 保存到文件
+### Lưu vào file
 
 ```go
 func saveToFile(audioChan <-chan []byte, filename string) error {
@@ -248,26 +248,26 @@ func saveToFile(audioChan <-chan []byte, filename string) error {
 }
 ```
 
-## 注意事项
+## Lưu ý
 
-1. **URL有效性**: 确保音频URL可访问且返回有效音频文件
-2. **内存使用**: 长时间播放需要注意内存使用情况
-3. **网络稳定性**: 使用稳定的网络连接以获得最佳播放体验
-4. **上下文管理**: 及时取消不需要的播放任务
+1. **Tính hợp lệ của URL**: Đảm bảo URL âm thanh có thể truy cập được và trả về file âm thanh hợp lệ
+2. **Sử dụng bộ nhớ**: Cần chú ý tình trạng sử dụng bộ nhớ khi phát trong thời gian dài
+3. **Độ ổn định mạng**: Sử dụng kết nối mạng ổn định để có trải nghiệm phát tốt nhất
+4. **Quản lý context**: Hủy kịp thời các tác vụ phát không cần thiết
 
-## 故障排除
+## Xử lý sự cố
 
-### 常见问题
+### Các câu hỏi thường gặp
 
-**Q: 播放没有声音**
-A: 检查URL是否有效，音频格式是否支持
+**Hỏi: Phát không có âm thanh**
+Đáp: Kiểm tra URL có hợp lệ hay không, định dạng âm thanh có được hỗ trợ hay không
 
-**Q: 播放延迟很高**
-A: 检查网络连接，确保URL响应速度较快
+**Hỏi: Độ trễ khi phát rất cao**
+Đáp: Kiểm tra kết nối mạng, đảm bảo URL phản hồi đủ nhanh
 
-**Q: 内存使用过高**
-A: 检查音频帧处理是否及时，避免通道积压
+**Hỏi: Sử dụng bộ nhớ quá cao**
+Đáp: Kiểm tra việc xử lý khung âm thanh có kịp thời hay không, tránh việc dữ liệu bị dồn ứ trong channel
 
-## License
+## Giấy phép (License)
 
 MIT License

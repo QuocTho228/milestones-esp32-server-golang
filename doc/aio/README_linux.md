@@ -1,41 +1,41 @@
-# 小智服务 Linux 使用说明
+# Hướng dẫn sử dụng dịch vụ Milestones trên Linux
 
-欢迎使用小智服务 Linux aio 包。本文档包含依赖安装、启动和配置说明。
+Chào mừng bạn đến với gói cài đặt Milestones Service (AIO) dành cho Linux. Tài liệu này bao gồm hướng dẫn cài đặt các thư viện phụ thuộc, khởi động dịch vụ và cấu hình hệ thống.
 
-## 目录结构
+## Cấu trúc thư mục
 
 ```
 milestones_server-linux-amd64-<version>/
-├── milestones_server              # 主程序
+├── milestones_server              # Chương trình chính
 ├── ten-vad/
 │   └── lib/Linux/x64/
-│       ├── libten_vad.so       # VAD 依赖库
+│       ├── libten_vad.so       # Thư viện phụ thuộc VAD (phát hiện giọng nói)
 │       ├── libsherpa-onnx-c-api.so
 │       ├── libsherpa-onnx-cxx-api.so
-│       └── libonnxruntime.so   # ONNX Runtime 依赖库
-├── main_config.yaml            # 主配置文件
-├── manager.json                # 管理后台配置
-├── asr_server.json             # ASR 服务配置
-├── models/                     # 模型文件目录
-├── data/                       # 数据目录
-└── logs/                       # 日志目录
+│       └── libonnxruntime.so   # Thư viện phụ thuộc ONNX Runtime
+├── main_config.yaml            # File cấu hình chính
+├── manager.json                # Cấu hình trang quản trị
+├── asr_server.json             # Cấu hình dịch vụ ASR (nhận dạng giọng nói)
+├── models/                     # Thư mục chứa các file mô hình
+├── data/                       # Thư mục dữ liệu
+└── logs/                       # Thư mục nhật ký (log)
 ```
 
-## 运行依赖
+## Yêu cầu vận hành
 
-### 系统要求
+### Yêu cầu hệ thống
 
-| 系统          | 最低版本    | 测试状态            |
-| ------------- | ----------- | ------------------- |
-| Ubuntu        | 18.04 LTS   | ✅ 已测试           |
-| Debian        | 10 (Buster) | ⚠️ 预期兼容，未测试 |
-| CentOS / RHEL | 8           | ⚠️ 预期兼容，未测试 |
+| Hệ điều hành  | Phiên bản tối thiểu | Trạng thái kiểm thử                   |
+| ------------- | ------------------- | ------------------------------------- |
+| Ubuntu        | 18.04 LTS           | ✅ Đã kiểm thử                        |
+| Debian        | 10 (Buster)         | ⚠️ Dự kiến tương thích, chưa kiểm thử |
+| CentOS / RHEL | 8                   | ⚠️ Dự kiến tương thích, chưa kiểm thử |
 
-**运行时要求**：
+**Yêu cầu về môi trường chạy**:
 
-- **架构**：x86_64 (amd64)
+- **Kiến trúc**: x86_64 (amd64)
 
-### 安装依赖
+### Cài đặt các thư viện phụ thuộc
 
 #### Debian / Ubuntu
 
@@ -48,85 +48,85 @@ sudo apt install -y libc++1 libc++abi1
 
 ```bash
 sudo dnf install -y libcxx libcxxabi
-# 或
+# hoặc
 sudo yum install -y libcxx libcxxabi
 ```
 
-#### 其他发行版
+#### Các bản phân phối khác
 
-请安装以下库的对应包：
+Vui lòng cài đặt các gói tương ứng với những thư viện sau:
 
-- `libc++.so.1` — LLVM C++ 标准库
-- `libc++abi.so.1` — LLVM C++ ABI
+- `libc++.so.1` — Thư viện chuẩn C++ của LLVM
+- `libc++abi.so.1` — Thư viện ABI C++ của LLVM
 
-## 快速启动
+## Khởi động nhanh
 
 ```bash
-# 添加执行权限
+# Cấp quyền thực thi
 chmod +x milestones_server
 
-# 启动服务
+# Khởi động dịch vụ
 ./milestones_server
 ```
 
-### 后台运行
+### Chạy nền (background)
 
-使用 nohup：
+Sử dụng nohup:
 
 ```bash
 nohup ./milestones_server > logs/output.log 2>&1 &
 ```
 
-或使用 systemd（推荐生产环境），见下文。
+Hoặc sử dụng systemd (khuyến nghị cho môi trường production), xem phần bên dưới.
 
-## 端口与服务
+## Cổng (Port) và dịch vụ
 
-| 端口     | 配置来源                              | 说明                                  |
-| -------- | ------------------------------------- | ------------------------------------- |
-| **8080** | `manager.json` → `server.port`        | **管理后台**：Web 控制台 + HTTP API   |
-| **8989** | `main_config.yaml` → `websocket.port` | **主服务 WebSocket**：设备/客户端连接 |
-| **9000** | `asr_server.json` → `server.port`     | **ASR/声纹服务**：语音识别内部接口    |
-| **2883** | 控制台配置                            | **MQTT 服务**：设备 MQTT 连接         |
-| **8990** | 控制台配置                            | **UDP 服务**：设备 UDP 通信           |
-| **6060** | 控制台配置                            | **pprof**：性能分析（默认关闭）       |
+| Cổng     | Nguồn cấu hình                        | Mô tả                                                 |
+| -------- | ------------------------------------- | ----------------------------------------------------- |
+| **8080** | `manager.json` → `server.port`        | **Trang quản trị**: Web console + HTTP API            |
+| **8989** | `main_config.yaml` → `websocket.port` | **WebSocket dịch vụ chính**: kết nối thiết bị/client  |
+| **9000** | `asr_server.json` → `server.port`     | **Dịch vụ ASR/nhận dạng giọng nói**: giao diện nội bộ |
+| **2883** | Cấu hình qua console                  | **Dịch vụ MQTT**: kết nối MQTT của thiết bị           |
+| **8990** | Cấu hình qua console                  | **Dịch vụ UDP**: giao tiếp UDP của thiết bị           |
+| **6060** | Cấu hình qua console                  | **pprof**: phân tích hiệu năng (mặc định tắt)         |
 
-## 访问地址
+## Địa chỉ truy cập
 
-### 管理后台
+### Trang quản trị
 
-- **本地访问**：`http://localhost:8080/`
-- **局域网访问**：`http://<服务器IP>:8080/`
+- **Truy cập nội bộ (local)**: `http://localhost:8080/`
+- **Truy cập trong mạng LAN**: `http://<IP máy chủ>:8080/`
 
-### 设备/客户端连接
+### Kết nối thiết bị/client
 
-- **WebSocket**：`ws://<服务器IP>:8989/`
-- **MQTT**：`<服务器IP>:2883`
-- **UDP**：`<服务器IP>:8990`
+- **WebSocket**: `ws://<IP máy chủ>:8989/`
+- **MQTT**: `<IP máy chủ>:2883`
+- **UDP**: `<IP máy chủ>:8990`
 
-## 修改配置
+## Thay đổi cấu hình
 
-### 需在配置文件中修改的端口
+### Các cổng cần sửa trực tiếp trong file cấu hình
 
-以下端口修改后需重启服务生效：
+Sau khi sửa các cổng dưới đây, cần khởi động lại dịch vụ để có hiệu lực:
 
-| 端口 | 配置文件           | 配置项           |
+| Cổng | File cấu hình      | Mục cấu hình     |
 | ---- | ------------------ | ---------------- |
 | 8080 | `manager.json`     | `server.port`    |
 | 8989 | `main_config.yaml` | `websocket.port` |
 | 9000 | `asr_server.json`  | `server.port`    |
 
-### 控制台配置
+### Cấu hình qua trang quản trị (console)
 
-以下端口及所有其他配置通过管理后台控制台进行变更：
+Các cổng dưới đây cùng toàn bộ cấu hình khác đều được thay đổi thông qua trang quản trị:
 
-- **端口配置**：MQTT (2883)、UDP (8990)、pprof (6060)
-- **功能配置**：LLM、TTS、ASR、声纹识别等
-- 访问 `http://localhost:8080/` 进入管理后台
-- 配置变更实时生效，无需重启服务
+- **Cấu hình cổng**: MQTT (2883), UDP (8990), pprof (6060)
+- **Cấu hình chức năng**: LLM, TTS, ASR, nhận dạng giọng nói (声纹识别), v.v.
+- Truy cập `http://localhost:8080/` để vào trang quản trị
+- Thay đổi cấu hình có hiệu lực ngay lập tức, không cần khởi động lại dịch vụ
 
-## 生产环境部署（systemd）
+## Triển khai môi trường production (systemd)
 
-创建服务文件 `/etc/systemd/system/milestones.service`：
+Tạo file dịch vụ `/etc/systemd/system/milestones.service`:
 
 ```ini
 [Unit]
@@ -145,32 +145,32 @@ RestartSec=3
 WantedBy=multi-user.target
 ```
 
-启动服务：
+Khởi động dịch vụ:
 
 ```bash
-# 重载配置
+# Nạp lại cấu hình systemd
 sudo systemctl daemon-reload
 
-# 启用开机自启
+# Bật tự khởi động cùng hệ thống
 sudo systemctl enable milestones
 
-# 启动服务
+# Khởi động dịch vụ
 sudo systemctl start milestones
 
-# 查看状态
+# Xem trạng thái
 sudo systemctl status milestones
 
-# 查看日志
+# Xem log
 sudo journalctl -u milestones -f
 ```
 
-## 防火墙配置
+## Cấu hình tường lửa (Firewall)
 
-如果服务器启用了防火墙，需要开放相应端口：
+Nếu máy chủ có bật tường lửa, cần mở các cổng tương ứng:
 
 ```bash
 # Ubuntu/Debian (ufw)
-sudo ufw allow 8080/tcp  # 管理后台
+sudo ufw allow 8080/tcp  # Trang quản trị
 sudo ufw allow 8989/tcp  # WebSocket
 sudo ufw allow 2883/tcp  # MQTT
 sudo ufw allow 8990/udp  # UDP
@@ -183,33 +183,33 @@ sudo firewall-cmd --permanent --add-port=8990/udp
 sudo firewall-cmd --reload
 ```
 
-## 常见问题
+## Các vấn đề thường gặp
 
-### 提示缺少共享库
+### Báo thiếu thư viện dùng chung (shared library)
 
-使用 `ldd` 命令检查缺失的库：
+Dùng lệnh `ldd` để kiểm tra thư viện bị thiếu:
 
 ```bash
 ldd milestones_server
 ldd ten-vad/lib/Linux/x64/libten_vad.so
 ```
 
-根据输出安装对应的系统包。
+Dựa vào kết quả trả về để cài đặt gói hệ thống tương ứng.
 
-### glibc 版本过低
+### Phiên bản glibc quá thấp
 
-如果出现 `version 'GLIBC_2.xx' not found`，说明系统 glibc 版本过旧。建议：
+Nếu xuất hiện lỗi `version 'GLIBC_2.xx' not found`, có nghĩa là phiên bản glibc của hệ thống quá cũ. Khuyến nghị:
 
-- 升级系统到较新版本
-- 或使用 Docker 容器运行
+- Nâng cấp hệ điều hành lên phiên bản mới hơn
+- Hoặc chạy chương trình bằng container Docker
 
-### 端口被占用
+### Cổng đã bị chiếm dụng
 
 ```bash
-# 查看端口占用
-sudo lsof -i :端口号
-# 或
-sudo netstat -tulpn | grep 端口号
+# Kiểm tra cổng đang được sử dụng
+sudo lsof -i :số_cổng
+# hoặc
+sudo netstat -tulpn | grep số_cổng
 
-# 修改配置文件中的端口号或结束占用进程
+# Sửa cổng trong file cấu hình hoặc kết thúc tiến trình đang chiếm cổng đó
 ```

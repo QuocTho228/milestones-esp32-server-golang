@@ -1,135 +1,135 @@
-# 小智服务 macOS 使用说明
+# Hướng dẫn sử dụng dịch vụ Milestones trên macOS
 
-欢迎使用小智服务 macOS aio 包。本文档包含依赖安装、启动和配置说明。
+Chào mừng bạn đến với gói cài đặt Milestones Service (AIO) dành cho macOS. Tài liệu này bao gồm hướng dẫn cài đặt các thư viện phụ thuộc, khởi động dịch vụ và cấu hình hệ thống.
 
-## 目录结构
+## Cấu trúc thư mục
 
 ```
 milestones_server-macos-<arch>-<version>/
-├── milestones_server              # 主程序
+├── milestones_server              # Chương trình chính
 ├── ten-vad/
 │   └── lib/macOS/
-│       ├── ten_vad.framework/  # VAD 框架
+│       ├── ten_vad.framework/  # Framework VAD (phát hiện giọng nói)
 │       ├── libonnxruntime.*.dylib
 │       └── libsherpa-onnx-*.dylib
-├── main_config.yaml            # 主配置文件
-├── manager.json                # 管理后台配置
-├── asr_server.json             # ASR 服务配置
-├── models/                     # 模型文件目录
-├── data/                       # 数据目录
-└── logs/                       # 日志目录
+├── main_config.yaml            # File cấu hình chính
+├── manager.json                # Cấu hình trang quản trị
+├── asr_server.json             # Cấu hình dịch vụ ASR (nhận dạng giọng nói)
+├── models/                     # Thư mục chứa các file mô hình
+├── data/                       # Thư mục dữ liệu
+└── logs/                       # Thư mục nhật ký (log)
 ```
 
-> **注意**：macOS 版本分为 **amd64** (Intel) 和 **arm64** (Apple Silicon)，请下载与您的 Mac 匹配的版本。
+> **Lưu ý**: Phiên bản macOS được chia thành hai loại **amd64** (Intel) và **arm64** (Apple Silicon), vui lòng tải đúng phiên bản phù hợp với dòng máy Mac của bạn.
 
-## 运行依赖
+## Yêu cầu vận hành
 
-### 系统要求
+### Yêu cầu hệ thống
 
-- **macOS 版本**：macOS 11 (Big Sur) 或更高版本
-- **架构**：Intel (x86_64) 或 Apple Silicon (arm64)
+- **Phiên bản macOS**: macOS 11 (Big Sur) trở lên
+- **Kiến trúc**: Intel (x86_64) hoặc Apple Silicon (arm64)
 
-### 安装依赖
+### Cài đặt các thư viện phụ thuộc
 
-使用 Homebrew 安装必要的依赖：
+Sử dụng Homebrew để cài đặt các thư viện cần thiết:
 
 ```bash
-# 安装 Homebrew（如果尚未安装）
+# Cài đặt Homebrew (nếu chưa có)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# 安装依赖
+# Cài đặt thư viện phụ thuộc
 brew install pkg-config
 ```
 
-## 快速启动
+## Khởi động nhanh
 
 ```bash
-# 添加执行权限
+# Cấp quyền thực thi
 chmod +x milestones_server
 
-# 如果这是你自己构建的发布包，先修正 rpath
+# Nếu đây là bản build bạn tự đóng gói, hãy sửa rpath trước
 ./build/macos/fix_rpath.sh ./milestones_server
 
-# 启动服务
+# Khởi động dịch vụ
 ./milestones_server
 ```
 
-说明：
+Ghi chú:
 
-- 官方发布包如果已经完成打包，一般不需要再次执行 `fix_rpath.sh`
-- 只有你在源码仓库里自行构建 macOS 分发包时，才需要补这一步
-- 这一步会把二进制里的开发机绝对路径 `rpath` 改成 `@executable_path/ten-vad/lib/macOS`
+- Đối với gói phát hành chính thức đã được đóng gói sẵn, thông thường không cần chạy lại `fix_rpath.sh`
+- Chỉ khi bạn tự build gói phân phối macOS từ mã nguồn thì mới cần thực hiện thêm bước này
+- Bước này sẽ thay đổi đường dẫn tuyệt đối (`rpath`) của máy phát triển bên trong file thực thi thành `@executable_path/ten-vad/lib/macOS`
 
-### 首次运行安全提示
+### Cảnh báo bảo mật khi chạy lần đầu
 
-首次运行时，macOS 可能会弹出安全提示，因为程序未经过 Apple 认证。请：
+Khi chạy lần đầu, macOS có thể hiện cảnh báo bảo mật vì chương trình chưa được Apple xác thực (chứng thực chữ ký). Vui lòng:
 
-1. 打开「系统设置」→「隐私与安全性」
-2. 找到关于 `milestones_server` 的提示
-3. 点击「仍要打开」或「允许」
+1. Mở "Cài đặt hệ thống" (System Settings) → "Quyền riêng tư & Bảo mật" (Privacy & Security)
+2. Tìm mục cảnh báo liên quan đến `milestones_server`
+3. Nhấn "Vẫn mở" (Open Anyway) hoặc "Cho phép" (Allow)
 
-或使用以下命令解除隔离：
+Hoặc dùng lệnh sau để gỡ bỏ thuộc tính cách ly (quarantine):
 
 ```bash
 xattr -cr milestones_server
 ```
 
-## 端口与服务
+## Cổng (Port) và dịch vụ
 
-| 端口     | 配置来源                              | 说明                                  |
-| -------- | ------------------------------------- | ------------------------------------- |
-| **8080** | `manager.json` → `server.port`        | **管理后台**：Web 控制台 + HTTP API   |
-| **8989** | `main_config.yaml` → `websocket.port` | **主服务 WebSocket**：设备/客户端连接 |
-| **9000** | `asr_server.json` → `server.port`     | **ASR/声纹服务**：语音识别内部接口    |
-| **2883** | 控制台配置                            | **MQTT 服务**：设备 MQTT 连接         |
-| **8990** | 控制台配置                            | **UDP 服务**：设备 UDP 通信           |
-| **6060** | 控制台配置                            | **pprof**：性能分析（默认关闭）       |
+| Cổng     | Nguồn cấu hình                        | Mô tả                                                 |
+| -------- | ------------------------------------- | ----------------------------------------------------- |
+| **8080** | `manager.json` → `server.port`        | **Trang quản trị**: Web console + HTTP API            |
+| **8989** | `main_config.yaml` → `websocket.port` | **WebSocket dịch vụ chính**: kết nối thiết bị/client  |
+| **9000** | `asr_server.json` → `server.port`     | **Dịch vụ ASR/nhận dạng giọng nói**: giao diện nội bộ |
+| **2883** | Cấu hình qua console                  | **Dịch vụ MQTT**: kết nối MQTT của thiết bị           |
+| **8990** | Cấu hình qua console                  | **Dịch vụ UDP**: giao tiếp UDP của thiết bị           |
+| **6060** | Cấu hình qua console                  | **pprof**: phân tích hiệu năng (mặc định tắt)         |
 
-## 访问地址
+## Địa chỉ truy cập
 
-### 管理后台
+### Trang quản trị
 
-- **本地访问**：`http://localhost:8080/`
-- **局域网访问**：`http://<本机IP>:8080/`
+- **Truy cập nội bộ (local)**: `http://localhost:8080/`
+- **Truy cập trong mạng LAN**: `http://<IP máy này>:8080/`
 
-### 设备/客户端连接
+### Kết nối thiết bị/client
 
-- **WebSocket**：`ws://<服务器IP>:8989/`
-- **MQTT**：`<服务器IP>:2883`
-- **UDP**：`<服务器IP>:8990`
+- **WebSocket**: `ws://<IP máy chủ>:8989/`
+- **MQTT**: `<IP máy chủ>:2883`
+- **UDP**: `<IP máy chủ>:8990`
 
-## 修改配置
+## Thay đổi cấu hình
 
-### 需在配置文件中修改的端口
+### Các cổng cần sửa trực tiếp trong file cấu hình
 
-以下端口修改后需重启服务生效：
+Sau khi sửa các cổng dưới đây, cần khởi động lại dịch vụ để có hiệu lực:
 
-| 端口 | 配置文件           | 配置项           |
+| Cổng | File cấu hình      | Mục cấu hình     |
 | ---- | ------------------ | ---------------- |
 | 8080 | `manager.json`     | `server.port`    |
 | 8989 | `main_config.yaml` | `websocket.port` |
 | 9000 | `asr_server.json`  | `server.port`    |
 
-### 控制台配置
+### Cấu hình qua trang quản trị (console)
 
-以下端口及所有其他配置通过管理后台控制台进行变更：
+Các cổng dưới đây cùng toàn bộ cấu hình khác đều được thay đổi thông qua trang quản trị:
 
-- **端口配置**：MQTT (2883)、UDP (8990)、pprof (6060)
-- **功能配置**：LLM、TTS、ASR、声纹识别等
-- 访问 `http://localhost:8080/` 进入管理后台
-- 配置变更实时生效，无需重启服务
+- **Cấu hình cổng**: MQTT (2883), UDP (8990), pprof (6060)
+- **Cấu hình chức năng**: LLM, TTS, ASR, nhận dạng giọng nói (声纹识别), v.v.
+- Truy cập `http://localhost:8080/` để vào trang quản trị
+- Thay đổi cấu hình có hiệu lực ngay lập tức, không cần khởi động lại dịch vụ
 
-## 后台运行
+## Chạy nền (background)
 
-### 使用 nohup
+### Sử dụng nohup
 
 ```bash
 nohup ./milestones_server > logs/output.log 2>&1 &
 ```
 
-### 创建 launchd 服务（推荐）
+### Tạo dịch vụ launchd (khuyến nghị)
 
-创建 `~/Library/LaunchAgents/com.milestones.server.plist`：
+Tạo file `~/Library/LaunchAgents/com.milestones.server.plist`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -156,94 +156,94 @@ nohup ./milestones_server > logs/output.log 2>&1 &
 </plist>
 ```
 
-加载服务：
+Nạp và chạy dịch vụ:
 
 ```bash
-# 加载服务
+# Nạp dịch vụ
 launchctl load ~/Library/LaunchAgents/com.milestones.server.plist
 
-# 启动服务
+# Khởi động dịch vụ
 launchctl start com.milestones.server
 
-# 查看状态
+# Xem trạng thái
 launchctl list | grep milestones
 
-# 停止服务
+# Dừng dịch vụ
 launchctl stop com.milestones.server
 
-# 卸载服务
+# Gỡ dịch vụ
 launchctl unload ~/Library/LaunchAgents/com.milestones.server.plist
 ```
 
-## 防火墙配置
+## Cấu hình tường lửa (Firewall)
 
-如果启用了防火墙，需要允许 `milestones_server` 接受入站连接：
+Nếu máy có bật tường lửa, cần cho phép `milestones_server` nhận kết nối vào (inbound):
 
-1. 打开「系统设置」→「网络」→「防火墙」
-2. 点击「选项」
-3. 找到 `milestones_server`，设置为「允许入站连接」
+1. Mở "Cài đặt hệ thống" (System Settings) → "Mạng" (Network) → "Tường lửa" (Firewall)
+2. Nhấn "Tùy chọn" (Options)
+3. Tìm `milestones_server`, thiết lập thành "Cho phép kết nối vào" (Allow incoming connections)
 
-或在终端中使用命令：
+Hoặc dùng lệnh trong Terminal:
 
 ```bash
-# 添加防火墙例外（需要 sudo）
+# Thêm ngoại lệ tường lửa (cần quyền sudo)
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /path/to/milestones_server
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /path/to/milestones_server
 ```
 
-## 常见问题
+## Các vấn đề thường gặp
 
-### 安全提示"已损坏"
+### Cảnh báo "đã bị hỏng" (đã bị lỗi/damaged)
 
-如果提示应用已损坏，运行以下命令：
+Nếu bị báo ứng dụng đã bị hỏng, hãy chạy lệnh sau:
 
 ```bash
 xattr -cr milestones_server
 ```
 
-### 动态库加载失败
+### Lỗi tải thư viện động (dylib)
 
-如果出现 `dylib` 加载失败，检查：
+Nếu gặp lỗi tải `dylib` thất bại, hãy kiểm tra:
 
 ```bash
-# 查看依赖
+# Xem các thư viện phụ thuộc
 otool -L milestones_server
 
-# 查看 rpath
+# Xem rpath
 otool -l milestones_server | grep -A2 LC_RPATH
 
-# 确保动态库在正确位置
+# Đảm bảo các thư viện động nằm đúng vị trí
 ls -la ten-vad/lib/macOS/
 ```
 
-如果 `LC_RPATH` 仍然是开发机源码绝对路径，而不是 `@executable_path/ten-vad/lib/macOS`，请执行：
+Nếu `LC_RPATH` vẫn là đường dẫn tuyệt đối của máy phát triển (không phải `@executable_path/ten-vad/lib/macOS`), hãy chạy:
 
 ```bash
 ./build/macos/fix_rpath.sh ./milestones_server
 ```
 
-如果你是在 IDE 临时目录调试，或手动移动了二进制导致目录结构不一致，可临时使用：
+Nếu bạn đang debug trong thư mục tạm của IDE, hoặc đã di chuyển file thực thi khiến cấu trúc thư mục không còn khớp, có thể tạm thời dùng:
 
 ```bash
 DYLD_FRAMEWORK_PATH="$PWD/ten-vad/lib/macOS" ./milestones_server
 ```
 
-### 端口被占用
+### Cổng đã bị chiếm dụng
 
 ```bash
-# 查看端口占用
-lsof -i :端口号
+# Kiểm tra cổng đang được sử dụng
+lsof -i :số_cổng
 
-# 结束占用进程或修改配置文件中的端口
+# Kết thúc tiến trình đang chiếm cổng hoặc sửa cổng trong file cấu hình
 ```
 
-### Apple Silicon (M1/M2/M3) 运行 Intel 版本
+### Chạy phiên bản Intel trên Apple Silicon (M1/M2/M3)
 
-在 Apple Silicon Mac 上运行 Intel 版本需要 Rosetta 2：
+Để chạy phiên bản Intel trên máy Apple Silicon, cần có Rosetta 2:
 
 ```bash
-# 安装 Rosetta 2
+# Cài đặt Rosetta 2
 softwareupdate --install-rosetta
 ```
 
-但建议下载对应的 arm64 版本以获得最佳性能。
+Tuy nhiên, khuyến nghị bạn nên tải phiên bản arm64 tương ứng để có hiệu năng tốt nhất.

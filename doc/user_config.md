@@ -1,29 +1,29 @@
-使用redis来存储用户配置数据结构
+Sử dụng Redis để lưu trữ cấu trúc dữ liệu cấu hình người dùng
 
-#### 一. 配置
+#### I. Cấu hình
 
-##### 1. 全局配置hget结构
+##### 1. Cấu trúc hget của cấu hình toàn cục
 
 milestones:global:config
 
-##### 2. 用户配置可以覆盖配置文件中的，hget结构
+##### 2. Cấu hình người dùng có thể ghi đè lên cấu hình trong file config, cấu trúc hget
 
 ```
 milestones:userconfig:{deviceid}
     "llm": {
-        "provider": "deepseek",         //与 配置文件 llm中的key对应
+        "provider": "deepseek",         // tương ứng với key trong mục llm của file cấu hình
     },
     "tts": {
-        "provider": "cosyvoice",        //与 配置文件 tts中的key对应
+        "provider": "cosyvoice",        // tương ứng với key trong mục tts của file cấu hình
     }
 ```
 
-#### 二. prompt
+#### II. Prompt
 
-##### 1. 系统prompt get/set
+##### 1. Get/set prompt hệ thống (system prompt)
 
 > milestones:llm:system:{deviceid}
 
-##### 2. 聊天session prompt记录 sorted set结构
+##### 2. Cấu trúc sorted set lưu lịch sử prompt của phiên chat (chat session)
 
 > milestones:llm:{deviceid}

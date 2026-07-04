@@ -1,99 +1,99 @@
-# 小智服务 Windows 使用说明
+# Hướng dẫn sử dụng dịch vụ Milestones trên Windows
 
-欢迎使用小智服务 Windows aio 包。本文档包含启动、配置和端口说明。
+Chào mừng bạn đến với gói cài đặt Milestones Service (AIO) dành cho Windows. Tài liệu này bao gồm hướng dẫn khởi động, cấu hình và thông tin về cổng (port).
 
-## 目录结构
+## Cấu trúc thư mục
 
 ```
 milestones_server-windows-amd64-<version>/
-├── milestones_server.exe          # 主程序
-├── onnxruntime.dll             # ONNX Runtime 依赖库
-├── sherpa-onnx-c-api.dll       # Sherpa-ONNX 依赖库
-├── sherpa-onnx-cxx-api.dll     # Sherpa-ONNX C++ 依赖库
-├── ten_vad.dll                 # VAD 依赖库
-├── start.bat                   # 启动脚本
-├── main_config.yaml            # 主配置文件
-├── manager.json                # 管理后台配置
-├── asr_server.json             # ASR 服务配置
-├── models/                     # 模型文件目录
-├── data/                       # 数据目录
-└── logs/                       # 日志目录
+├── milestones_server.exe          # Chương trình chính
+├── onnxruntime.dll             # Thư viện phụ thuộc ONNX Runtime
+├── sherpa-onnx-c-api.dll       # Thư viện phụ thuộc Sherpa-ONNX
+├── sherpa-onnx-cxx-api.dll     # Thư viện phụ thuộc Sherpa-ONNX C++
+├── ten_vad.dll                 # Thư viện phụ thuộc VAD (phát hiện giọng nói)
+├── start.bat                   # Script khởi động
+├── main_config.yaml            # File cấu hình chính
+├── manager.json                # Cấu hình trang quản trị
+├── asr_server.json             # Cấu hình dịch vụ ASR (nhận dạng giọng nói)
+├── models/                     # Thư mục chứa các file mô hình
+├── data/                       # Thư mục dữ liệu
+└── logs/                       # Thư mục nhật ký (log)
 ```
 
-## 快速启动
+## Khởi động nhanh
 
-双击 `start.bat` 即可启动服务。启动后可在 `logs/` 目录查看日志。
+Nhấp đúp vào `start.bat` để khởi động dịch vụ. Sau khi khởi động, bạn có thể xem log tại thư mục `logs/`.
 
-> 提示：首次启动时，程序会自动下载所需的模型文件（如果 models 目录为空）。
+> Lưu ý: Trong lần khởi động đầu tiên, chương trình sẽ tự động tải về các file mô hình cần thiết (nếu thư mục models đang trống).
 
-## 端口与服务
+## Cổng (Port) và dịch vụ
 
-| 端口     | 配置来源                              | 说明                                  |
-| -------- | ------------------------------------- | ------------------------------------- |
-| **8080** | `manager.json` → `server.port`        | **管理后台**：Web 控制台 + HTTP API   |
-| **8989** | `main_config.yaml` → `websocket.port` | **主服务 WebSocket**：设备/客户端连接 |
-| **9000** | `asr_server.json` → `server.port`     | **ASR/声纹服务**：语音识别内部接口    |
-| **2883** | 控制台配置                            | **MQTT 服务**：设备 MQTT 连接         |
-| **8990** | 控制台配置                            | **UDP 服务**：设备 UDP 通信           |
-| **6060** | 控制台配置                            | **pprof**：性能分析（默认关闭）       |
+| Cổng     | Nguồn cấu hình                        | Mô tả                                                 |
+| -------- | ------------------------------------- | ----------------------------------------------------- |
+| **8080** | `manager.json` → `server.port`        | **Trang quản trị**: Web console + HTTP API            |
+| **8989** | `main_config.yaml` → `websocket.port` | **WebSocket dịch vụ chính**: kết nối thiết bị/client  |
+| **9000** | `asr_server.json` → `server.port`     | **Dịch vụ ASR/nhận dạng giọng nói**: giao diện nội bộ |
+| **2883** | Cấu hình qua console                  | **Dịch vụ MQTT**: kết nối MQTT của thiết bị           |
+| **8990** | Cấu hình qua console                  | **Dịch vụ UDP**: giao tiếp UDP của thiết bị           |
+| **6060** | Cấu hình qua console                  | **pprof**: phân tích hiệu năng (mặc định tắt)         |
 
-## 访问地址
+## Địa chỉ truy cập
 
-### 管理后台
+### Trang quản trị
 
-- **本地访问**：`http://localhost:8080/`
-- **局域网访问**：`http://<本机IP>:8080/`
+- **Truy cập nội bộ (local)**: `http://localhost:8080/`
+- **Truy cập trong mạng LAN**: `http://<IP máy này>:8080/`
 
-### 设备/客户端连接
+### Kết nối thiết bị/client
 
-- **WebSocket**：`ws://<服务器IP>:8989/`
-- **MQTT**：`<服务器IP>:2883`
-- **UDP**：`<服务器IP>:8990`
+- **WebSocket**: `ws://<IP máy chủ>:8989/`
+- **MQTT**: `<IP máy chủ>:2883`
+- **UDP**: `<IP máy chủ>:8990`
 
-## 修改配置
+## Thay đổi cấu hình
 
-### 需在配置文件中修改的端口
+### Các cổng cần sửa trực tiếp trong file cấu hình
 
-以下端口修改后需重启服务生效：
+Sau khi sửa các cổng dưới đây, cần khởi động lại dịch vụ để có hiệu lực:
 
-| 端口 | 配置文件           | 配置项           |
+| Cổng | File cấu hình      | Mục cấu hình     |
 | ---- | ------------------ | ---------------- |
 | 8080 | `manager.json`     | `server.port`    |
 | 8989 | `main_config.yaml` | `websocket.port` |
 | 9000 | `asr_server.json`  | `server.port`    |
 
-### 控制台配置
+### Cấu hình qua trang quản trị (console)
 
-以下端口及所有其他配置通过管理后台控制台进行变更：
+Các cổng dưới đây cùng toàn bộ cấu hình khác đều được thay đổi thông qua trang quản trị:
 
-- **端口配置**：MQTT (2883)、UDP (8990)、pprof (6060)
-- **功能配置**：LLM、TTS、ASR、声纹识别等
-- 访问 `http://localhost:8080/` 进入管理后台
-- 配置变更实时生效，无需重启服务
+- **Cấu hình cổng**: MQTT (2883), UDP (8990), pprof (6060)
+- **Cấu hình chức năng**: LLM, TTS, ASR, nhận dạng giọng nói (声纹识别), v.v.
+- Truy cập `http://localhost:8080/` để vào trang quản trị
+- Thay đổi cấu hình có hiệu lực ngay lập tức, không cần khởi động lại dịch vụ
 
-## 常见问题
+## Các vấn đề thường gặp
 
-### 防火墙提示
+### Cảnh báo tường lửa (Firewall)
 
-首次运行时，Windows 可能会弹出防火墙提示，请允许程序访问网络。
+Khi chạy lần đầu, Windows có thể hiện cảnh báo tường lửa, vui lòng cho phép chương trình truy cập mạng.
 
-### 端口被占用
+### Cổng đã bị chiếm dụng
 
-如果启动失败提示端口被占用，请：
+Nếu khởi động thất bại và báo cổng đã bị chiếm dụng, vui lòng:
 
-1. 使用 `netstat -ano | findstr :端口号` 查看占用进程
-2. 修改配置文件中的端口号
-3. 或结束占用该端口的进程
+1. Dùng lệnh `netstat -ano | findstr :số_cổng` để kiểm tra tiến trình đang chiếm cổng
+2. Sửa số cổng trong file cấu hình
+3. Hoặc kết thúc tiến trình đang chiếm cổng đó
 
-### DLL 缺失
+### Thiếu file DLL
 
-如果提示缺少 DLL 文件，请确保以下文件与 `milestones_server.exe` 在同一目录：
+Nếu báo thiếu file DLL, hãy đảm bảo các file sau nằm cùng thư mục với `milestones_server.exe`:
 
 - `onnxruntime.dll`
 - `sherpa-onnx-c-api.dll`
 - `sherpa-onnx-cxx-api.dll`
 - `ten_vad.dll`
 
-## 停止服务
+## Dừng dịch vụ
 
-在启动窗口按 `Ctrl + C` 或直接关闭窗口即可停止服务。
+Trong cửa sổ khởi động, nhấn `Ctrl + C` hoặc đóng trực tiếp cửa sổ để dừng dịch vụ.

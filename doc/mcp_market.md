@@ -1,147 +1,147 @@
-# MCP 市场功能说明
+# Hướng dẫn chức năng Chợ MCP (MCP Market)
 
-本文档介绍管理后台中的 **MCP 市场** 功能：如何接入第三方 MCP 市场、聚合发现服务、导入服务配置并纳入系统全局 MCP 服务列表。
+Tài liệu này giới thiệu chức năng **Chợ MCP (MCP Market)** trong trang quản trị: cách tích hợp chợ MCP bên thứ ba, tổng hợp dịch vụ khám phá (discovery), nhập (import) cấu hình dịch vụ và đưa vào danh sách dịch vụ MCP toàn cục của hệ thống.
 
-相关文档：
+Tài liệu liên quan:
 
-- [MCP 架构说明](./mcp.md)
-- [管理后台使用指南](./manager_console_guide.md)
-
----
-
-## 1. 功能定位
-
-MCP 市场用于解决“远程 MCP 服务接入效率低”的问题，支持：
-
-- 配置多个 MCP 市场连接（如 ModelScope 等）
-- 聚合多个市场的服务目录
-- 查看服务详情（端点、传输协议等）
-- 一键导入服务配置到本系统
-- 对已导入服务进行启用/禁用/编辑/删除
-
-导入后的服务会参与系统全局 MCP 服务配置的合并（与手工配置的 MCP 服务共同生效）。
+- [Giải thích kiến trúc MCP](./mcp.md)
+- [Hướng dẫn sử dụng trang quản trị](./manager_console_guide.md)
 
 ---
 
-## 2. 角色权限与入口
+## 1. Định vị chức năng
 
-角色权限：
+Chợ MCP dùng để giải quyết vấn đề "hiệu quả tích hợp dịch vụ MCP từ xa còn thấp", hỗ trợ:
 
-- 仅管理员可操作
+- Cấu hình nhiều kết nối chợ MCP (ví dụ: ModelScope...)
+- Tổng hợp danh mục dịch vụ từ nhiều chợ
+- Xem chi tiết dịch vụ (endpoint, giao thức truyền tải...)
+- Nhập cấu hình dịch vụ vào hệ thống chỉ với một thao tác
+- Bật/tắt/sửa/xóa các dịch vụ đã nhập
 
-管理后台入口：
-
-- `管理员 -> MCP市场`
-
-页面包含两个页签：
-
-- `市场发现`
-- `已导入服务`
+Dịch vụ sau khi nhập sẽ tham gia vào việc hợp nhất cấu hình dịch vụ MCP toàn cục của hệ thống (cùng có hiệu lực với các dịch vụ MCP được cấu hình thủ công).
 
 ---
 
-## 3. 核心概念
+## 2. Phân quyền vai trò và lối vào
 
-### 3.1 MCP 市场（Market）
+Phân quyền vai trò:
 
-表示一个“可被访问的 MCP 市场目录源”，包含：
+- Chỉ quản trị viên (admin) mới có thể thao tác
 
-- 市场名称
-- 提供商标识（provider）
-- 目录 URL（catalog_url）
-- 详情 URL 模板（detail_url_template，可选）
-- 鉴权 Token（可选）
-- 启用状态
+Lối vào trang quản trị:
 
-### 3.2 聚合服务列表
+- `Quản trị viên -> Chợ MCP`
 
-系统会从已启用的市场拉取服务目录并聚合展示，支持：
+Trang gồm hai tab:
 
-- 搜索服务名/描述/Service ID
-- 查看详情
-- 导入配置
+- `Khám phá chợ`
+- `Dịch vụ đã nhập`
 
-当部分市场拉取失败时，页面会显示“部分市场拉取失败”的告警列表，不影响其他市场结果显示。
+---
 
-### 3.3 已导入服务
+## 3. Khái niệm cốt lõi
 
-导入后的服务在本系统中形成独立配置项，可直接参与运行时 MCP 服务连接。支持配置：
+### 3.1 Chợ MCP (Market)
 
-- 名称
-- 传输类型（`sse` / `streamablehttp`）
+Đại diện cho một "nguồn danh mục chợ MCP có thể truy cập", bao gồm:
+
+- Tên chợ
+- Định danh nhà cung cấp (provider)
+- URL danh mục (catalog_url)
+- Mẫu URL chi tiết (detail_url_template, tùy chọn)
+- Token xác thực (tùy chọn)
+- Trạng thái bật/tắt
+
+### 3.2 Danh sách dịch vụ tổng hợp
+
+Hệ thống sẽ lấy danh mục dịch vụ từ các chợ đã bật và hiển thị tổng hợp, hỗ trợ:
+
+- Tìm kiếm theo tên dịch vụ/mô tả/Service ID
+- Xem chi tiết
+- Nhập cấu hình
+
+Khi một số chợ lấy dữ liệu thất bại, trang sẽ hiển thị danh sách cảnh báo "một số chợ lấy dữ liệu thất bại", không ảnh hưởng đến việc hiển thị kết quả của các chợ khác.
+
+### 3.3 Dịch vụ đã nhập
+
+Sau khi nhập, dịch vụ sẽ hình thành một mục cấu hình độc lập trong hệ thống, có thể trực tiếp tham gia vào kết nối dịch vụ MCP khi vận hành (runtime). Hỗ trợ cấu hình:
+
+- Tên
+- Loại truyền tải (`sse` / `streamablehttp`)
 - URL
-- Headers（JSON）
-- 来源市场与 provider 标识（可选元信息）
-- 启用状态
+- Headers (JSON)
+- Chợ nguồn và định danh provider (metadata, tùy chọn)
+- Trạng thái bật/tắt
 
 ---
 
-## 4. 常用操作流程（管理员）
+## 4. Quy trình thao tác thường dùng (Quản trị viên)
 
-## 4.1 新增 MCP 市场连接
+## 4.1 Thêm mới kết nối Chợ MCP
 
-在 `市场发现` 页签点击 `新增连接`，填写：
+Tại tab `Khám phá chợ`, nhấn `Thêm kết nối mới`, điền:
 
-- `提供商`：优先选择内置 provider 预设（会自动填充目录 URL 模板）
-- `名称`
-- `目录URL`
-- `详情URL模板`（可选）
-- `启用`
-- `Token`（如市场需要）
+- `Nhà cung cấp`: ưu tiên chọn preset provider có sẵn (sẽ tự động điền mẫu URL danh mục)
+- `Tên`
+- `URL danh mục`
+- `Mẫu URL chi tiết` (tùy chọn)
+- `Bật`
+- `Token` (nếu chợ yêu cầu)
 
-建议先执行连接测试（见下文）再保存使用。
+Khuyến nghị thực hiện kiểm tra kết nối (xem bên dưới) trước khi lưu sử dụng.
 
-## 4.2 测试市场连接
+## 4.2 Kiểm tra kết nối chợ
 
-在市场列表操作菜单中点击 `测试`：
+Trong menu thao tác của danh sách chợ, nhấn `Kiểm tra`:
 
-- 成功会返回“可发现服务数量”
-- 失败会提示目录连接/鉴权错误
+- Thành công sẽ trả về "số lượng dịch vụ có thể khám phá"
+- Thất bại sẽ báo lỗi kết nối danh mục/xác thực
 
-适合用于排查：
+Phù hợp để xử lý các trường hợp:
 
-- Token 无效
-- 目录 URL 错误
-- 市场临时不可用
+- Token không hợp lệ
+- URL danh mục sai
+- Chợ tạm thời không khả dụng
 
-## 4.3 浏览与搜索聚合服务
+## 4.3 Duyệt và tìm kiếm dịch vụ tổng hợp
 
-在 `聚合服务列表` 区域可：
+Tại khu vực `Danh sách dịch vụ tổng hợp` có thể:
 
-- 输入关键词搜索服务
-- 分页查看聚合结果
-- 点击 `详情` 查看服务端点信息
+- Nhập từ khóa để tìm dịch vụ
+- Xem kết quả tổng hợp theo trang
+- Nhấn `Chi tiết` để xem thông tin endpoint của dịch vụ
 
-服务详情页通常包括：
+Trang chi tiết dịch vụ thường bao gồm:
 
-- 服务名
-- 来源市场
+- Tên dịch vụ
+- Chợ nguồn
 - Service ID
-- 描述
-- 端点列表（传输协议 + URL）
+- Mô tả
+- Danh sách endpoint (giao thức truyền tải + URL)
 
-## 4.4 一键导入服务配置（推荐）
+## 4.4 Nhập cấu hình dịch vụ chỉ với một thao tác (khuyến nghị)
 
-在服务详情弹窗点击 `导入服务配置并热更新`：
+Trong popup chi tiết dịch vụ, nhấn `Nhập cấu hình dịch vụ và cập nhật nóng`:
 
-- 系统会根据服务详情生成一个或多个导入服务配置
-- 导入成功后会刷新“已导入服务”列表
-- 页面会切换到 `已导入服务` 页签
+- Hệ thống sẽ tạo một hoặc nhiều cấu hình dịch vụ nhập dựa trên chi tiết dịch vụ
+- Sau khi nhập thành công, danh sách "Dịch vụ đã nhập" sẽ được làm mới
+- Trang sẽ tự động chuyển sang tab `Dịch vụ đã nhập`
 
-“热更新”表示导入配置完成后可立即参与运行时服务集合（无需重启后台）。
+"Cập nhật nóng" nghĩa là sau khi nhập xong cấu hình, dịch vụ có thể tham gia ngay vào tập hợp dịch vụ runtime mà không cần khởi động lại backend.
 
-## 4.5 手动新增/编辑导入服务
+## 4.5 Thêm mới/sửa dịch vụ đã nhập thủ công
 
-在 `已导入服务` 页签可点击 `新增服务` 手动录入，也可编辑导入项。
+Tại tab `Dịch vụ đã nhập` có thể nhấn `Thêm dịch vụ mới` để nhập thủ công, cũng có thể sửa mục đã nhập.
 
-关键字段说明：
+Giải thích các trường quan trọng:
 
-- `传输`：当前支持 `SSE`、`StreamableHTTP`
-- `URL`：远程 MCP 服务入口
-- `Headers(JSON)`：用于携带鉴权信息，例如 `Authorization`
-- `启用`：禁用后不会参与运行时可用服务集合
+- `Truyền tải`: hiện hỗ trợ `SSE`, `StreamableHTTP`
+- `URL`: điểm vào (entry) của dịch vụ MCP từ xa
+- `Headers (JSON)`: dùng để mang thông tin xác thực, ví dụ `Authorization`
+- `Bật`: nếu tắt sẽ không tham gia vào tập hợp dịch vụ khả dụng khi runtime
 
-`Headers(JSON)` 必须是 JSON 对象，例如：
+`Headers (JSON)` bắt buộc phải là một object JSON, ví dụ:
 
 ```json
 {
@@ -151,27 +151,27 @@ MCP 市场用于解决“远程 MCP 服务接入效率低”的问题，支持�
 
 ---
 
-## 5. 与全局 MCP 配置的关系
+## 5. Mối quan hệ với cấu hình MCP toàn cục
 
-MCP 市场并不是替代 `MCP配置` 页面，而是补充来源。
+Chợ MCP không phải để thay thế trang `Cấu hình MCP`, mà là nguồn bổ sung.
 
-运行时可用的全局 MCP 服务集合来自两部分合并：
+Tập hợp dịch vụ MCP toàn cục khả dụng khi runtime được hợp nhất từ hai phần:
 
-- 管理员在 `MCP配置` 页面手工维护的全局服务
-- MCP 市场导入且已启用的服务
+- Dịch vụ toàn cục do quản trị viên cấu hình thủ công tại trang `Cấu hình MCP`
+- Dịch vụ đã nhập từ Chợ MCP và đang được bật
 
-因此推荐做法是：
+Do đó, cách làm được khuyến nghị là:
 
-1. 使用 MCP 市场快速发现与导入
-2. 在 `MCP配置` / 智能体中按需启用与选择服务
+1. Sử dụng Chợ MCP để khám phá và nhập nhanh
+2. Tại `Cấu hình MCP` / trong agent, bật và chọn dịch vụ theo nhu cầu
 
 ---
 
-## 6. API（后台接口）
+## 6. API (Giao diện backend)
 
-以下为管理端相关接口（需管理员权限）：
+Dưới đây là các API liên quan phía quản trị (yêu cầu quyền admin):
 
-### 6.1 市场连接管理
+### 6.1 Quản lý kết nối chợ
 
 - `GET /admin/mcp-markets`
 - `POST /admin/mcp-markets`
@@ -179,14 +179,14 @@ MCP 市场并不是替代 `MCP配置` 页面，而是补充来源。
 - `DELETE /admin/mcp-markets/:id`
 - `POST /admin/mcp-markets/:id/test`
 
-### 6.2 市场发现与详情
+### 6.2 Khám phá chợ và chi tiết
 
 - `GET /admin/mcp-market/providers`
 - `GET /admin/mcp-market/services`
 - `GET /admin/mcp-market/services/:market_id/*service_id`
 - `POST /admin/mcp-market/import`
 
-### 6.3 已导入服务管理
+### 6.3 Quản lý dịch vụ đã nhập
 
 - `GET /admin/mcp-market/imported-services`
 - `POST /admin/mcp-market/imported-services`
@@ -195,34 +195,33 @@ MCP 市场并不是替代 `MCP配置` 页面，而是补充来源。
 
 ---
 
-## 7. 常见问题与排查
+## 7. Câu hỏi thường gặp và xử lý sự cố
 
-### 7.1 聚合列表为空
+### 7.1 Danh sách tổng hợp trống
 
-排查顺序：
+Thứ tự kiểm tra:
 
-1. 检查市场连接是否启用
-2. 对该市场执行“测试”
-3. 检查 Token 是否有效
-4. 检查目录 URL / 详情 URL 模板是否正确
+1. Kiểm tra kết nối chợ có được bật hay không
+2. Thực hiện "Kiểm tra" đối với chợ đó
+3. Kiểm tra Token có hợp lệ hay không
+4. Kiểm tra URL danh mục / mẫu URL chi tiết có đúng hay không
 
-### 7.2 导入成功但运行时看不到服务
+### 7.2 Nhập thành công nhưng khi vận hành không thấy dịch vụ
 
-常见原因：
+Các nguyên nhân thường gặp:
 
-- 导入服务被禁用
-- 全局 MCP 总开关关闭
-- 智能体配置了 `mcp_service_names`，且未包含该服务名
+- Dịch vụ đã nhập bị tắt
+- Công tắc tổng của MCP toàn cục đang tắt
+- Agent đã cấu hình `mcp_service_names` nhưng không bao gồm tên dịch vụ đó
 
-### 7.3 编辑市场时 Token 留空会怎样？
+### 7.3 Khi sửa chợ, để trống Token thì sao?
 
-编辑弹窗中 Token 留空通常表示“不修改现有 Token”（界面会显示当前脱敏状态提示）。
+Trong popup chỉnh sửa, để trống Token thường có nghĩa là "không thay đổi Token hiện tại" (giao diện sẽ hiển thị gợi ý về trạng thái Token đã được ẩn/che).
 
 ---
 
-## 8. 使用建议
+## 8. Đề xuất sử dụng
 
-- 优先使用内置 provider 预设，减少目录接口字段差异导致的问题
-- 将需要长期稳定使用的服务导入后统一命名，便于智能体按名称选择
-- 对生产环境的远程服务建议使用 `Headers(JSON)` 配置鉴权，并做好 token 轮换
-
+- Ưu tiên sử dụng preset provider có sẵn để giảm thiểu vấn đề do khác biệt trường dữ liệu giữa các giao diện danh mục
+- Đặt tên thống nhất cho các dịch vụ cần sử dụng ổn định lâu dài sau khi nhập, để agent dễ dàng chọn theo tên
+- Đối với dịch vụ từ xa trong môi trường production, nên cấu hình xác thực qua `Headers (JSON)`, và thực hiện tốt việc xoay vòng (rotation) token

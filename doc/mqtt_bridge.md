@@ -1,68 +1,68 @@
-# MQTT UDP Bridge 配置指南
+# Hướng dẫn cấu hình MQTT UDP Bridge
 
 ---
 
-### 名词解析
+### Giải thích thuật ngữ
 
-- **milestones-mqtt-gateway:** 虾哥官方 mqtt udp bridge项目，实现了MQTT和UDP协议到WebSocket的转换。该服务允许设备通过MQTT协议进行控制消息传输，同时通过UDP协议高效传输音频数据，并将这些数据桥接到WebSocket服务。[milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway)
-- **milestones-esp32-server-golang:** 本项目
+- **milestones-mqtt-gateway:** Dự án mqtt udp bridge chính thức của tác giả Xiage (虾哥), hiện thực việc chuyển đổi giao thức MQTT và UDP sang WebSocket. Dịch vụ này cho phép thiết bị truyền các thông điệp điều khiển qua giao thức MQTT, đồng thời truyền dữ liệu âm thanh hiệu quả qua giao thức UDP, và bridge (cầu nối) các dữ liệu này sang dịch vụ WebSocket. [milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway)
+- **milestones-esp32-server-golang:** Chính là dự án này.
 
-### 整体架构
+### Kiến trúc tổng thể
 
 ```mermaid
 flowchart TD
     subgraph Device
-        A["IoT Device"]
+        A["Thiết bị IoT"]
     end
     subgraph MQTT_UDP_Gateway["milestones-mqtt-gateway"]
         B["MQTT Server"]
         C["UDP Server"]
     end
-    subgraph Backend["milestones-esp32-server-golang (WebSocket 后端)"]
+    subgraph Backend["milestones-esp32-server-golang (Backend WebSocket)"]
         D["WebSocket Server"]
     end
-    A -- "信令 (MQTT)" --> B
-    A -- "音频数据 (UDP)" --> C
-    B -- "信令转发 (WebSocket)" --> D
-    C -- "音频数据转发 (WebSocket)" --> D
+    A -- "Tín hiệu điều khiển (MQTT)" --> B
+    A -- "Dữ liệu âm thanh (UDP)" --> C
+    B -- "Chuyển tiếp tín hiệu (WebSocket)" --> D
+    C -- "Chuyển tiếp dữ liệu âm thanh (WebSocket)" --> D
     style MQTT_UDP_Gateway fill:#f9f,stroke:#333,stroke-width:2
     style Backend fill:#bbf,stroke:#333,stroke-width:2
     style Device fill:#bfb,stroke:#333,stroke-width:2
 ```
 
-## 一、MQTT UDP Bridge 配置指南
+## I. Hướng dẫn cấu hình MQTT UDP Bridge
 
-### 安装步骤
+### Các bước cài đặt
 
 ---
 
-1. 克隆仓库
+1. Clone repository
 
 ```
 git clone 'https://github.com/78/milestones-mqtt-gateway'
 cd milestones-mqtt-gateway
 ```
 
-2. 安装依赖
+2. Cài đặt dependency
 
 ```
 npm install
 ```
 
-3. 创建配置文件
+3. Tạo file cấu hình
 
 ```
 mkdir -p config
 cp config/mqtt.json.example config/mqtt.json
 ```
 
-4. 编辑配置文件 config/mqtt.json，设置适当的参数
+4. Chỉnh sửa file cấu hình `config/mqtt.json`, thiết lập các tham số phù hợp
 
-### 配置说明
+### Giải thích cấu hình
 
-配置文件 config/mqtt.json 需要包含以下内容:
+File cấu hình `config/mqtt.json` cần chứa nội dung sau:
 
-- `chat_servers`：填写 小智golang服务器ip和端口，**_path必须为/milestones/mqtt_udp/v1/_**
+- `chat_servers`: điền IP và cổng của server Xiaozhi Golang, **_path bắt buộc phải là `/milestones/mqtt_udp/v1/`_**
 
 ```
 {
@@ -77,78 +77,78 @@ cp config/mqtt.json.example config/mqtt.json
 }
 ```
 
-### 环境变量
+### Biến môi trường
 
-创建 .env 文件并设置以下环境变量:
-
-```
-MQTT_PORT=1883              # MQTT服务器端口
-UDP_PORT=8884               # UDP服务器端口
-PUBLIC_IP=192.168.0.100     # 服务器公网IP
-
-#MQTT_SIGNATURE_KEY=mqtt_key # mqtt key, 可选，如果配置则进行mqtt认证，需与 websocket服务器配置的key相同
-```
-
-### 运行
-
-##### 开发环境
+Tạo file `.env` và thiết lập các biến môi trường sau:
 
 ```
-# 直接运行
+MQTT_PORT=1883              # Cổng của MQTT server
+UDP_PORT=8884               # Cổng của UDP server
+PUBLIC_IP=192.168.0.100     # IP công khai (public) của server
+
+#MQTT_SIGNATURE_KEY=mqtt_key # Khóa mqtt, tùy chọn; nếu cấu hình sẽ thực hiện xác thực mqtt, cần trùng với key cấu hình ở phía websocket server
+```
+
+### Chạy dịch vụ
+
+##### Môi trường phát triển
+
+```
+# Chạy trực tiếp
 node app.js
 
-# 调试模式运行
+# Chạy ở chế độ debug
 DEBUG=mqtt-server node app.js
 ```
 
 ---
 
-## 二、小智golang后端服务配置指南
+## II. Hướng dẫn cấu hình dịch vụ backend Xiaozhi Golang
 
-### 1. 关键配置项说明
+### 1. Giải thích các mục cấu hình quan trọng
 
-#### 关闭 本地 MQTT 和 UDP服务器
+#### Tắt MQTT server và UDP server local
 
 ```yaml
 mqtt:
   enable: false
-  broker: "127.0.0.1"
-  type: "tcp"
+  broker: '127.0.0.1'
+  type: 'tcp'
   port: 2883
-  client_id: "milestones_server"
-  username: "admin"
-  password: "test!@#"
+  client_id: 'milestones_server'
+  username: 'admin'
+  password: 'test!@#'
 ```
 
-#### OTA 配置（设备通过 OTA 获取连接参数）
+#### Cấu hình OTA (thiết bị lấy tham số kết nối thông qua OTA)
 
-- `ota.signature_key`: 需要与milestones-mqtt-bridge中的 .env文件中***MQTT_SIGNATURE_KEY***相同
-- `test`/`external`：内外网环境区分
-- `websocket.url`：返回的WebSocket 服务地址
-- `mqtt.endpoint`：MQTT 服务地址和端口
-- `mqtt.enable`：是否启用 MQTT（true 时设备优先用 MQTT+UDP）
+- `ota.signature_key`: cần phải trùng với biến **_MQTT_SIGNATURE_KEY_** trong file `.env` của milestones-mqtt-bridge
+- `test`/`external`: phân biệt môi trường nội bộ/bên ngoài
+- `websocket.url`: địa chỉ dịch vụ WebSocket được trả về
+- `mqtt.endpoint`: địa chỉ và cổng của dịch vụ MQTT
+- `mqtt.enable`: có bật MQTT hay không (khi `true`, thiết bị sẽ ưu tiên dùng MQTT+UDP)
 
 ```yaml
 ota:
-  signature_key: "mqtt_key"
+  signature_key: 'mqtt_key'
   test:
     websocket:
-      url: "ws://192.168.1.97:8989/milestones/v1/"
+      url: 'ws://192.168.1.97:8989/milestones/v1/'
     mqtt:
       enable: true
-      endpoint: "192.168.1.97:5883"
+      endpoint: '192.168.1.97:5883'
   external:
     websocket:
-      url: "wss://www.tb263.cn:55555/go_ws/milestones/v1/"
+      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/'
     mqtt:
       enable: true
-      endpoint: "mqtt.youdomain.cn"
+      endpoint: 'mqtt.youdomain.cn'
 ```
 
 ---
 
-## 三、参考文档
+## III. Tài liệu tham khảo
 
-- [mqtt_udp.md](./mqtt_udp.md)（详细架构、配置、流程）
-- [mqtt_udp_protocol.md](./mqtt_udp_protocol.md)（协议与数据流程）
-- [config.md](./config.md)（配置项详细说明）
+- [mqtt_udp.md](./mqtt_udp.md) (kiến trúc chi tiết, cấu hình, luồng xử lý)
+- [mqtt_udp_protocol.md](./mqtt_udp_protocol.md) (giao thức và luồng dữ liệu)
+- [config.md](./config.md) (giải thích chi tiết các mục cấu hình)

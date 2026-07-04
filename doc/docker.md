@@ -1,93 +1,93 @@
-# 运行环境
+# Môi trường vận hành
 
-#### 一. 部署funasr
+#### 1. Triển khai funasr
 
-参见 [funasr docker部署文档](https://github.com/modelscope/FunASR/blob/main/runtime/docs/SDK_advanced_guide_online_zh.md)
+Xem [tài liệu triển khai funasr bằng docker](https://github.com/modelscope/FunASR/blob/main/runtime/docs/SDK_advanced_guide_online_zh.md)
 
-#### 二. 克隆代码
+#### 2. Clone mã nguồn
 
-> git clone 'https://github.com/hackers365/milestones-esp32-server-golang'
+> git clone 'https://github.com/quoctho228/milestones-esp32-server-golang'
 
-#### 三. 配置config/config.yaml，详细参见 [config配置说明](config.md)
+#### 3. Cấu hình config/config.yaml, xem chi tiết tại [giải thích cấu hình config](config.md)
 
-主要修改项如下：
+Các mục cần sửa chính như sau:
 
 ```yaml
-# 1. asr语音识别
+# 1. Nhận dạng giọng nói asr
 asr:
-  provider: "funasr"
+  provider: 'funasr'
   funasr:
-    host: "127.0.0.1" # 部署的funasr websocket服务的ip
-    port: "10096" # 部署的funasr websocket的port
-    mode: "offline" # 模式, 使用offline即可
+    host: '127.0.0.1' # IP của dịch vụ websocket funasr đã triển khai
+    port: '10096' # Cổng của websocket funasr đã triển khai
+    mode: 'offline' # Chế độ, dùng offline là được
     # ...
 
 # 2. tts
 tts:
-  provider: "milestones" # 使用tts的类型, 建议doubao_ws, 也可以选择免费的edge
+  provider: 'milestones' # Loại tts sử dụng, khuyến nghị doubao_ws, hoặc có thể chọn edge miễn phí
   doubao_ws:
-    appid: "6886011847" # 你的appid
-    access_token: "access_token" # 你的access token
-    cluster: "volcano_tts"
-    voice: "zh_female_wanwanxiaohe_moon_bigtts" # 音色，默认是湾湾小何
-    ws_host: "openspeech.bytedance.com"
+    appid: '6886011847' # appid của bạn
+    access_token: 'access_token' # access token của bạn
+    cluster: 'volcano_tts'
+    voice: 'zh_female_wanwanxiaohe_moon_bigtts' # Âm sắc, mặc định là giọng "Loan Loan Tiểu Hà"
+    ws_host: 'openspeech.bytedance.com'
     use_stream: true
   edge:
-    voice: "zh-CN-XiaoxiaoNeural"
-    rate: "+0%"
-    volume: "+0%"
-    pitch: "+0Hz"
+    voice: 'zh-CN-XiaoxiaoNeural'
+    rate: '+0%'
+    volume: '+0%'
+    pitch: '+0Hz'
     connect_timeout: 10
     receive_timeout: 60
   # ....
 
-# 3. llm 大模型
+# 3. llm mô hình lớn
 llm:
-  provider: "deepseek" # 提供商，对应下面的key
+  provider: 'deepseek' # Nhà cung cấp, tương ứng với key bên dưới
   deepseek:
-    type: "openai" # 服务端接口兼容的类型
-    model_name: "Pro/deepseek-ai/DeepSeek-V3" # 模型名称
-    api_key: "api_key" # api key
-    base_url: "https://api.siliconflow.cn/v1" # 服务接口，默认硅基流动
+    type: 'openai' # Loại API tương thích ở phía server
+    model_name: 'Pro/deepseek-ai/DeepSeek-V3' # Tên mô hình
+    api_key: 'api_key' # api key
+    base_url: 'https://api.siliconflow.cn/v1' # Địa chỉ API, mặc định dùng SiliconFlow
     max_tokens: 500
   # ...
 ```
 
-#### 四. 启动docker
+#### 4. Khởi động docker
 
-在项目根目录 启动docker并挂载config目录和端口(http/websocket:8989, 其它端口按需映射)
-
-```
-docker run -itd --name milestones_server -v $(pwd)/config:/workspace/config -p 8989:8989 hackers365/milestones_server:latest
-
-国内连不上的话，使用如下源
-
-docker run -itd --name milestones_server -v $(pwd)/config:/workspace/config -p 8989:8989 docker.jsdelivr.fyi/hackers365/milestones_server:latest
-```
-
-**ten_vad 支持说明：**
-
-- Docker 镜像已自动包含 ten_vad 库文件，无需额外挂载
-- 如果使用 ten_vad 作为 VAD 提供商，在配置文件中设置 `vad.provider: "ten_vad"` 即可
-
-现在应该可以连上
-
-> ws://机器ip:8989/milestones/v1/
-
-进行聊天了
-
-# 开发环境
+Tại thư mục gốc dự án, khởi động docker và mount thư mục config cùng các cổng (http/websocket: 8989, các cổng khác mount theo nhu cầu)
 
 ```
-docker run -itd --name milestones_server_golang -v $(pwd):/workspace/ -p 8989:8989 hackers365/milestones_golang:0.1
-国内连不上的话，使用如下源
-docker run -itd --name milestones_server_golang -v $(pwd):/workspace/ -p 8989:8989 docker.jsdelivr.fyi/hackers365/milestones_golang:0.1
+docker run -itd --name milestones_server -v $(pwd)/config:/workspace/config -p 8989:8989 quoctho228/milestones_server:latest
+
+Nếu không kết nối được từ trong nước (Trung Quốc), dùng nguồn thay thế sau:
+
+docker run -itd --name milestones_server -v $(pwd)/config:/workspace/config -p 8989:8989 docker.jsdelivr.fyi/quoctho228/milestones_server:latest
+```
+
+**Giải thích về hỗ trợ ten_vad:**
+
+- Image Docker đã tự động bao gồm sẵn các file thư viện ten_vad, không cần mount thêm
+- Nếu dùng ten_vad làm provider cho VAD, chỉ cần thiết lập `vad.provider: "ten_vad"` trong file cấu hình
+
+Bây giờ bạn có thể kết nối tới
+
+> ws://IP_máy:8989/milestones/v1/
+
+để bắt đầu trò chuyện.
+
+# Môi trường phát triển
+
+```
+docker run -itd --name milestones_server_golang -v $(pwd):/workspace/ -p 8989:8989 quoctho228/milestones_golang:0.1
+Nếu không kết nối được từ trong nước (Trung Quốc), dùng nguồn thay thế sau:
+docker run -itd --name milestones_server_golang -v $(pwd):/workspace/ -p 8989:8989 docker.jsdelivr.fyi/quoctho228/milestones_golang:0.1
 
 go build -o milestones_server cmd/server/*.go
 ```
 
-**开发环境 ten_vad 说明：**
+**Giải thích về ten_vad trong môi trường phát triển:**
 
-- 开发环境镜像已包含 ten_vad 编译和运行时依赖
-- 如果需要在开发环境中使用 ten_vad，确保项目根目录的 `lib/ten-vad` 目录存在
-- 编译时会自动使用 ten_vad 的头文件和库文件
+- Image cho môi trường phát triển đã bao gồm sẵn các phụ thuộc biên dịch (compile) và runtime của ten_vad
+- Nếu cần dùng ten_vad trong môi trường phát triển, hãy đảm bảo thư mục `lib/ten-vad` tồn tại tại thư mục gốc của dự án
+- Khi biên dịch, hệ thống sẽ tự động dùng file header và thư viện của ten_vad

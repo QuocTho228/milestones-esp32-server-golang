@@ -1,30 +1,30 @@
-# MQTT 生命周期驱动的 Transport 预创建方案
+# Phương án tạo trước (pre-create) Transport dẫn dắt bởi vòng đời MQTT
 
-## 目标
+## Mục tiêu
 
-在设备连接 / 断开 `mqtt_server` 时，由 `mqtt_server` 通过回调向主程序已监听的 MQTT topic 发布生命周期消息。主程序收到后：
+Khi thiết bị kết nối / ngắt kết nối khỏi `mqtt_server`, `mqtt_server` sẽ thông qua callback để đăng (publish) một thông điệp vòng đời (lifecycle message) lên MQTT topic mà chương trình chính đã lắng nghe (subscribe) sẵn. Sau khi chương trình chính nhận được:
 
-1. 设备上线时提前创建 `mqtt udp transport`
-2. 设备上线时最佳努力预热 MCP
-3. 设备下线时立即映射设备离线状态
-4. 设备下线后保留一段时间 transport，避免短时重连频繁创建 / 销毁
-5. 不改变现有 `hello` / `listen` / `abort` / `goodbye` 的信令语义
+1. Khi thiết bị lên mạng (online), tạo trước `mqtt udp transport`
+2. Khi thiết bị lên mạng, làm nóng (warm-up) MCP theo kiểu best-effort
+3. Khi thiết bị xuống mạng (offline), ánh xạ (map) ngay trạng thái offline của thiết bị
+4. Sau khi thiết bị offline, giữ lại transport trong một khoảng thời gian, tránh việc tạo/hủy liên tục khi kết nối lại trong thời gian ngắn
+5. Không thay đổi ngữ nghĩa tín hiệu hiện có của `hello` / `listen` / `abort` / `goodbye`
 
-## Topic 设计
+## Thiết kế Topic
 
-不新增新的根前缀，复用现有 `"/p2p/device_public/"` 前缀。
+Không thêm tiền tố gốc mới, tái sử dụng tiền tố hiện có `"/p2p/device_public/"`.
 
-新增生命周期 topic：
+Bổ sung topic vòng đời mới:
 
 `/p2p/device_public/_server/lifecycle`
 
-对应代码常量建议：
+Đề xuất hằng số tương ứng trong code:
 
 - `MDeviceLifecycleTopic = MDevicePubTopicPrefix + "_server/lifecycle"`
 
-## 生命周期消息格式
+## Định dạng thông điệp vòng đời
 
-消息体使用 JSON：
+Nội dung thông điệp sử dụng JSON:
 
 ```json
 {
@@ -36,127 +36,127 @@
 }
 ```
 
-字段说明：
+Giải thích các trường:
 
-- `type`: 固定为 `mqtt_lifecycle`
-- `device_id`: 归一化后的设备 ID，统一用冒号格式
+- `type`: cố định là `mqtt_lifecycle`
+- `device_id`: ID thiết bị đã được chuẩn hóa, thống nhất dùng định dạng dấu hai chấm
 - `state`: `online` / `offline`
-- `client_id`: 原始 MQTT client id，便于排障
-- `ts`: 事件时间戳，毫秒
+- `client_id`: client id MQTT gốc, thuận tiện cho việc dò lỗi (troubleshooting)
+- `ts`: timestamp của sự kiện, tính bằng mili-giây
 
-## 端到端流程
+## Luồng xử lý đầu-cuối (end-to-end)
 
-### 1. mqtt_server 发布生命周期消息
+### 1. mqtt_server đăng thông điệp vòng đời
 
-在 `DeviceHook` 的：
+Trong `DeviceHook`, tại các hàm:
 
 - `OnSessionEstablished`
 - `OnDisconnect`
 
-里，通过回调把生命周期事件发布到 `/p2p/device_public/_server/lifecycle`。
+sẽ thông qua callback để đăng sự kiện vòng đời lên `/p2p/device_public/_server/lifecycle`.
 
-实现上仍然由 `mqtt_server` 负责发布，只是发布动作收敛为 hook 内调用的 callback，避免把 topic 拼接逻辑散在多个位置。
+Về mặt triển khai, việc đăng (publish) vẫn do `mqtt_server` đảm nhiệm, chỉ là hành động đăng được thu gọn lại thành lời gọi callback bên trong hook, tránh việc logic ghép topic bị phân tán ở nhiều nơi.
 
-### 2. 主程序复用现有订阅
+### 2. Chương trình chính tái sử dụng subscription hiện có
 
-`MqttUdpAdapter` 继续只订阅现有的：
+`MqttUdpAdapter` tiếp tục chỉ subscribe topic hiện có:
 
 `/p2p/device_public/#`
 
-收到消息后先判断 topic：
+Khi nhận được tin nhắn, trước tiên phán đoán topic:
 
-- 如果是 `/p2p/device_public/_server/lifecycle`，走生命周期处理分支
-- 否则继续走现有设备业务消息分支
+- Nếu là `/p2p/device_public/_server/lifecycle`, đi vào nhánh xử lý vòng đời
+- Nếu không, tiếp tục đi theo nhánh xử lý tin nhắn nghiệp vụ thiết bị hiện có
 
-这样不会影响后续 `hello` / `listen` 等正常信令解析。
+Cách làm này sẽ không ảnh hưởng đến việc phân tích các tín hiệu bình thường phía sau như `hello` / `listen`.
 
-### 3. 设备上线时预创建 transport
+### 3. Tạo trước transport khi thiết bị lên mạng
 
-收到 `online` 生命周期消息后：
+Sau khi nhận được thông điệp vòng đời `online`:
 
-1. 先做生命周期防抖
-2. 若 transport 不存在，则立即创建 `MqttUdpConn + UdpSession`
-3. 触发 `onNewConnection`，让主程序创建 `ChatManager`
-4. 标记 broker online
-5. 触发一次最佳努力的 MCP 预热
-6. 映射设备在线状态
+1. Thực hiện chống dội (debounce) cho vòng đời trước
+2. Nếu transport chưa tồn tại, thì tạo ngay `MqttUdpConn + UdpSession`
+3. Kích hoạt `onNewConnection`, để chương trình chính tạo `ChatManager`
+4. Đánh dấu broker online
+5. Kích hoạt một lần làm nóng MCP theo kiểu best-effort
+6. Ánh xạ trạng thái online của thiết bị
 
-注意：
+Lưu ý:
 
-- 这里创建的是 `transport` 和 `ChatManager`
-- `ChatSession` 仍然保持为 `hello` 后懒创建
+- Những gì được tạo ở đây là `transport` và `ChatManager`
+- `ChatSession` vẫn giữ nguyên cơ chế tạo lười (lazy) sau `hello`
 
-### 4. 设备下线时延迟回收 transport
+### 4. Thu hồi trễ (delayed cleanup) transport khi thiết bị xuống mạng
 
-收到 `offline` 生命周期消息后：
+Sau khi nhận được thông điệp vòng đời `offline`:
 
-1. 先标记 broker offline
-2. 立即映射设备离线状态
-3. 启动延迟清理 timer
-4. 在 grace period 内保留 `transport + udp session`
-5. grace period 内如果再次收到 `online`，取消 cleanup timer 并复用原 transport
+1. Trước tiên đánh dấu broker offline
+2. Ánh xạ ngay trạng thái offline của thiết bị
+3. Khởi động timer dọn dẹp trễ
+4. Trong khoảng thời gian ân hạn (grace period), vẫn giữ lại `transport + udp session`
+5. Nếu trong grace period nhận lại được `online`, hủy timer cleanup và tái sử dụng transport cũ
 
-默认保留时间建议为 `2m`，后续可配置化。
+Thời gian giữ lại mặc định đề xuất là `2 phút`, có thể cấu hình được ở các phiên bản sau.
 
-## 在线状态语义
+## Ngữ nghĩa trạng thái online
 
-MQTT-UDP 设备在线状态改为由 MQTT 生命周期驱动，而不是由 `ChatManager` 创建 / 销毁驱动。
+Trạng thái online của thiết bị MQTT-UDP sẽ được đổi sang dẫn dắt bởi vòng đời MQTT, thay vì do việc tạo/hủy `ChatManager` quyết định.
 
-也就是：
+Cụ thể là:
 
-- MQTT `online` -> 设备在线
-- MQTT `offline` -> 设备离线
+- MQTT `online` -> thiết bị online
+- MQTT `offline` -> thiết bị offline
 
-为了避免重复通知：
+Để tránh thông báo trùng lặp:
 
-- `App.OnNewConnection()` 对 `websocket` 维持原逻辑
-- `mqtt udp` 的 `DeviceOnline / DeviceOffline` 改为由 `MqttUdpAdapter` 生命周期回调触发
+- `App.OnNewConnection()` đối với `websocket` giữ nguyên logic cũ
+- Đối với `mqtt udp`, `DeviceOnline / DeviceOffline` được đổi sang do callback vòng đời của `MqttUdpAdapter` kích hoạt
 
-## 与 hello / listen 的关系
+## Mối quan hệ với hello / listen
 
-现有聊天信令逻辑不改：
+Logic tín hiệu chat hiện có không thay đổi:
 
-- transport 可以在 MQTT 连接建立后提前存在
-- `ChatManager` 可以提前存在
-- `ChatSession` 仍然在 `hello` 成功后创建
-- `listen` 仍然要求 `hello` 已完成
+- Transport có thể tồn tại trước, ngay sau khi kết nối MQTT được thiết lập
+- `ChatManager` có thể tồn tại trước
+- `ChatSession` vẫn được tạo sau khi `hello` thành công
+- `listen` vẫn yêu cầu `hello` đã hoàn tất
 
-这样可以做到“transport 预创建”而不改变会话层语义。
+Nhờ vậy có thể đạt được "tạo trước transport" mà không thay đổi ngữ nghĩa ở tầng session.
 
-## MCP 预热策略
+## Chiến lược làm nóng MCP
 
-生命周期 `online` 到来后触发一次最佳努力 MCP 预热。
+Sau khi sự kiện vòng đời `online` đến, kích hoạt một lần làm nóng MCP theo kiểu best-effort.
 
-同时保留 `hello` 中现有的 MCP 初始化兜底逻辑。
+Đồng thời vẫn giữ lại logic khởi tạo MCP hiện có trong `hello` như phương án dự phòng.
 
-两条链路并存时，依赖当前分支已有的 MCP 幂等与状态机能力避免重复初始化：
+Khi hai luồng cùng tồn tại song song, dựa vào năng lực idempotent (đảm bảo tính bất biến khi gọi lại) và state machine sẵn có của nhánh hiện tại để tránh khởi tạo trùng lặp:
 
-- 上线时优先预热，提升控制台工具可见性
-- `hello` 时继续兜底，避免预热缺失影响业务
+- Khi lên mạng, ưu tiên làm nóng trước, nâng cao khả năng hiển thị của công cụ trên control panel
+- Khi `hello`, vẫn tiếp tục làm dự phòng, tránh việc thiếu làm nóng gây ảnh hưởng đến nghiệp vụ
 
-## 高并发与防抖
+## Đồng thời cao và chống dội (debounce)
 
-按设备维度维护生命周期状态：
+Duy trì trạng thái vòng đời theo từng thiết bị:
 
 - `brokerOnline`
 - `lastEventTs`
 - `cleanupTimer`
 - `cleanupVersion`
 
-防抖规则：
+Quy tắc chống dội:
 
-- 旧时间戳事件直接忽略
-- 重复 `online` 不重复通知上线
-- 重复 `offline` 只刷新 cleanup timer，不重复通知离线
-- timer 回调执行时校验 `cleanupVersion`，避免旧 timer 误删新连接
+- Sự kiện có timestamp cũ sẽ bị bỏ qua trực tiếp
+- `online` lặp lại sẽ không thông báo online lặp lại
+- `offline` lặp lại chỉ làm mới cleanup timer, không thông báo offline lặp lại
+- Khi callback của timer thực thi, kiểm tra `cleanupVersion` để tránh timer cũ xóa nhầm kết nối mới
 
-## 需要一起修正的点
+## Các điểm cần sửa kèm theo
 
-由于离线后 transport 会短暂保留，因此“当前在线 transport”解析不能只看 `ChatManager` 是否存在。
+Do sau khi offline, transport sẽ được giữ lại trong thời gian ngắn, nên việc phân giải "transport đang online hiện tại" không thể chỉ dựa vào việc `ChatManager` có tồn tại hay không.
 
-需要让 `MqttUdpConn` 暴露 broker online 状态，并让 `ChatManager.GetTransportType()` 在 MQTT transport 已离线时返回空字符串。这样设备维度的 MCP 查询 / 调用仍然严格依赖“当前在线 transport”。
+Cần cho `MqttUdpConn` expose trạng thái broker online, và để `ChatManager.GetTransportType()` trả về chuỗi rỗng khi MQTT transport đã offline. Nhờ vậy, việc truy vấn/gọi MCP theo chiều thiết bị vẫn phụ thuộc nghiêm ngặt vào "transport đang online hiện tại".
 
-## 涉及文件
+## Các file liên quan
 
 - `internal/data/msg/message_types.go`
 - `internal/app/mqtt_server/device_hook.go`

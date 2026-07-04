@@ -1,11 +1,10 @@
+#### Kết quả kiểm tra độ trễ
 
-#### 延迟测试结果
-
-可以做到1-1.3s内回复，如果用更小的模型应该可以更快
+Có thể đạt mức phản hồi trong 1-1.3 giây; nếu dùng mô hình nhỏ hơn thì có thể còn nhanh hơn nữa.
 
 asr: funasr
-llm: 阿里云api qwen2.5-72b-instruct
-tts: cosyvoice 
+llm: API của Alibaba Cloud, qwen2.5-72b-instruct
+tts: cosyvoice
 
 ```
 time="2025-05-22 19:33:09.940" level=debug msg="从接收音频结束 asr->llm->tts首帧 整体 耗时: 1394 ms" caller="client.go:428"
@@ -18,20 +17,22 @@ time="2025-05-22 19:35:24.418" level=debug msg="从接收音频结束 asr->llm->
 time="2025-05-22 19:35:49.868" level=debug msg="从接收音频结束 asr->llm->tts首帧 整体 耗时: 1150 ms" caller="client.go:428"
 ```
 
+_(Ghi chú của người dịch: nội dung log trên giữ nguyên tiếng Trung do là log kỹ thuật gốc từ hệ thống; ý nghĩa dòng log là "Tổng thời gian từ lúc nhận âm thanh xong đến khi có khung TTS đầu tiên qua chuỗi asr->llm->tts".)_
+
 ---
 
-## 管理后台测试
+## Kiểm thử trên trang quản trị
 
-一键启动包和Docker部署均内置Web管理后台，提供可视化测试界面。
+Cả gói khởi động nhanh (one-click) và triển khai bằng Docker đều đã tích hợp sẵn trang quản trị Web, cung cấp giao diện kiểm thử trực quan.
 
-支持以下测试类型：
+Hỗ trợ các loại kiểm thử sau:
 
-| 测试类型 | 说明 |
-|---------|------|
-| VAD | 语音活动检测连通性与响应时间 |
-| ASR | 语音识别连通性与首包延迟 |
-| LLM | 大模型推理连通性与首包延迟 |
-| TTS | 语音合成连通性与首包延迟 |
-| OTA | MQTT/UDP 连通性测试 |
+| Loại kiểm thử | Mô tả                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| VAD           | Kiểm tra kết nối và thời gian phản hồi của phát hiện hoạt động giọng nói |
+| ASR           | Kiểm tra kết nối và độ trễ khung đầu tiên của nhận dạng giọng nói        |
+| LLM           | Kiểm tra kết nối và độ trễ khung đầu tiên của suy luận mô hình lớn       |
+| TTS           | Kiểm tra kết nối và độ trễ khung đầu tiên của tổng hợp giọng nói         |
+| OTA           | Kiểm tra kết nối MQTT/UDP                                                |
 
-详细使用方式请参考：**[管理后台使用指南 →](manager_console_guide.md)**
+Để biết cách sử dụng chi tiết, vui lòng xem: **[Hướng dẫn sử dụng trang quản trị →](manager_console_guide.md)**

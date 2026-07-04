@@ -1,226 +1,225 @@
-# 声音复刻功能说明
+# Hướng dẫn tính năng nhân bản giọng nói (Voice Clone)
 
-本文档介绍项目中的 **声音复刻（Voice Clone）** 功能，包括普通用户的创建/试听/重试流程，以及管理员的复刻额度管理。
+Tài liệu này giới thiệu tính năng **Nhân bản giọng nói (Voice Clone)** trong dự án, bao gồm quy trình tạo/nghe thử/thử lại dành cho người dùng thông thường, cũng như quản lý hạn mức nhân bản dành cho quản trị viên.
 
-相关页面与文档：
+Các trang và tài liệu liên quan:
 
-- 管理员 `TTS配置管理`（为用户提供可用 TTS 配置）
-- 管理员 `用户管理 -> 复刻额度`
-- 普通用户 `声音复刻`
-- [管理后台使用指南](./manager_console_guide.md)
+- Quản trị viên `Quản lý cấu hình TTS` (cung cấp cấu hình TTS khả dụng cho người dùng)
+- Quản trị viên `Quản lý người dùng -> Hạn mức nhân bản`
+- Người dùng thông thường `Nhân bản giọng nói`
+- [Hướng dẫn sử dụng trang quản trị](./manager_console_guide.md)
 
 ---
 
-## 1. 功能概览
+## 1. Tổng quan tính năng
 
-声音复刻功能允许用户上传音频（或浏览器录音），在支持的 TTS 提供商上创建“复刻音色”，随后在智能体/角色中选择该音色进行播报。
+Tính năng nhân bản giọng nói cho phép người dùng tải lên âm thanh (hoặc ghi âm trực tiếp trên trình duyệt), tạo "giọng đọc nhân bản" trên các nhà cung cấp TTS được hỗ trợ, sau đó chọn giọng đọc này khi phát trong agent/nhân vật.
 
-当前前后端已支持的复刻提供商：
+Các nhà cung cấp dịch vụ nhân bản hiện đã được hỗ trợ ở cả frontend và backend:
 
 - `minimax`
 - `cosyvoice`
-- `aliyun_qwen`（千问）
+- `aliyun_qwen` (Qwen của Alibaba)
 
-不在上述列表的 TTS 提供商，即使可用于普通 TTS 合成，也不能用于声音复刻。
-
----
-
-## 2. 角色与权限
-
-### 2.1 普通用户
-
-可以：
-
-- 创建复刻音色
-- 查看复刻任务状态
-- 试听原始音频与复刻音频
-- 编辑复刻名称
-- 对失败任务发起重试
-
-### 2.2 管理员
-
-可以：
-
-- 配置并启用可复刻的 TTS 提供商
-- 为每个用户按 `TTS配置` 设置复刻额度（可选）
+Các nhà cung cấp TTS không nằm trong danh sách trên, dù có thể dùng để tổng hợp TTS thông thường, cũng không thể dùng cho nhân bản giọng nói.
 
 ---
 
-## 3. 前置条件
+## 2. Vai trò và quyền hạn
 
-在使用前请确认：
+### 2.1 Người dùng thông thường
 
-1. 管理员已创建并启用至少一个 TTS 配置（provider 为 `minimax` / `cosyvoice` / `aliyun_qwen`）
-2. 普通用户可在“声音复刻”页面看到该 TTS 配置
-3. （可选）管理员已为该用户分配复刻额度
+Có thể:
 
-说明：
+- Tạo giọng đọc nhân bản
+- Xem trạng thái tác vụ nhân bản
+- Nghe thử âm thanh gốc và âm thanh nhân bản
+- Chỉnh sửa tên bản nhân bản
+- Thử lại đối với tác vụ thất bại
 
-- 若未配置额度，默认兼容历史行为，通常视为“不限制”
+### 2.2 Quản trị viên
 
----
+Có thể:
 
-## 4. 普通用户使用流程
-
-入口：
-
-- `普通用户 -> 声音复刻`
-
-## 4.1 创建复刻音色
-
-点击 `创建复刻音色`，填写：
-
-- `复刻名称`（可选，不填时会使用文件名）
-- `TTS配置`（必须选择支持复刻的配置）
-- `音频来源`（上传音频 / 浏览器录音）
-- `音频对应文字`（是否必填由 provider 能力决定）
-- `文字语言`（如 `zh-CN` / `en-US`）
-
-提交后可能出现两种结果：
-
-- 立即成功（少见）
-- 返回“已提交复刻任务，正在后台处理”（常见，异步）
-
-## 4.2 查看任务状态
-
-列表中会展示：
-
-- 提供商
-- 关联 TTS 配置
-- 复刻音色 ID
-- 任务状态
-- 失败原因（若有）
-- 创建时间
-
-常见状态可理解为：
-
-- 排队中 / 处理中
-- 已完成（可试听）
-- 失败（可查看失败原因并重试）
-
-## 4.3 试听与管理
-
-每条复刻记录支持以下操作：
-
-- `原音频`：播放用户提交的音频样本
-- `试听复刻`：播放 provider 返回的复刻音色（仅成功状态显示）
-- `编辑`：修改复刻名称
-- `重新复刻`：对失败任务重新提交（仅失败状态显示）
+- Cấu hình và bật các nhà cung cấp TTS hỗ trợ nhân bản
+- Thiết lập hạn mức nhân bản cho từng người dùng theo từng `Cấu hình TTS` (tuỳ chọn)
 
 ---
 
-## 5. Provider 差异与注意事项
+## 3. Điều kiện tiên quyết
+
+Trước khi sử dụng, vui lòng xác nhận:
+
+1. Quản trị viên đã tạo và bật ít nhất một cấu hình TTS (provider là `minimax` / `cosyvoice` / `aliyun_qwen`)
+2. Người dùng thông thường có thể thấy cấu hình TTS đó trên trang "Nhân bản giọng nói"
+3. (Tuỳ chọn) Quản trị viên đã cấp hạn mức nhân bản cho người dùng đó
+
+Lưu ý:
+
+- Nếu chưa cấu hình hạn mức, mặc định sẽ tương thích với hành vi cũ, thường được coi là "không giới hạn"
+
+---
+
+## 4. Quy trình sử dụng cho người dùng thông thường
+
+Lối vào:
+
+- `Người dùng thông thường -> Nhân bản giọng nói`
+
+## 4.1 Tạo giọng đọc nhân bản
+
+Bấm `Tạo giọng đọc nhân bản`, điền các thông tin:
+
+- `Tên bản nhân bản` (tuỳ chọn, nếu không điền sẽ dùng tên file)
+- `Cấu hình TTS` (bắt buộc chọn cấu hình hỗ trợ nhân bản)
+- `Nguồn âm thanh` (tải file lên / ghi âm trên trình duyệt)
+- `Văn bản tương ứng với âm thanh` (bắt buộc điền hay không tùy vào khả năng của provider)
+- `Ngôn ngữ văn bản` (ví dụ `zh-CN` / `en-US`)
+
+Sau khi gửi có thể xảy ra hai kết quả:
+
+- Thành công ngay lập tức (hiếm gặp)
+- Trả về "Đã gửi tác vụ nhân bản, đang xử lý ở nền" (thường gặp, xử lý bất đồng bộ)
+
+## 4.2 Xem trạng thái tác vụ
+
+Danh sách sẽ hiển thị:
+
+- Nhà cung cấp (provider)
+- Cấu hình TTS liên quan
+- ID giọng đọc nhân bản
+- Trạng thái tác vụ
+- Lý do thất bại (nếu có)
+- Thời gian tạo
+
+Các trạng thái thường gặp có thể hiểu như sau:
+
+- Đang chờ xử lý / Đang xử lý
+- Đã hoàn thành (có thể nghe thử)
+- Thất bại (có thể xem lý do thất bại và thử lại)
+
+## 4.3 Nghe thử và quản lý
+
+Mỗi bản ghi nhân bản hỗ trợ các thao tác sau:
+
+- `Âm thanh gốc`: Phát âm thanh mẫu do người dùng đã gửi
+- `Nghe thử bản nhân bản`: Phát giọng đọc nhân bản do provider trả về (chỉ hiển thị khi trạng thái thành công)
+- `Chỉnh sửa`: Sửa tên bản nhân bản
+- `Nhân bản lại`: Gửi lại tác vụ đã thất bại (chỉ hiển thị khi trạng thái thất bại)
+
+---
+
+## 5. Sự khác biệt giữa các Provider và lưu ý
 
 ## 5.1 Minimax
 
-前端与后端会对音频做约束校验，常见规则：
+Frontend và backend sẽ kiểm tra ràng buộc đối với âm thanh, các quy tắc thường gặp:
 
-- 音频格式通常要求 `WAV`
-- 音频时长建议/要求不少于 `10 秒`
+- Định dạng âm thanh thường yêu cầu `WAV`
+- Thời lượng âm thanh nên/phải không dưới `10 giây`
 
-页面会在上传/录音区域给出提示，并在时长不足时阻止提交。
+Trang sẽ hiển thị thông báo ở khu vực tải lên/ghi âm, và chặn việc gửi nếu thời lượng không đủ.
 
 ## 5.2 CosyVoice
 
-特点：
+Đặc điểm:
 
-- 支持复刻
-- 常见场景下要求填写“音频对应文字”（由 provider 能力接口返回）
+- Hỗ trợ nhân bản
+- Trong các trường hợp thường gặp, yêu cầu điền "văn bản tương ứng với âm thanh" (do interface khả năng của provider trả về)
 
-实际是否必填，以页面当前 provider 能力提示为准。
+Việc có bắt buộc điền hay không sẽ tùy theo thông báo về khả năng của provider hiện tại trên trang.
 
-## 5.3 千问（`aliyun_qwen`）
+## 5.3 Qwen (`aliyun_qwen`)
 
-特点：
+Đặc điểm:
 
-- 支持复刻
-- 支持更多音频格式（如 `WAV/MP3/M4A`，以页面提示为准）
-- 选择该类复刻音色后，运行时会自动切换到对应的复刻模型（前端会给出提示）
-
----
-
-## 6. 复刻额度管理（管理员）
-
-入口：
-
-- `管理员 -> 用户管理 -> 复刻额度`
-
-管理员可按 `TTS配置ID` 为某个普通用户配置复刻额度：
-
-- `-1`：不限次数
-- `0`：禁止创建
-- `正整数`：最大可复刻次数
-
-额度统计通常按“提交复刻任务”计数（失败重试也应纳入计数策略，请结合当前业务规则使用）。
+- Hỗ trợ nhân bản
+- Hỗ trợ nhiều định dạng âm thanh hơn (như `WAV/MP3/M4A`, tùy theo thông báo trên trang)
+- Sau khi chọn giọng đọc nhân bản loại này, khi chạy hệ thống sẽ tự động chuyển sang model nhân bản tương ứng (frontend sẽ hiển thị thông báo)
 
 ---
 
-## 7. 接口说明（用户侧）
+## 6. Quản lý hạn mức nhân bản (dành cho quản trị viên)
 
-### 7.1 能力探测
+Lối vào:
+
+- `Quản trị viên -> Quản lý người dùng -> Hạn mức nhân bản`
+
+Quản trị viên có thể cấu hình hạn mức nhân bản cho một người dùng thông thường theo từng `ID cấu hình TTS`:
+
+- `-1`: Không giới hạn số lần
+- `0`: Cấm tạo
+- `Số nguyên dương`: Số lần nhân bản tối đa
+
+Việc thống kê hạn mức thường được tính theo "số lần gửi tác vụ nhân bản" (việc thử lại khi thất bại cũng nên được tính vào, vui lòng áp dụng theo quy tắc nghiệp vụ hiện hành).
+
+---
+
+## 7. Mô tả interface (phía người dùng)
+
+### 7.1 Dò khả năng (capability probing)
 
 - `GET /user/voice-clone/capabilities?provider=<provider>`
 
-用途：
+Công dụng:
 
-- 获取 provider 是否启用
-- 是否要求填写 transcript
-- 文本长度范围
-- 支持语言列表
+- Lấy thông tin provider có được bật hay không
+- Có yêu cầu điền transcript hay không
+- Phạm vi độ dài văn bản
+- Danh sách ngôn ngữ được hỗ trợ
 
-### 7.2 复刻记录与任务操作
+### 7.2 Bản ghi nhân bản và các thao tác với tác vụ
 
-- `POST /user/voice-clones`（创建复刻，`multipart/form-data`）
-- `GET /user/voice-clones`（列表）
-- `PUT /user/voice-clones/:id`（修改名称）
-- `POST /user/voice-clones/:id/retry`（失败重试）
-- `GET /user/voice-clones/:id/preview`（试听复刻音色）
+- `POST /user/voice-clones` (tạo bản nhân bản, `multipart/form-data`)
+- `GET /user/voice-clones` (danh sách)
+- `PUT /user/voice-clones/:id` (sửa tên)
+- `POST /user/voice-clones/:id/retry` (thử lại khi thất bại)
+- `GET /user/voice-clones/:id/preview` (nghe thử giọng đọc nhân bản)
 
-### 7.3 原始音频管理
+### 7.3 Quản lý âm thanh gốc
 
 - `GET /user/voice-clones/:id/audios`
 - `GET /user/voice-clones/audios/:audio_id/file`
 
 ---
 
-## 8. 接口说明（管理员额度）
+## 8. Mô tả interface (hạn mức của quản trị viên)
 
 - `GET /admin/users/:id/voice-clone-quotas`
 - `PUT /admin/users/:id/voice-clone-quotas`
 
 ---
 
-## 9. 常见问题与排查
+## 9. Câu hỏi thường gặp và cách xử lý
 
-### 9.1 页面看不到可选 TTS 配置
+### 9.1 Trang không hiển thị cấu hình TTS để chọn
 
-排查：
+Kiểm tra:
 
-1. 管理员是否启用了 TTS 配置
-2. TTS provider 是否属于支持复刻的列表（`minimax/cosyvoice/aliyun_qwen`）
-3. 当前用户是否有权限访问该配置
+1. Quản trị viên đã bật cấu hình TTS chưa
+2. Provider của TTS có thuộc danh sách hỗ trợ nhân bản không (`minimax/cosyvoice/aliyun_qwen`)
+3. Người dùng hiện tại có quyền truy cập cấu hình đó không
 
-### 9.2 提交时报“该提供商要求填写音频对应文字”
+### 9.2 Khi gửi báo lỗi "nhà cung cấp này yêu cầu điền văn bản tương ứng với âm thanh"
 
-说明该 provider 能力要求 transcript 必填，请补充音频对应文字后提交。
+Điều này có nghĩa là provider yêu cầu bắt buộc phải điền transcript, vui lòng bổ sung văn bản tương ứng với âm thanh rồi gửi lại.
 
-### 9.3 提交时报额度不足
+### 9.3 Khi gửi báo lỗi hạn mức không đủ
 
-管理员需要在 `用户管理 -> 复刻额度` 中为该用户对应的 `TTS配置ID` 提高额度或设置为 `-1`。
+Quản trị viên cần vào `Quản lý người dùng -> Hạn mức nhân bản` để tăng hạn mức hoặc đặt thành `-1` cho người dùng đó ứng với `ID cấu hình TTS` tương ứng.
 
-### 9.4 复刻成功但无法试听
+### 9.4 Nhân bản thành công nhưng không nghe thử được
 
-排查：
+Kiểm tra:
 
-1. 任务状态是否已完成
-2. provider 预览接口是否正常
-3. 浏览器是否拦截了音频自动播放（手动点击播放按钮重试）
+1. Trạng thái tác vụ đã hoàn thành chưa
+2. Interface preview của provider có hoạt động bình thường không
+3. Trình duyệt có chặn tự động phát âm thanh không (thử bấm nút phát thủ công lại)
 
 ---
 
-## 10. 使用建议
+## 10. Đề xuất khi sử dụng
 
-- 为每个场景准备独立的 TTS 配置（便于额度控制与计费归因）
-- 提交音频尽量使用干净人声、低噪声环境
-- transcript 尽量与音频内容一致，有助于复刻效果与稳定性
-
+- Chuẩn bị cấu hình TTS riêng cho từng kịch bản (thuận tiện cho việc kiểm soát hạn mức và tính phí theo từng nguồn)
+- Âm thanh gửi lên nên sử dụng giọng nói sạch, môi trường ít nhiễu
+- Transcript nên khớp với nội dung âm thanh càng nhiều càng tốt, giúp cải thiện hiệu quả và độ ổn định của bản nhân bản

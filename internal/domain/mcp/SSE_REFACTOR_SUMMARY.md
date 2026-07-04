@@ -1,102 +1,102 @@
-# MCP SSE 传输层重构总结
+# Tổng kết Refactor tầng truyền tải MCP SSE
 
-## 概述
+## Tổng quan
 
-本次重构的目标是使用 `mark3labs/mcp-go` 库的原生 SSE 客户端来替换第三方的 `github.com/r3labs/sse/v2` 库，从而更好地利用官方 MCP 协议实现，提高代码的标准化和维护性。
+Mục tiêu của lần refactor này là sử dụng SSE client gốc của thư viện `mark3labs/mcp-go` để thay thế thư viện bên thứ ba `github.com/r3labs/sse/v2`, từ đó tận dụng tốt hơn triển khai chính thức của giao thức MCP, nâng cao tính chuẩn hóa và khả năng bảo trì của code.
 
-**最新更新**: 进一步优化为使用 `client.NewClient` + `transport.NewSSE` 的组合方式，提供更灵活的传输层抽象。
+**Cập nhật mới nhất**: Tiếp tục tối ưu để sử dụng tổ hợp `client.NewClient` + `transport.NewSSE`, cung cấp khả năng trừu tượng hóa tầng truyền tải (transport layer) linh hoạt hơn.
 
-## 重构历程
+## Quá trình Refactor
 
-### 阶段1: 替换第三方SSE库
+### Giai đoạn 1: Thay thế thư viện SSE bên thứ ba
 
-- 删除 `github.com/r3labs/sse/v2`
-- 使用 `client.NewSSEMCPClient`
+- Xóa bỏ `github.com/r3labs/sse/v2`
+- Sử dụng `client.NewSSEMCPClient`
 
-### 阶段2: 使用模块化传输层设计 ✨
+### Giai đoạn 2: Sử dụng thiết kế tầng truyền tải theo module hóa ✨
 
-- 使用 `transport.NewSSE` 创建传输层
-- 使用 `client.NewClient` 创建客户端
-- 实现更好的关注点分离
+- Sử dụng `transport.NewSSE` để tạo tầng truyền tải
+- Sử dụng `client.NewClient` để tạo client
+- Đạt được sự phân tách mối quan tâm (separation of concerns) tốt hơn
 
-## 重构内容
+## Nội dung Refactor
 
-### 1. 依赖库更换
+### 1. Thay đổi thư viện dependency
 
-#### 删除的依赖
+#### Dependency đã xóa
 
-- `github.com/r3labs/sse/v2` - 第三方 SSE 客户端库
+- `github.com/r3labs/sse/v2` - Thư viện SSE client bên thứ ba
 
-#### 替换为
+#### Thay thế bằng
 
-- `github.com/mark3labs/mcp-go/client` - 官方 MCP 客户端库
-- `github.com/mark3labs/mcp-go/client/transport` - 官方传输层抽象
+- `github.com/mark3labs/mcp-go/client` - Thư viện MCP client chính thức
+- `github.com/mark3labs/mcp-go/client/transport` - Lớp trừu tượng tầng truyền tải chính thức
 
-### 2. 客户端创建方式重构
+### 2. Refactor cách tạo Client
 
-#### 重构前（第三方库）
+#### Trước khi refactor (thư viện bên thứ ba)
 
 ```go
-// 使用第三方SSE库
+// Sử dụng thư viện SSE bên thứ ba
 client := sse.NewClient(config.SSEUrl)
 client.Headers = map[string]string{
     "Accept":       "text/event-stream",
     "Content-Type": "application/json",
 }
 
-// 手动订阅事件
+// Đăng ký sự kiện thủ công
 err := conn.client.Subscribe("tools", func(msg *sse.Event) {
     if err := conn.handleToolsUpdate(msg); err != nil {
-        log.Errorf("处理工具更新失败: %v", err)
+        log.Errorf("Xử lý cập nhật công cụ thất bại: %v", err)
     }
 })
 ```
 
-#### 重构中期（直接使用客户端）
+#### Giai đoạn giữa của refactor (sử dụng client trực tiếp)
 
 ```go
-// 使用mcp-go的SSE客户端
+// Sử dụng SSE client của mcp-go
 mcpClient, err := client.NewSSEMCPClient(config.SSEUrl)
 if err != nil {
-    return fmt.Errorf("创建MCP客户端失败: %v", err)
+    return fmt.Errorf("Tạo MCP client thất bại: %v", err)
 }
 ```
 
-#### 重构后（模块化设计）✨
+#### Sau khi refactor (thiết kế module hóa) ✨
 
 ```go
-// 创建 SSE 传输层
+// Tạo tầng truyền tải SSE
 sseTransport, err := transport.NewSSE(config.SSEUrl)
 if err != nil {
-    return fmt.Errorf("创建SSE传输层失败: %v", err)
+    return fmt.Errorf("Tạo tầng truyền tải SSE thất bại: %v", err)
 }
 
-// 使用 client.NewClient 创建 MCP 客户端
+// Sử dụng client.NewClient để tạo MCP client
 mcpClient := client.NewClient(sseTransport)
 ```
 
-### 3. 架构优势
+### 3. Ưu điểm kiến trúc
 
-#### 关注点分离
+#### Phân tách mối quan tâm (Separation of concerns)
 
-- **传输层**: `transport.NewSSE` 专门处理 SSE 连接
-- **客户端层**: `client.NewClient` 处理 MCP 协议逻辑
-- **业务层**: 我们的代码专注于工具管理
+- **Tầng truyền tải (Transport layer)**: `transport.NewSSE` chuyên xử lý kết nối SSE
+- **Tầng client**: `client.NewClient` xử lý logic giao thức MCP
+- **Tầng nghiệp vụ**: Code của chúng ta chỉ tập trung vào quản lý công cụ
 
-#### 扩展性提升
+#### Nâng cao khả năng mở rộng
 
 ```go
-// 可以轻松切换到其他传输方式
-// sseTransport := transport.NewSSE(url)           // SSE 传输
-// stdioTransport := transport.NewStdio(cmd)       // Stdio 传输
-// wsTransport := transport.NewWebSocket(url)      // WebSocket 传输
+// Có thể dễ dàng chuyển sang các phương thức truyền tải khác
+// sseTransport := transport.NewSSE(url)           // Truyền tải SSE
+// stdioTransport := transport.NewStdio(cmd)       // Truyền tải Stdio
+// wsTransport := transport.NewWebSocket(url)      // Truyền tải WebSocket
 // client := client.NewClient(anyTransport)
 ```
 
-#### 配置灵活性
+#### Tính linh hoạt trong cấu hình
 
 ```go
-// 可以为传输层添加选项配置
+// Có thể thêm tùy chọn cấu hình cho tầng truyền tải
 sseTransport, err := transport.NewSSE(
     config.SSEUrl,
     transport.WithHeaders(map[string]string{
@@ -106,12 +106,12 @@ sseTransport, err := transport.NewSSE(
 )
 ```
 
-### 4. 连接和初始化流程重构
+### 4. Refactor quy trình kết nối và khởi tạo
 
-#### 重构前
+#### Trước khi refactor
 
 ```go
-// 手动发送初始化请求
+// Gửi request khởi tạo thủ công
 initRequest := MCPInitRequest{
     ProtocolVersion: "2024-11-05",
     ClientInfo: MCPImplementation{
@@ -120,19 +120,19 @@ initRequest := MCPInitRequest{
     },
 }
 
-// 通过HTTP POST发送
+// Gửi qua HTTP POST
 resp, err := http.Post(conn.config.SSEUrl+"/init", "application/json", ...)
 ```
 
-#### 重构后
+#### Sau khi refactor
 
 ```go
-// 启动客户端
+// Khởi động client
 if err := conn.client.Start(ctx); err != nil {
-    return fmt.Errorf("启动客户端失败: %v", err)
+    return fmt.Errorf("Khởi động client thất bại: %v", err)
 }
 
-// 使用标准初始化请求
+// Sử dụng request khởi tạo chuẩn
 initRequest := mcp.InitializeRequest{
     Params: mcp.InitializeParams{
         ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
@@ -149,35 +149,35 @@ initRequest := mcp.InitializeRequest{
 initResult, err := conn.client.Initialize(ctx, initRequest)
 ```
 
-### 5. 工具列表获取重构
+### 5. Refactor lấy danh sách công cụ
 
-#### 重构前
+#### Trước khi refactor
 
 ```go
-// 手动解析SSE事件
+// Phân tích thủ công sự kiện SSE
 var listResult mcp.ListToolsResult
 if err := json.Unmarshal(msg.Data, &listResult); err != nil {
-    return fmt.Errorf("解析工具数据失败: %v", err)
+    return fmt.Errorf("Phân tích dữ liệu công cụ thất bại: %v", err)
 }
 ```
 
-#### 重构后
+#### Sau khi refactor
 
 ```go
-// 使用客户端API
+// Sử dụng API của client
 listRequest := mcp.ListToolsRequest{}
 toolsResult, err := conn.client.ListTools(ctx, listRequest)
 if err != nil {
-    return fmt.Errorf("获取工具列表失败: %v", err)
+    return fmt.Errorf("Lấy danh sách công cụ thất bại: %v", err)
 }
 ```
 
-### 6. 工具调用重构
+### 6. Refactor gọi công cụ
 
-#### 重构前
+#### Trước khi refactor
 
 ```go
-// 手动构建HTTP请求
+// Xây dựng request HTTP thủ công
 callToolRequest := mcp.CallToolRequest{
     Request: mcp.Request{
         Method: string(mcp.MethodToolsCall),
@@ -192,10 +192,10 @@ data, err := json.Marshal(callToolRequest)
 resp, err := http.Post(t.sseUrl+"/call", "application/json", ...)
 ```
 
-#### 重构后
+#### Sau khi refactor
 
 ```go
-// 使用客户端API
+// Sử dụng API của client
 callRequest := mcp.CallToolRequest{
     Params: mcp.CallToolParams{
         Name:      t.name,
@@ -206,12 +206,12 @@ callRequest := mcp.CallToolRequest{
 result, err := t.client.CallTool(ctx, callRequest)
 ```
 
-### 7. 连接管理重构
+### 7. Refactor quản lý kết nối
 
-#### 重构前
+#### Trước khi refactor
 
 ```go
-// 手动管理SSE连接
+// Quản lý kết nối SSE thủ công
 if conn.client != nil {
     closeChan := make(chan *sse.Event)
     close(closeChan)
@@ -219,52 +219,52 @@ if conn.client != nil {
 }
 ```
 
-#### 重构后
+#### Sau khi refactor
 
 ```go
-// 使用客户端关闭方法
+// Sử dụng phương thức đóng của client
 if conn.client != nil {
     if err := conn.client.Close(); err != nil {
-        log.Errorf("关闭MCP客户端失败: %v", err)
+        log.Errorf("Đóng MCP client thất bại: %v", err)
     }
 }
 ```
 
-## 优化效果
+## Hiệu quả tối ưu
 
-### 1. 代码简化
+### 1. Đơn giản hóa code
 
-- **减少代码行数**: 删除了手动的 SSE 事件处理逻辑
-- **简化错误处理**: 使用客户端库的统一错误处理机制
-- **消除样板代码**: 不再需要手动构建 HTTP 请求
+- **Giảm số dòng code**: Xóa bỏ logic xử lý sự kiện SSE thủ công
+- **Đơn giản hóa xử lý lỗi**: Sử dụng cơ chế xử lý lỗi thống nhất của thư viện client
+- **Loại bỏ boilerplate code**: Không còn cần xây dựng request HTTP thủ công
 
-### 2. 架构优化 ✨
+### 2. Tối ưu kiến trúc ✨
 
-- **模块化设计**: 传输层和协议层分离
-- **可插拔传输**: 可以轻松切换不同的传输方式
-- **配置灵活**: 支持传输层级别的配置选项
+- **Thiết kế module hóa**: Tầng truyền tải và tầng giao thức được tách biệt
+- **Truyền tải có thể cắm ghép (pluggable)**: Có thể dễ dàng chuyển đổi giữa các phương thức truyền tải khác nhau
+- **Cấu hình linh hoạt**: Hỗ trợ tùy chọn cấu hình ở cấp độ tầng truyền tải
 
-### 3. 协议标准化
+### 3. Chuẩn hóa giao thức
 
-- **使用官方实现**: 直接使用 mcp-go 库的标准实现
-- **协议兼容性**: 自动支持 MCP 协议的最新版本
-- **类型安全**: 使用标准的 MCP 请求/响应类型
+- **Sử dụng triển khai chính thức**: Sử dụng trực tiếp triển khai chuẩn của thư viện mcp-go
+- **Tính tương thích giao thức**: Tự động hỗ trợ phiên bản mới nhất của giao thức MCP
+- **An toàn kiểu dữ liệu**: Sử dụng các kiểu request/response chuẩn của MCP
 
-### 4. 维护性提升
+### 4. Nâng cao khả năng bảo trì
 
-- **减少依赖**: 移除了第三方 SSE 库依赖
-- **统一接口**: 使用一致的客户端 API
-- **自动更新**: 随 mcp-go 库更新自动获得协议改进
+- **Giảm dependency**: Loại bỏ dependency vào thư viện SSE bên thứ ba
+- **Interface thống nhất**: Sử dụng API client nhất quán
+- **Tự động cập nhật**: Tự động nhận được các cải tiến giao thức khi thư viện mcp-go cập nhật
 
-### 5. 错误处理改进
+### 5. Cải thiện xử lý lỗi
 
-- **统一错误格式**: 使用 mcp-go 库的标准错误类型
-- **更好的错误信息**: 客户端库提供更详细的错误信息
-- **空指针保护**: 添加了 nil 客户端检查，避免 panic
+- **Định dạng lỗi thống nhất**: Sử dụng kiểu lỗi chuẩn của thư viện mcp-go
+- **Thông tin lỗi tốt hơn**: Thư viện client cung cấp thông tin lỗi chi tiết hơn
+- **Bảo vệ con trỏ null**: Đã thêm kiểm tra client nil, tránh panic
 
-## 测试验证
+## Kiểm chứng qua Test
 
-### 测试结果
+### Kết quả test
 
 ```
 === RUN   TestGlobalMCPManager_Singleton
@@ -295,37 +295,37 @@ if conn.client != nil {
 ok      milestones-esp32-server-golang/internal/domain/mcp 0.578s
 ```
 
-**总计**: 12个测试用例全部通过 ✨
+**Tổng cộng**: 12 test case đều pass ✨
 
-### 修复的问题
+### Các vấn đề đã sửa
 
-1. **结构体字段更新**: 将 `sseUrl` 字段替换为 `client` 字段
-2. **API 参数修正**: 修复了各种 API 调用的参数格式
-3. **空指针保护**: 添加了客户端 nil 检查，防止 panic
-4. **错误消息优化**: 提供了更清晰的错误信息
-5. **模块化架构**: 使用传输层抽象提高代码灵活性
+1. **Cập nhật trường struct**: Thay trường `sseUrl` bằng trường `client`
+2. **Chỉnh sửa tham số API**: Sửa định dạng tham số của các lệnh gọi API khác nhau
+3. **Bảo vệ con trỏ null**: Thêm kiểm tra client nil, ngăn ngừa panic
+4. **Tối ưu thông báo lỗi**: Cung cấp thông tin lỗi rõ ràng hơn
+5. **Kiến trúc module hóa**: Sử dụng lớp trừu tượng tầng truyền tải để nâng cao tính linh hoạt của code
 
-## 兼容性说明
+## Giải thích về tính tương thích
 
-### 向后兼容
+### Tương thích ngược
 
-- **配置文件**: 配置文件格式保持不变
-- **公共接口**: 对外暴露的接口保持一致
-- **功能特性**: 所有原有功能都得到保留
+- **File cấu hình**: Định dạng file cấu hình giữ nguyên không đổi
+- **Interface công khai**: Interface hướng ra bên ngoài giữ nguyên nhất quán
+- **Đặc tính chức năng**: Toàn bộ chức năng ban đầu đều được giữ lại
 
-### 内部重构
+### Refactor nội bộ
 
-- **传输层**: 完全重构为使用 mcp-go 原生 SSE 实现
-- **协议处理**: 使用标准 MCP 协议结构体
-- **错误处理**: 统一使用 mcp-go 的错误类型
-- **架构设计**: 传输层和协议层分离的模块化设计
+- **Tầng truyền tải**: Được tái cấu trúc hoàn toàn để sử dụng triển khai SSE gốc của mcp-go
+- **Xử lý giao thức**: Sử dụng struct giao thức MCP chuẩn
+- **Xử lý lỗi**: Sử dụng thống nhất kiểu lỗi của mcp-go
+- **Thiết kế kiến trúc**: Thiết kế module hóa với tầng truyền tải và tầng giao thức được tách biệt
 
-## 未来扩展可能性
+## Khả năng mở rộng trong tương lai
 
-### 1. 多传输支持
+### 1. Hỗ trợ đa truyền tải (Multi-transport)
 
 ```go
-// 可以轻松支持多种传输方式
+// Có thể dễ dàng hỗ trợ nhiều phương thức truyền tải
 switch config.TransportType {
 case "sse":
     transport, _ := transport.NewSSE(config.URL)
@@ -337,10 +337,10 @@ case "stdio":
 client := client.NewClient(transport)
 ```
 
-### 2. 传输层配置
+### 2. Cấu hình tầng truyền tải
 
 ```go
-// 高级传输层配置
+// Cấu hình nâng cao cho tầng truyền tải
 sseTransport, err := transport.NewSSE(
     config.SSEUrl,
     transport.WithTimeout(30*time.Second),
@@ -349,24 +349,24 @@ sseTransport, err := transport.NewSSE(
 )
 ```
 
-### 3. 连接池支持
+### 3. Hỗ trợ Connection Pool
 
 ```go
-// 可以轻松实现连接池
+// Có thể dễ dàng triển khai connection pool
 type ConnectionPool struct {
     transports []transport.Interface
     clients    []*client.Client
 }
 ```
 
-## 总结
+## Tổng kết
 
-本次重构成功地将 MCP Host 从使用第三方 SSE 库迁移到了官方 mcp-go 库的原生实现，并进一步优化为模块化的传输层设计。这一改进不仅：
+Lần refactor này đã thành công di chuyển MCP Host từ việc sử dụng thư viện SSE bên thứ ba sang triển khai gốc của thư viện mcp-go chính thức, và tiếp tục tối ưu thành thiết kế tầng truyền tải theo module hóa. Cải tiến này không chỉ:
 
-1. **简化了代码结构**，提高了协议标准化水平
-2. **增强了系统的可维护性**和稳定性
-3. **提供了更好的架构抽象**，传输层和协议层分离
-4. **增强了扩展性**，可以轻松支持多种传输方式
-5. **保持了完全的向后兼容性**
+1. **Đơn giản hóa cấu trúc code**, nâng cao mức độ chuẩn hóa giao thức
+2. **Tăng cường khả năng bảo trì** và độ ổn định của hệ thống
+3. **Cung cấp lớp trừu tượng kiến trúc tốt hơn**, tách biệt tầng truyền tải và tầng giao thức
+4. **Tăng cường khả năng mở rộng**, có thể dễ dàng hỗ trợ nhiều phương thức truyền tải khác nhau
+5. **Giữ vững tính tương thích ngược hoàn toàn**
 
-重构后的代码更加简洁、类型安全、模块化，并且能够自动受益于 mcp-go 库的未来改进。所有测试用例都通过验证，确保了重构的质量和可靠性。✨
+Code sau khi refactor gọn gàng hơn, an toàn về kiểu dữ liệu hơn, module hóa hơn, và có thể tự động hưởng lợi từ các cải tiến trong tương lai của thư viện mcp-go. Toàn bộ test case đều đã được kiểm chứng thành công, đảm bảo chất lượng và độ tin cậy của lần refactor này. ✨

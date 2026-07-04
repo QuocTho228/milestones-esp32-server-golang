@@ -1,139 +1,139 @@
-﻿# Docker Compose 部署指南
+﻿# Hướng dẫn triển khai bằng Docker Compose
 
-## 概述
+## Tổng quan
 
-本项目使用 Docker Compose 进行容器化部署，包含以下核心服务：
+Dự án này sử dụng Docker Compose để triển khai dạng container hóa, bao gồm các dịch vụ cốt lõi sau:
 
-- **MySQL 数据库服务**：数据存储
-- **主程序服务**：核心业务逻辑
-- **后端管理服务**：API 接口服务
-- **前端管理服务**：Web 管理界面
+- **Dịch vụ cơ sở dữ liệu MySQL**: lưu trữ dữ liệu
+- **Dịch vụ chương trình chính**: xử lý logic nghiệp vụ cốt lõi
+- **Dịch vụ backend quản trị**: dịch vụ API
+- **Dịch vụ frontend quản trị**: giao diện quản trị web
 
-## 快速指引（补充）
+## Hướng dẫn nhanh (bổ sung)
 
-本节为 `doc/docker.md` 的补充说明，帮助快速选择与落地部署方式。
+Phần này là bổ sung cho `doc/docker.md`, giúp bạn nhanh chóng chọn và triển khai theo cách phù hợp.
 
-### 1. 选择部署方式
+### 1. Chọn phương án triển khai
 
-- 推荐：Docker Compose（包含管理后台与完整服务）
-- 简化：单容器 Docker（无控制台或精简模式）
+- Khuyến nghị: Docker Compose (bao gồm trang quản trị và đầy đủ các dịch vụ)
+- Đơn giản hóa: Docker đơn container (không có trang quản trị hoặc ở chế độ tối giản)
 
-### 2. Docker Compose 快速路径
+### 2. Lộ trình nhanh với Docker Compose
 
-1. 拉取代码或准备 `docker-compose.yml`
-2. 参考本文后续“配置文件准备”与“启动服务”完成配置
-3. 启动：
+1. Clone mã nguồn hoặc chuẩn bị sẵn file `docker-compose.yml`
+2. Tham khảo phần "Chuẩn bị file cấu hình" và "Khởi động dịch vụ" ở phần sau của tài liệu này để hoàn tất cấu hình
+3. Khởi động:
 
 ```bash
 docker compose up -d
 ```
 
-4. 管理后台默认地址：`http://<服务器IP或域名>:8080/`
+4. Địa chỉ mặc định của trang quản trị: `http://<IP máy chủ hoặc tên miền>:8080/`
 
-### 3. 单容器 Docker（补充）
+### 3. Docker đơn container (bổ sung)
 
-按 `doc/docker.md` 构建或拉取镜像后运行。常见建议：
+Sau khi build hoặc pull image theo `doc/docker.md`, chạy container. Một số khuyến nghị thường gặp:
 
-- 映射 `config/`、`logs/`、`storage/` 目录为数据卷
-- 对外暴露 WebSocket / MQTT / UDP 端口
-- 需要管理后台时启用对应参数或使用 Compose
+- Mount các thư mục `config/`, `logs/`, `storage/` thành volume dữ liệu
+- Mở các cổng WebSocket / MQTT / UDP ra bên ngoài
+- Khi cần dùng trang quản trị, hãy bật tham số tương ứng hoặc dùng Compose
 
-### 4. 配置向导与测试
+### 4. Wizard cấu hình và kiểm thử
 
-启动后可在管理后台使用配置向导完成引擎配置，并在测试工具中进行 VAD/ASR/LLM/TTS 可用性与延迟测试，以及 OTA 全流程验证。
+Sau khi khởi động, có thể dùng wizard cấu hình trên trang quản trị để hoàn thành cấu hình engine, đồng thời dùng công cụ kiểm thử để kiểm tra khả năng dùng được và độ trễ của VAD/ASR/LLM/TTS, cũng như xác thực toàn bộ quy trình OTA.
 
-### 5. 常见问题
+### 5. Các vấn đề thường gặp
 
-- 端口冲突：检查 8080/8989/2883/8990 占用情况
-- 配置未生效：确认数据卷挂载路径正确，重启容器生效
-- 权限问题：Linux 下注意挂载目录权限与 SELinux 限制
+- Xung đột cổng: kiểm tra xem các cổng 8080/8989/2883/8990 có đang bị chiếm dụng không
+- Cấu hình không có hiệu lực: xác nhận đường dẫn mount volume đã đúng, khởi động lại container để áp dụng
+- Vấn đề về quyền: trên Linux cần lưu ý quyền của thư mục mount và các giới hạn của SELinux
 
-## 服务架构
+## Kiến trúc dịch vụ
 
-### 1. MySQL 数据库服务 (milestones-mysql)
+### 1. Dịch vụ cơ sở dữ liệu MySQL (milestones-mysql)
 
-**配置信息：**
+**Thông tin cấu hình:**
 
-- 镜像：`docker.jsdelivr.fyi/mysql:8.0`
-- 端口映射：`23306:3306`
-- 数据库名：`milestones_admin`
-- 用户名：`root`
-- 密码：`password`
+- Image: `docker.jsdelivr.fyi/mysql:8.0`
+- Port mapping: `23306:3306`
+- Tên database: `milestones_admin`
+- Username: `root`
+- Password: `password`
 
-**特性：**
+**Đặc điểm:**
 
-- 使用 MySQL 8.0
-- 配置健康检查
-- 数据持久化
+- Sử dụng MySQL 8.0
+- Có cấu hình health check
+- Dữ liệu được lưu trữ bền vững (persistent)
 
-### 2. 主程序服务 (milestones-main-server)
+### 2. Dịch vụ chương trình chính (milestones-main-server)
 
-**配置信息：**
+**Thông tin cấu hình:**
 
-- 镜像：`docker.jsdelivr.fyi/hackers365/milestones_server:0.5`
-- 端口映射：
-  - `8989:8989` - WebSocket 服务
-  - `2882:2883` - MQTT 服务
-  - `8888:8888/udp` - UDP 服务
+- Image: `docker.jsdelivr.fyi/quoctho228/milestones_server:0.5`
+- Port mapping:
+  - `8989:8989` - Dịch vụ WebSocket
+  - `2882:2883` - Dịch vụ MQTT
+  - `8888:8888/udp` - Dịch vụ UDP
 
-**依赖关系：**
+**Quan hệ phụ thuộc:**
 
-- 依赖 MySQL 服务健康状态
-- 依赖后端服务启动完成
+- Phụ thuộc vào trạng thái health của dịch vụ MySQL
+- Phụ thuộc vào việc dịch vụ backend đã khởi động xong
 
-**配置文件支持：**
+**Hỗ trợ file cấu hình:**
 
-- 通过卷挂载导入自定义配置文件
-- 配置文件路径：`../../config:/workspace/config`
+- Import file cấu hình tùy chỉnh thông qua mount volume
+- Đường dẫn file cấu hình: `../../config:/workspace/config`
 
-**ten_vad 支持：**
+**Hỗ trợ ten_vad:**
 
-- Docker 镜像已包含 ten_vad 库（`/workspace/lib/ten-vad/`）
-- 运行时库路径已通过 `LD_LIBRARY_PATH` 自动配置
+- Image Docker đã bao gồm sẵn thư viện ten_vad (`/workspace/lib/ten-vad/`)
+- Đường dẫn thư viện runtime đã được tự động cấu hình thông qua `LD_LIBRARY_PATH`
 
-### 3. 后端管理服务 (milestones-backend)
+### 3. Dịch vụ backend quản trị (milestones-backend)
 
-**配置信息：**
+**Thông tin cấu hình:**
 
-- 镜像：`docker.jsdelivr.fyi/hackers365/milestones_manager_backend:0.5`
-- 端口映射：`8081:8080`
+- Image: `docker.jsdelivr.fyi/quoctho228/milestones_manager_backend:0.5`
+- Port mapping: `8081:8080`
 
-**功能：**
+**Chức năng:**
 
-- 提供 RESTful API
-- 设备与用户管理
+- Cung cấp RESTful API
+- Quản lý thiết bị và người dùng
 
-**配置文件支持：**
+**Hỗ trợ file cấu hình:**
 
-- 通过卷挂载导入自定义配置文件
-- 配置文件路径：`../../manager/backend/config:/root/config`
+- Import file cấu hình tùy chỉnh thông qua mount volume
+- Đường dẫn file cấu hình: `../../manager/backend/config:/root/config`
 
-### 4. 前端管理服务 (milestones-frontend)
+### 4. Dịch vụ frontend quản trị (milestones-frontend)
 
-**配置信息：**
+**Thông tin cấu hình:**
 
-- 镜像：`docker.jsdelivr.fyi/hackers365/milestones_manager_frontend:0.5`
-- 端口映射：`8080:80`
+- Image: `docker.jsdelivr.fyi/quoctho228/milestones_manager_frontend:0.5`
+- Port mapping: `8080:80`
 
-**功能：**
+**Chức năng:**
 
-- Web 管理界面（内控入口）
-- 设备状态与系统配置管理
+- Giao diện quản trị Web (cổng vào quản lý nội bộ)
+- Quản lý trạng thái thiết bị và cấu hình hệ thống
 
-## 部署流程
+## Quy trình triển khai
 
-### 1. 环境准备
+### 1. Chuẩn bị môi trường
 
-确保系统已安装 Docker 和 Docker Compose：
+Đảm bảo hệ thống đã cài đặt Docker và Docker Compose:
 
 ```bash
 docker --version
 docker compose version
 ```
 
-### 2. 配置文件准备
+### 2. Chuẩn bị file cấu hình
 
-确保以下目录与文件存在：
+Đảm bảo các thư mục và file sau đã tồn tại:
 
 ```
 milestones-esp32-server-golang/
@@ -142,22 +142,22 @@ milestones-esp32-server-golang/
 ├─ config/
 │  ├─ config.yaml
 │  ├─ config.json
-│  └─ (其他配置文件)
+│  └─ (các file cấu hình khác)
 ├─ logs/
-│  └─ (日志目录)
+│  └─ (thư mục log)
 └─ manager/backend/config/
    ├─ config.yaml
-   └─ (其他配置文件)
+   └─ (các file cấu hình khác)
 ```
 
-**配置文件导入说明：**
+**Giải thích về việc import file cấu hình:**
 
-- 主程序配置文件通过卷挂载 `../../config:/workspace/config` 导入
-- 后端配置文件通过卷挂载 `../../manager/backend/config:/root/config` 导入
+- File cấu hình của chương trình chính được import thông qua mount volume `../../config:/workspace/config`
+- File cấu hình của backend được import thông qua mount volume `../../manager/backend/config:/root/config`
 
-### 3. 启动服务
+### 3. Khởi động dịch vụ
 
-**必须先进入 `docker/docker-composer/` 目录执行命令：**
+**Bắt buộc phải vào thư mục `docker/docker-composer/` trước khi chạy lệnh:**
 
 ```bash
 cd docker/docker-composer/
@@ -167,16 +167,16 @@ docker compose ps
 docker compose logs -f
 ```
 
-### 4. 服务访问
+### 4. Truy cập dịch vụ
 
-- 前端管理界面：`http://<服务器IP或域名>:8080`
-- 后端 API：`http://localhost:8081`
-- WebSocket：`ws://localhost:8989`
-- MQTT：`localhost:2882`
-- UDP：`localhost:8888`
-- MySQL：`localhost:23306`
+- Giao diện quản trị frontend: `http://<IP máy chủ hoặc tên miền>:8080`
+- API backend: `http://localhost:8081`
+- WebSocket: `ws://localhost:8989`
+- MQTT: `localhost:2882`
+- UDP: `localhost:8888`
+- MySQL: `localhost:23306`
 
-## 常用操作
+## Các thao tác thường dùng
 
 ```bash
 cd docker/docker-composer/
@@ -198,36 +198,36 @@ docker compose pull
 docker compose up -d
 ```
 
-## 网络配置
+## Cấu hình mạng
 
-项目使用自定义网络 `milestones-network`：
+Dự án sử dụng mạng tùy chỉnh `milestones-network`:
 
-- MySQL：`mysql:3306`
-- 后端：`backend:8080`
-- 前端：`frontend:80`
-- 主程序：`main-server:8989`（WebSocket）/ `main-server:2883`（MQTT）/ `main-server:8888`（UDP）
+- MySQL: `mysql:3306`
+- Backend: `backend:8080`
+- Frontend: `frontend:80`
+- Chương trình chính: `main-server:8989` (WebSocket) / `main-server:2883` (MQTT) / `main-server:8888` (UDP)
 
-**端口映射汇总：**
+**Tổng hợp port mapping:**
 
-- 8080 → 前端管理界面
-- 8081 → 后端 API
+- 8080 → Giao diện quản trị frontend
+- 8081 → API backend
 - 8989 → WebSocket
 - 2882 → MQTT
 - 8888 → UDP
 - 23306 → MySQL
 
-## 数据持久化
+## Lưu trữ dữ liệu bền vững
 
-### MySQL 数据
+### Dữ liệu MySQL
 
-通过 Docker 卷 `mysql_data` 持久化，容器重启不丢失数据。
+Được lưu trữ bền vững thông qua Docker volume `mysql_data`, dữ liệu không bị mất khi container khởi động lại.
 
-### 配置文件
+### File cấu hình
 
-- 主程序配置：`../../config:/workspace/config`
-- 后端配置：`../../manager/backend/config:/root/config`
+- Cấu hình chương trình chính: `../../config:/workspace/config`
+- Cấu hình backend: `../../manager/backend/config:/root/config`
 
-修改配置后重启对应服务生效：
+Sau khi sửa cấu hình, cần khởi động lại dịch vụ tương ứng để áp dụng:
 
 ```bash
 cd docker/docker-composer/
@@ -236,92 +236,91 @@ docker compose restart main-server
 docker compose restart backend
 ```
 
-### 日志文件
+### File log
 
-- 主程序日志：`../../logs:/workspace/logs`
+- Log chương trình chính: `../../logs:/workspace/logs`
 
-## 配置文件导入方法
+## Cách import file cấu hình
 
-### 1. 主程序配置
+### 1. Cấu hình chương trình chính
 
-**位置：**
+**Vị trí:**
 
 ```
 milestones-esp32-server-golang/config/
 ├─ config.yaml
 ├─ config.json
 ├─ mqtt_config.json
-└─ (其他配置文件)
+└─ (các file cấu hình khác)
 ```
 
-**导入：**
+**Import:**
 
-1. 将配置文件放入 `config/`
-2. 启动后自动挂载到容器 `/workspace/config/`
-3. 修改后重启主程序服务：
+1. Đặt file cấu hình vào thư mục `config/`
+2. Sau khi khởi động, sẽ tự động được mount vào container tại `/workspace/config/`
+3. Sau khi sửa, khởi động lại dịch vụ chương trình chính:
 
 ```bash
 cd docker/docker-composer/
 docker compose restart main-server
 ```
 
-### 2. 后端管理配置
+### 2. Cấu hình backend quản trị
 
-**位置：**
+**Vị trí:**
 
 ```
 milestones-esp32-server-golang/manager/backend/config/
 ├─ config.yaml
-└─ (其他配置文件)
+└─ (các file cấu hình khác)
 ```
 
-**导入：**
+**Import:**
 
-1. 将配置文件放入 `manager/backend/config/`
-2. 启动后自动挂载到容器 `/root/config/`
-3. 修改后重启后端服务：
+1. Đặt file cấu hình vào thư mục `manager/backend/config/`
+2. Sau khi khởi động, sẽ tự động được mount vào container tại `/root/config/`
+3. Sau khi sửa, khởi động lại dịch vụ backend:
 
 ```bash
 cd docker/docker-composer/
 docker compose restart backend
 ```
 
-### 3. ten_vad 库文件
+### 3. File thư viện ten_vad
 
-**说明：**
+**Giải thích:**
 
-- Docker 镜像已包含 ten_vad 库（`/workspace/lib/ten-vad/`）
-- 运行时库路径已通过 `LD_LIBRARY_PATH` 自动配置
-- 使用 ten_vad 无需额外挂载
+- Image Docker đã bao gồm sẵn thư viện ten_vad (`/workspace/lib/ten-vad/`)
+- Đường dẫn thư viện runtime đã được tự động cấu hình thông qua `LD_LIBRARY_PATH`
+- Khi dùng ten_vad, không cần mount thêm gì
 
-## 健康检查
+## Health Check
 
-MySQL 服务配置了健康检查：
+Dịch vụ MySQL được cấu hình health check như sau:
 
 ```yaml
 healthcheck:
-  test:
-    ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+  test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-ppassword']
   timeout: 20s
   retries: 10
   interval: 10s
   start_period: 30s
 ```
 
-## 故障排除
+## Xử lý sự cố
 
-### 1. 服务启动失败
+### 1. Dịch vụ khởi động thất bại
 
 ```bash
 cd docker/docker-composer/
 
-docker compose logs [服务名]
+docker compose logs [tên_dịch_vụ]
 
-# 端口占用检查（Linux）
-netstat -tulpn | grep [端口]
+# Kiểm tra cổng bị chiếm dụng (Linux)
+netstat -tulpn | grep [cổng]
 ```
 
-### 2. 数据库连接失败
+### 2. Kết nối database thất bại
 
 ```bash
 cd docker/docker-composer/
@@ -333,7 +332,7 @@ docker compose logs mysql
 docker compose exec mysql mysql -u root -ppassword
 ```
 
-### 3. 网络连接问题
+### 3. Vấn đề kết nối mạng
 
 ```bash
 cd docker/docker-composer/
@@ -344,30 +343,30 @@ docker network inspect milestones-network
 docker compose exec main-server ping mysql
 ```
 
-## 性能优化建议
+## Khuyến nghị tối ưu hiệu năng
 
-1. 生产环境为各服务设置资源限制
-2. 配置日志轮转，避免日志过大
-3. 定期备份 MySQL 数据
-4. 集成监控系统
+1. Ở môi trường production, hãy thiết lập giới hạn tài nguyên (resource limit) cho từng dịch vụ
+2. Cấu hình xoay vòng (rotation) log để tránh log phình quá to
+3. Định kỳ backup dữ liệu MySQL
+4. Tích hợp hệ thống giám sát (monitoring)
 
-## 安全注意事项
+## Lưu ý về bảo mật
 
-1. 生产环境修改默认数据库密码
-2. 按需暴露端口
-3. 配置防火墙与访问控制
-4. 使用可信镜像源
+1. Ở môi trường production, hãy đổi mật khẩu database mặc định
+2. Chỉ mở cổng theo nhu cầu thực tế
+3. Cấu hình tường lửa và kiểm soát truy cập
+4. Sử dụng nguồn image đáng tin cậy
 
 ---
 
-## 下一步
+## Bước tiếp theo
 
-### 访问管理后台
+### Truy cập trang quản trị
 
-服务启动后，访问 http://<服务器IP或域名>:8080 进入管理后台。
+Sau khi dịch vụ đã khởi động, truy cập http://<IP máy chủ hoặc tên miền>:8080 để vào trang quản trị.
 
-**[管理后台使用指南 →](manager_console_guide.md)**
+**[Hướng dẫn sử dụng trang quản trị →](manager_console_guide.md)**
 
-### 配置 ESP32 设备
+### Cấu hình thiết bị ESP32
 
-参考 [ESP32端接入指南](esp32_milestones_backend_guide.md) 完成设备接入。
+Tham khảo [Hướng dẫn kết nối thiết bị ESP32](esp32_milestones_backend_guide.md) để hoàn tất việc kết nối thiết bị.

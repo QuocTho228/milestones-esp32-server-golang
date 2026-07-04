@@ -1,33 +1,37 @@
-# Eino LLM Provider - 统一多提供者实现
+# Eino LLM Provider - Triển khai đa nhà cung cấp thống nhất
 
-## 概述
+## Tổng quan
 
-EinoLLMProvider 是基于 CloudWeGo Eino 框架的统一 LLM 提供者实现，支持多种大语言模型提供者，包括 OpenAI 和 Ollama。该实现完全使用 Eino 原生类型和接口，提供了一致的 API 体验。
+EinoLLMProvider là triển khai nhà cung cấp LLM thống nhất dựa trên framework CloudWeGo Eino, hỗ trợ nhiều nhà cung cấp mô hình ngôn ngữ lớn khác nhau, bao gồm OpenAI và Ollama. Triển khai này sử dụng hoàn toàn các kiểu dữ liệu và interface gốc của Eino, mang lại trải nghiệm API nhất quán.
 
-## 核心特性
+## Đặc điểm cốt lõi
 
-### ✅ 多提供者支持
-- **OpenAI**: 支持 GPT-3.5、GPT-4 等模型
-- **Ollama**: 支持本地部署的开源模型
-- **统一接口**: 所有提供者使用相同的 API
+### ✅ Hỗ trợ đa nhà cung cấp
 
-### ✅ Eino 原生实现
-- 直接使用 `*schema.Message` 和 `*schema.ToolInfo` 类型
-- 调用 `chatModel.Generate()` 和 `chatModel.Stream()` 方法
-- 支持 `chatModel.BindTools()` 进行工具绑定
+- **OpenAI**: Hỗ trợ các model GPT-3.5, GPT-4...
+- **Ollama**: Hỗ trợ các model mã nguồn mở triển khai local
+- **Interface thống nhất**: Tất cả các nhà cung cấp sử dụng cùng một API
 
-### ✅ 完整功能支持
-- 流式和非流式响应
-- 工具调用和函数绑定
-- 上下文控制和取消
-- 链式配置调用
+### ✅ Triển khai gốc theo Eino
 
-### ✅ 高度兼容
-- 实现标准 `LLMProvider` 接口
-- 支持现有代码无缝迁移
-- 提供向后兼容的类型转换
+- Sử dụng trực tiếp các kiểu `*schema.Message` và `*schema.ToolInfo`
+- Gọi các phương thức `chatModel.Generate()` và `chatModel.Stream()`
+- Hỗ trợ `chatModel.BindTools()` để gắn kết công cụ (tool binding)
 
-## 架构设计
+### ✅ Hỗ trợ chức năng đầy đủ
+
+- Phản hồi dạng streaming và không streaming
+- Gọi công cụ (tool call) và gắn kết hàm (function binding)
+- Kiểm soát và hủy context
+- Gọi cấu hình theo dạng chuỗi (chain)
+
+### ✅ Tính tương thích cao
+
+- Triển khai interface `LLMProvider` chuẩn
+- Hỗ trợ di chuyển liền mạch cho code hiện có
+- Cung cấp chuyển đổi kiểu dữ liệu tương thích ngược
+
+## Thiết kế kiến trúc
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -38,9 +42,9 @@ EinoLLMProvider 是基于 CloudWeGo Eino 框架的统一 LLM 提供者实现，�
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   EinoLLMProvider                          │
-│  • 统一配置管理                                              │
-│  • 多提供者支持                                              │
-│  • 链式调用                                                 │
+│  • Quản lý cấu hình thống nhất                              │
+│  • Hỗ trợ đa nhà cung cấp                                    │
+│  • Gọi theo chuỗi (chain call)                              │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -57,12 +61,12 @@ EinoLLMProvider 是基于 CloudWeGo Eino 框架的统一 LLM 提供者实现，�
 └─────────────────────────┘  └─────────────────────────┘
 ```
 
-## 快速开始
+## Bắt đầu nhanh
 
-### 1. 基本配置
+### 1. Cấu hình cơ bản
 
 ```go
-// OpenAI 配置
+// Cấu hình OpenAI
 openaiConfig := map[string]interface{}{
     "type":       "openai",
     "model_name": "gpt-3.5-turbo",
@@ -72,7 +76,7 @@ openaiConfig := map[string]interface{}{
     "streamable": true,
 }
 
-// Ollama 配置
+// Cấu hình Ollama
 ollamaConfig := map[string]interface{}{
     "type":       "ollama",
     "model_name": "llama2",
@@ -82,55 +86,55 @@ ollamaConfig := map[string]interface{}{
 }
 ```
 
-### 2. 创建提供者
+### 2. Tạo Provider
 
 ```go
-// 创建 OpenAI 提供者
+// Tạo provider OpenAI
 openaiProvider, err := NewEinoLLMProvider(openaiConfig)
 if err != nil {
-    log.Fatalf("创建 OpenAI 提供者失败: %v", err)
+    log.Fatalf("Tạo provider OpenAI thất bại: %v", err)
 }
 
-// 创建 Ollama 提供者
+// Tạo provider Ollama
 ollamaProvider, err := NewEinoLLMProvider(ollamaConfig)
 if err != nil {
-    log.Fatalf("创建 Ollama 提供者失败: %v", err)
+    log.Fatalf("Tạo provider Ollama thất bại: %v", err)
 }
 ```
 
-### 3. 使用 Eino 原生消息类型
+### 3. Sử dụng kiểu message gốc của Eino
 
 ```go
 messages := []*schema.Message{
     {
         Role:    schema.System,
-        Content: "你是一个有用的助手",
+        Content: "Bạn là một trợ lý hữu ích",
     },
     {
         Role:    schema.User,
-        Content: "请介绍一下 Eino 框架",
+        Content: "Hãy giới thiệu về framework Eino",
     },
 }
 ```
 
-### 4. 基本对话
+### 4. Đối thoại cơ bản
 
 ```go
-// 流式响应
+// Phản hồi dạng streaming
 responseChan := provider.Response("session_id", messages)
 for content := range responseChan {
     fmt.Print(content)
 }
 ```
 
-### 5. 工具调用
+### 5. Gọi công cụ (Tool call)
 
 ```go
 tools := []*schema.ToolInfo{
     {
         Name: "get_weather",
         ParamsOneOf: &schema.ParamsOneOf{
-            // 工具参数定义
+            // Định nghĩa tham số công cụ
         },
     },
 }
@@ -144,93 +148,104 @@ for response := range toolResponseChan {
         }
     case map[string]interface{}:
         if resp["type"] == "tool_calls" {
-            fmt.Printf("工具调用: %+v\n", resp["tool_calls"])
+            fmt.Printf("Gọi công cụ: %+v\n", resp["tool_calls"])
         }
     }
 }
 ```
 
-### 6. 链式调用
+### 6. Gọi theo chuỗi (Chain call)
 
 ```go
 enhancedProvider := provider.
     WithMaxTokens(1000).
     WithStreamable(false)
 
-fmt.Printf("提供者类型: %s\n", enhancedProvider.GetProviderType())
-fmt.Printf("模型信息: %+v\n", enhancedProvider.GetModelInfo())
+fmt.Printf("Loại provider: %s\n", enhancedProvider.GetProviderType())
+fmt.Printf("Thông tin model: %+v\n", enhancedProvider.GetModelInfo())
 ```
 
-## API 文档
+## Tài liệu API
 
-### 核心接口
+### Interface cốt lõi
 
 #### `NewEinoLLMProvider(config map[string]interface{}) (*EinoLLMProvider, error)`
-创建新的 Eino LLM 提供者实例。
 
-**参数:**
-- `config`: 配置映射，必须包含 `type` 字段
+Tạo một instance provider Eino LLM mới.
 
-**返回:**
-- `*EinoLLMProvider`: 提供者实例
-- `error`: 错误信息
+**Tham số:**
+
+- `config`: Bản đồ cấu hình, bắt buộc phải có trường `type`
+
+**Trả về:**
+
+- `*EinoLLMProvider`: Instance provider
+- `error`: Thông tin lỗi
 
 #### `Response(sessionID string, dialogue []*schema.Message) chan string`
-生成基本文本响应。
+
+Tạo phản hồi văn bản cơ bản.
 
 #### `ResponseWithFunctions(sessionID string, dialogue []*schema.Message, functions []*schema.ToolInfo) chan interface{}`
-生成带工具调用的响应。
+
+Tạo phản hồi kèm gọi công cụ.
 
 #### `ResponseWithContext(ctx context.Context, sessionID string, dialogue []*schema.Message) chan string`
-带上下文控制的响应生成。
 
-### 配置选项
+Tạo phản hồi có kiểm soát context.
 
-| 字段 | 类型 | 必需 | 描述 |
-|------|------|------|------|
-| `type` | string | ✅ | 提供者类型: "openai", "ollama" |
-| `model_name` | string | ✅ | 模型名称 |
-| `api_key` | string | ⚠️ | API 密钥 (OpenAI 必需) |
-| `base_url` | string | ❌ | 基础 URL |
-| `max_tokens` | int | ❌ | 最大令牌数 (默认: 500) |
-| `streamable` | bool | ❌ | 是否支持流式 (默认: true) |
+### Các tùy chọn cấu hình
 
-### 链式方法
+| Trường       | Kiểu   | Bắt buộc | Mô tả                                          |
+| ------------ | ------ | -------- | ---------------------------------------------- |
+| `type`       | string | ✅       | Loại provider: "openai", "ollama"              |
+| `model_name` | string | ✅       | Tên model                                      |
+| `api_key`    | string | ⚠️       | API key (bắt buộc với OpenAI)                  |
+| `base_url`   | string | ❌       | URL cơ sở                                      |
+| `max_tokens` | int    | ❌       | Số token tối đa (mặc định: 500)                |
+| `streamable` | bool   | ❌       | Có hỗ trợ streaming hay không (mặc định: true) |
+
+### Các phương thức chuỗi (Chain methods)
 
 #### `WithMaxTokens(maxTokens int) *EinoLLMProvider`
-设置最大令牌数，返回新的提供者实例。
+
+Thiết lập số token tối đa, trả về instance provider mới.
 
 #### `WithStreamable(streamable bool) *EinoLLMProvider`
-设置流式支持，返回新的提供者实例。
+
+Thiết lập hỗ trợ streaming, trả về instance provider mới.
 
 #### `GetChatModel() model.ChatModel`
-获取底层的 Eino ChatModel 实例。
+
+Lấy instance ChatModel gốc của Eino bên dưới.
 
 #### `GetProviderType() string`
-获取提供者类型。
+
+Lấy loại provider.
 
 #### `GetModelInfo() map[string]interface{}`
-获取模型信息和元数据。
 
-## 高级用法
+Lấy thông tin và metadata của model.
 
-### 直接使用 Eino ChatModel
+## Cách sử dụng nâng cao
+
+### Sử dụng trực tiếp Eino ChatModel
 
 ```go
 chatModel := provider.GetChatModel()
 
-// 直接调用生成
+// Gọi trực tiếp Generate
 result, err := chatModel.Generate(ctx, messages)
 if err != nil {
-    log.Printf("生成失败: %v", err)
+    log.Printf("Tạo phản hồi thất bại: %v", err)
     return
 }
-fmt.Printf("结果: %s\n", result.Content)
+fmt.Printf("Kết quả: %s\n", result.Content)
 
-// 直接调用流式
+// Gọi trực tiếp Stream
 streamReader, err := chatModel.Stream(ctx, messages)
 if err != nil {
-    log.Printf("流式调用失败: %v", err)
+    log.Printf("Gọi stream thất bại: %v", err)
     return
 }
 defer streamReader.Close()
@@ -241,14 +256,14 @@ for {
         break
     }
     if err != nil {
-        log.Printf("接收失败: %v", err)
+        log.Printf("Nhận dữ liệu thất bại: %v", err)
         break
     }
     fmt.Print(message.Content)
 }
 ```
 
-### 多提供者管理
+### Quản lý đa Provider
 
 ```go
 providers := make(map[string]*EinoLLMProvider)
@@ -269,15 +284,15 @@ configs := map[string]map[string]interface{}{
 for name, config := range configs {
     provider, err := NewEinoLLMProvider(config)
     if err != nil {
-        log.Printf("创建 %s 提供者失败: %v", name, err)
+        log.Printf("Tạo provider %s thất bại: %v", name, err)
         continue
     }
     providers[name] = provider
 }
 
-// 使用不同提供者处理相同请求
+// Sử dụng các provider khác nhau để xử lý cùng một yêu cầu
 for name, provider := range providers {
-    fmt.Printf("=== %s 提供者响应 ===\n", name)
+    fmt.Printf("=== Phản hồi từ provider %s ===\n", name)
     responseChan := provider.Response("session", messages)
     for content := range responseChan {
         fmt.Print(content)
@@ -286,41 +301,43 @@ for name, provider := range providers {
 }
 ```
 
-## 测试
+## Kiểm thử (Testing)
 
-运行完整测试套件：
+Chạy toàn bộ bộ test:
 
 ```bash
 go test ./internal/domain/llm/eino_llm/... -v
 ```
 
-### 测试覆盖
+### Phạm vi test bao phủ
 
-- ✅ 提供者创建和配置
-- ✅ 多种提供者类型支持
-- ✅ 基本对话功能
-- ✅ 工具调用功能
-- ✅ 链式调用
-- ✅ 错误处理
-- ✅ 性能基准测试
+- ✅ Tạo và cấu hình provider
+- ✅ Hỗ trợ nhiều loại provider
+- ✅ Chức năng đối thoại cơ bản
+- ✅ Chức năng gọi công cụ
+- ✅ Gọi theo chuỗi (chain call)
+- ✅ Xử lý lỗi
+- ✅ Kiểm thử hiệu năng (benchmark)
 
-## 依赖
+## Dependency
 
 - `github.com/cloudwego/eino` v0.3.40+
 - `github.com/cloudwego/eino-ext` v0.0.1-alpha+
 
-## 最佳实践
+## Thực hành tốt nhất
 
-### 1. 错误处理
+### 1. Xử lý lỗi
+
 ```go
 provider, err := NewEinoLLMProvider(config)
 if err != nil {
-    log.Errorf("创建提供者失败: %v", err)
+    log.Errorf("Tạo provider thất bại: %v", err)
     return
 }
 ```
 
-### 2. 上下文控制
+### 2. Kiểm soát context
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 defer cancel()
@@ -328,17 +345,19 @@ defer cancel()
 responseChan := provider.ResponseWithContext(ctx, sessionID, messages)
 ```
 
-### 3. 资源管理
+### 3. Quản lý tài nguyên
+
 ```go
-// 对于流式响应，确保消费完所有数据
+// Đối với phản hồi dạng streaming, đảm bảo tiêu thụ hết toàn bộ dữ liệu
 for content := range responseChan {
-    // 处理内容
+    // Xử lý nội dung
 }
 ```
 
-### 4. 配置管理
+### 4. Quản lý cấu hình
+
 ```go
-// 使用环境变量管理敏感信息
+// Sử dụng biến môi trường để quản lý thông tin nhạy cảm
 config := map[string]interface{}{
     "type":       "openai",
     "model_name": "gpt-3.5-turbo",
@@ -346,52 +365,55 @@ config := map[string]interface{}{
 }
 ```
 
-## 扩展说明
+## Hướng dẫn mở rộng
 
-### 添加新提供者
+### Thêm Provider mới
 
-要添加新的提供者支持，需要：
+Để thêm hỗ trợ cho một provider mới, cần:
 
-1. 在 `createXXXChatModel` 函数中添加新的实现
-2. 在 `NewEinoLLMProvider` 的 switch 语句中添加新的 case
-3. 确保新提供者实现 `model.ChatModel` 接口
+1. Thêm triển khai mới trong hàm `createXXXChatModel`
+2. Thêm case mới trong câu lệnh switch của `NewEinoLLMProvider`
+3. Đảm bảo provider mới triển khai interface `model.ChatModel`
 
-### 自定义配置
+### Cấu hình tùy chỉnh
 
-可以通过扩展配置映射来支持提供者特定的选项：
+Có thể mở rộng bản đồ cấu hình để hỗ trợ các tùy chọn riêng của từng provider:
 
 ```go
 config := map[string]interface{}{
     "type":        "openai",
     "model_name":  "gpt-4",
     "api_key":     "your-key",
-    "temperature": 0.7,  // 自定义参数
-    "top_p":       0.9,  // 自定义参数
+    "temperature": 0.7,  // Tham số tùy chỉnh
+    "top_p":       0.9,  // Tham số tùy chỉnh
 }
 ```
 
-## 版本历史
+## Lịch sử phiên bản
 
-### v3.0.0 (当前版本)
-- ✅ 完全基于 Eino 框架重写
-- ✅ 支持多提供者 (OpenAI, Ollama)
-- ✅ 使用 Eino 原生类型
-- ✅ 直接调用 Eino ChatModel 方法
-- ✅ 移除适配器层，提高性能
-- ✅ 完整的测试覆盖
+### v3.0.0 (Phiên bản hiện tại)
 
-### v2.x.x (已废弃)
-- 混合实现，使用适配器模式
-- 部分 Eino 集成
+- ✅ Viết lại hoàn toàn dựa trên framework Eino
+- ✅ Hỗ trợ đa provider (OpenAI, Ollama)
+- ✅ Sử dụng kiểu dữ liệu gốc của Eino
+- ✅ Gọi trực tiếp các phương thức Eino ChatModel
+- ✅ Loại bỏ tầng adapter, nâng cao hiệu năng
+- ✅ Bao phủ test đầy đủ
 
-### v1.x.x (已废弃)
-- 基于传统 OpenAI 实现
-- 无 Eino 集成
+### v2.x.x (Đã lỗi thời)
 
-## 贡献
+- Triển khai hỗn hợp, sử dụng mẫu adapter (adapter pattern)
+- Tích hợp Eino một phần
 
-欢迎提交 Issue 和 Pull Request 来改进这个实现。
+### v1.x.x (Đã lỗi thời)
 
-## 许可证
+- Dựa trên triển khai OpenAI truyền thống
+- Không tích hợp Eino
 
-本项目遵循项目根目录的许可证。 
+## Đóng góp
+
+Hoan nghênh gửi Issue và Pull Request để cải thiện triển khai này.
+
+## Giấy phép (License)
+
+Dự án này tuân theo giấy phép ở thư mục gốc của dự án.

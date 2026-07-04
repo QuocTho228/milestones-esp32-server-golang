@@ -1,139 +1,139 @@
-# OTA接口MQTT认证配置
+# Cấu hình xác thực MQTT cho API OTA
 
-## 概述
+## Tổng quan
 
-OTA接口现在支持基于HMAC-SHA256签名的MQTT密码验证机制，提供更安全的认证方式。同时MQTT服务器也支持相应的验证逻辑。
+API OTA hiện đã hỗ trợ cơ chế xác thực mật khẩu MQTT dựa trên chữ ký HMAC-SHA256, cung cấp phương thức xác thực an toàn hơn. Đồng thời, MQTT server cũng hỗ trợ logic xác thực tương ứng.
 
-## 配置结构
+## Cấu trúc cấu hình
 
-### 配置文件 (config/config.yaml)
+### File cấu hình (config/config.yaml)
 
 ```yaml
 mqtt_server:
-  signature_key: "your_ota_signature_key_here"
+  signature_key: 'your_ota_signature_key_here'
 ota:
-  signature_key: "your_ota_signature_key_here"
+  signature_key: 'your_ota_signature_key_here'
   test:
     websocket:
-      url: "ws://192.168.1.97:8989/milestones/v1/"
+      url: 'ws://192.168.1.97:8989/milestones/v1/'
     mqtt:
       enable: false
-      endpoint: "192.168.1.97"
+      endpoint: '192.168.1.97'
   external:
     websocket:
-      url: "wss://www.tb263.cn:55555/go_ws/milestones/v1/"
+      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/'
     mqtt:
       enable: false
-      endpoint: "www.youdomain.cn"
+      endpoint: 'www.youdomain.cn'
 ```
 
-### 配置说明
+### Giải thích cấu hình
 
-- `mqtt_server.signature_key`: MQTT签名密钥，用于生成MQTT密码签名
-- `ota.signature_key`: OTA下发MQTT 密码 时使用的key，需要与mqtt_server.signature_key对应
-- `ota.test`: 测试环境配置（内网IP使用）
-- `ota.external`: 外部环境配置（外网IP使用）
+- `mqtt_server.signature_key`: khóa chữ ký MQTT, dùng để tạo chữ ký cho mật khẩu MQTT
+- `ota.signature_key`: khóa (key) được dùng khi OTA cấp phát mật khẩu MQTT, cần tương ứng với `mqtt_server.signature_key`
+- `ota.test`: cấu hình môi trường test (dùng cho IP nội bộ)
+- `ota.external`: cấu hình môi trường bên ngoài (dùng cho IP công cộng)
 
-### 与 milestones-mqtt-gateway 集成
+### Tích hợp với milestones-mqtt-gateway
 
-本系统与虾哥官方的 [milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway) 项目配合使用，实现完整的MQTT认证流程：
+Hệ thống này được thiết kế để phối hợp sử dụng cùng dự án [milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway) chính thức của Xiage, nhằm hiện thực đầy đủ quy trình xác thực MQTT:
 
-1. **配置一致性要求**: `ota.signature_key` 必须与 milestones-mqtt-gateway 项目中的签名密钥完全一致
-2. **认证流程**:
-   - milestones-mqtt-gateway 负责生成MQTT连接凭据
-   - 本系统负责验证MQTT连接凭据
-   - 双方使用相同的签名算法和密钥确保认证成功
-3. **部署建议**: 建议将两个项目部署在同一网络环境中，确保配置同步更新
+1. **Yêu cầu về tính nhất quán cấu hình**: `ota.signature_key` bắt buộc phải hoàn toàn giống với khóa chữ ký trong dự án milestones-mqtt-gateway
+2. **Quy trình xác thực**:
+   - milestones-mqtt-gateway chịu trách nhiệm tạo thông tin đăng nhập (credentials) kết nối MQTT
+   - Hệ thống này chịu trách nhiệm xác thực thông tin đăng nhập kết nối MQTT
+   - Cả hai bên dùng chung thuật toán chữ ký và khóa để đảm bảo xác thực thành công
+3. **Khuyến nghị triển khai**: nên triển khai cả hai dự án trong cùng một môi trường mạng, đảm bảo cấu hình được đồng bộ cập nhật
 
-## 工具函数
+## Các hàm tiện ích (utility functions)
 
-### 1. 密码签名生成
+### 1. Tạo chữ ký mật khẩu
 
 ```go
-// 生成HMAC-SHA256密码签名
+// Tạo chữ ký mật khẩu HMAC-SHA256
 password := util.GeneratePasswordSignature(data, key)
 ```
 
-### 2. MQTT凭据生成
+### 2. Tạo thông tin đăng nhập MQTT
 
 ```go
-// 生成完整的MQTT连接凭据
+// Tạo đầy đủ thông tin đăng nhập kết nối MQTT
 credentials, err := util.GenerateMqttCredentials(deviceId, clientId, ip, signatureKey)
 if err != nil {
-    // 处理错误
+    // Xử lý lỗi
 }
-// credentials包含: ClientId, Username, Password
+// credentials bao gồm: ClientId, Username, Password
 ```
 
-### 3. MQTT凭据验证
+### 3. Xác thực thông tin đăng nhập MQTT
 
 ```go
-// 验证MQTT连接凭据
+// Xác thực thông tin đăng nhập kết nối MQTT
 credentialInfo, err := util.ValidateMqttCredentials(clientId, username, password, signatureKey)
 if err != nil {
-    // 验证失败
+    // Xác thực thất bại
 }
-// credentialInfo包含: GroupId, MacAddress, UUID, UserData
+// credentialInfo bao gồm: GroupId, MacAddress, UUID, UserData
 ```
 
-## MQTT认证逻辑
+## Logic xác thực MQTT
 
-### 1. Client ID格式
+### 1. Định dạng Client ID
 
 ```
 GID_test@@@{deviceId}@@@{clientId}
 ```
 
-示例：
+Ví dụ:
 
 ```
 GID_test@@@02_4A_7D_E3_89_BF@@@e3b0c442-98fc-4e1a-8c3d-6a5b6a5b6a5b
 ```
 
-### 2. Username格式
+### 2. Định dạng Username
 
-Base64编码的JSON，包含客户端IP信息：
+Là chuỗi JSON được mã hóa Base64, chứa thông tin IP của client:
 
 ```yaml
-ip: "1.202.193.194"
+ip: '1.202.193.194'
 ```
 
-Base64编码后：
+Sau khi mã hóa Base64:
 
 ```
 eyJpcCI6IjEuMjAyLjE5My4xOTQifQ==
 ```
 
-### 3. Password生成
+### 3. Tạo Password
 
-使用HMAC-SHA256算法生成密码签名：
+Dùng thuật toán HMAC-SHA256 để tạo chữ ký mật khẩu:
 
 ```go
 signatureData := clientId + "|" + username
 password := HMAC-SHA256(signatureData, signature_key)
 ```
 
-### 4. 验证逻辑
+### 4. Logic xác thực
 
-客户端验证时需要：
+Khi client xác thực, cần thực hiện:
 
-1. 解析clientId，提取groupId、macAddress、uuid
-2. 解码username，获取IP信息
-3. 使用相同的签名密钥和算法验证密码
+1. Parse clientId, trích xuất groupId, macAddress, uuid
+2. Decode username, lấy thông tin IP
+3. Dùng cùng khóa chữ ký và thuật toán để xác thực mật khẩu
 
-## MQTT服务器认证
+## Xác thực ở MQTT server
 
-### 认证流程
+### Quy trình xác thực
 
-1. **超级管理员验证**
-   - 用户名: `admin` (可配置)
-   - 密码: `shijingbo!@#` (可配置)
+1. **Xác thực super admin**
+   - Username: `admin` (có thể cấu hình)
+   - Password: `shijingbo!@#` (có thể cấu hình)
 
-2. **普通用户验证**
-   - 优先使用HMAC-SHA256签名验证
-   - 如果未配置签名密钥，回退到AES验证方式
+2. **Xác thực người dùng thông thường**
+   - Ưu tiên dùng xác thực bằng chữ ký HMAC-SHA256
+   - Nếu chưa cấu hình khóa chữ ký, sẽ dùng lại phương thức xác thực AES
 
-### 认证钩子实现
+### Hiện thực hook xác thực
 
 ```go
 func (h *AuthHook) OnConnectAuthenticate(cl *mqttServer.Client, pk packets.Packet) bool {
@@ -141,12 +141,12 @@ func (h *AuthHook) OnConnectAuthenticate(cl *mqttServer.Client, pk packets.Packe
     password := string(pk.Connect.Password)
     clientId := string(pk.Connect.ClientIdentifier)
 
-    // 超级管理员校验
+    // Xác thực super admin
     if username == adminUsername && password == adminPassword {
         return true
     }
 
-    // 普通用户校验 - 使用新的签名验证逻辑
+    // Xác thực người dùng thông thường - dùng logic xác thực chữ ký mới
     signatureKey := viper.GetString("mqtt_server.signature_key")
     if signatureKey != "" {
         credentialInfo, err := util.ValidateMqttCredentials(clientId, username, password, signatureKey)
@@ -156,27 +156,27 @@ func (h *AuthHook) OnConnectAuthenticate(cl *mqttServer.Client, pk packets.Packe
         return true
     }
 
-    // 回退到AES验证逻辑
+    // Dùng lại logic xác thực AES
     return h.validateWithAes(username, password)
 }
 ```
 
-## 兼容性
+## Khả năng tương thích
 
-- 如果未配置`mqtt_server.signature_key`，系统会回退到原来的SHA256/AES密码生成方式
-- 保持向后兼容性，不会影响现有功能
-- MQTT服务器支持多种认证方式并存
+- Nếu chưa cấu hình `mqtt_server.signature_key`, hệ thống sẽ tự động dùng lại cách tạo mật khẩu SHA256/AES cũ
+- Vẫn giữ được khả năng tương thích ngược, không ảnh hưởng tới các tính năng hiện có
+- MQTT server hỗ trợ nhiều phương thức xác thực cùng tồn tại song song
 
-## 安全建议
+## Khuyến nghị bảo mật
 
-1. 使用强随机字符串作为签名密钥
-2. 定期轮换签名密钥
-3. 在生产环境中使用HTTPS/WSS连接
-4. 监控异常登录尝试
-5. 启用日志记录，跟踪认证成功/失败情况
-6. **确保 milestones-mqtt-gateway 与本系统的签名密钥同步更新**
+1. Sử dụng chuỗi ký tự ngẫu nhiên đủ mạnh làm khóa chữ ký
+2. Định kỳ xoay vòng (rotate) khóa chữ ký
+3. Sử dụng kết nối HTTPS/WSS trong môi trường production
+4. Giám sát các lần đăng nhập bất thường
+5. Bật ghi log để theo dõi các trường hợp xác thực thành công/thất bại
+6. **Đảm bảo khóa chữ ký giữa milestones-mqtt-gateway và hệ thống này luôn được cập nhật đồng bộ**
 
-## 数据结构
+## Cấu trúc dữ liệu
 
 ### MqttCredentials
 
@@ -199,33 +199,33 @@ type MqttCredentialInfo struct {
 }
 ```
 
-# 虾哥官方 milestones-mqtt-gateway 使用说明
+# Hướng dẫn sử dụng milestones-mqtt-gateway chính thức của Xiage
 
-本系统可以与虾哥官方的 [milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway) 项目配合使用。
+Hệ thống này có thể được dùng phối hợp cùng dự án [milestones-mqtt-gateway](https://github.com/78/milestones-mqtt-gateway) chính thức của Xiage.
 
-只需ota接口中MQTT的用户名密码与milestones-mqtt-gateway认证通过，为确保MQTT认证正常工作，**`ota.signature_key` 配置必须与 milestones-mqtt-gateway 中的签名密钥保持一致**。
+Chỉ cần username/password MQTT trong API OTA xác thực thành công với milestones-mqtt-gateway; để đảm bảo việc xác thực MQTT hoạt động bình thường, **cấu hình `ota.signature_key` bắt buộc phải giống với khóa chữ ký trong milestones-mqtt-gateway**.
 
-配置如下:
+Cấu hình như sau:
 
-1. 不启用mqtt server (使用 milestones-mqtt-gateway)
-2. `ota.signature_key` 配置必须与 milestones-mqtt-gateway 中的签名密钥保持一致
-3. 配置 milestones-mqtt-gateway 的websocket后端为本项目地址
+1. Không bật mqtt server (dùng milestones-mqtt-gateway)
+2. Cấu hình `ota.signature_key` bắt buộc phải giống với khóa chữ ký trong milestones-mqtt-gateway
+3. Cấu hình backend websocket của milestones-mqtt-gateway trỏ về địa chỉ của dự án này
 
 ```yaml
 mqtt_server:
   enable: false
 ota:
-  signature_key: "your_ota_signature_key_here"
-  test: # 内网测试的返回
+  signature_key: 'your_ota_signature_key_here'
+  test: # Kết quả trả về khi test trong mạng nội bộ
     websocket:
-      url: "ws://192.168.1.97:8989/milestones/v1/"
+      url: 'ws://192.168.1.97:8989/milestones/v1/'
     mqtt:
       enable: true
-      endpoint: "192.168.1.97:1883" # milestones-mqtt-gateway中的mqtt server地址
-  external: # 外网的返回
+      endpoint: '192.168.1.97:1883' # Địa chỉ mqtt server trong milestones-mqtt-gateway
+  external: # Kết quả trả về cho mạng bên ngoài
     websocket:
-      url: "wss://www.tb263.cn:55555/go_ws/milestones/v1/"
+      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/'
     mqtt:
       enable: true
-      endpoint: "mqtt.youdomain.com:1883" # milestones-mqtt-gateway中的mqtt server地址
+      endpoint: 'mqtt.youdomain.com:1883' # Địa chỉ mqtt server trong milestones-mqtt-gateway
 ```

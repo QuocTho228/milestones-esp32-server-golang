@@ -1,41 +1,41 @@
-# 一键启动包部署教程
+# Hướng dẫn triển khai gói khởi động nhanh (One-click Bundle)
 
-## 下载
+## Tải xuống
 
-访问 [Release 页面](https://github.com/hackers365/milestones-esp32-server-golang/releases) 下载对应平台：
+Truy cập [trang Release](https://github.com/quoctho228/milestones-esp32-server-golang/releases) để tải về phiên bản phù hợp với nền tảng của bạn:
 
-| 平台    | 文件名                               |
-| ------- | ------------------------------------ |
-| Windows | `milestones-server-windows-xxx.zip`  |
-| Linux   | `milestones-server-linux-xxx.tar.gz` |
-| macOS   | `milestones-server-macos-xxx.tar.gz` |
+| Nền tảng | Tên file                             |
+| -------- | ------------------------------------ |
+| Windows  | `milestones-server-windows-xxx.zip`  |
+| Linux    | `milestones-server-linux-xxx.tar.gz` |
+| macOS    | `milestones-server-macos-xxx.tar.gz` |
 
 ---
 
-## 解压与目录结构
+## Giải nén và cấu trúc thư mục
 
-解压后目录结构：
+Sau khi giải nén, cấu trúc thư mục sẽ như sau:
 
 ```
 milestones-aio/
-├── milestones_server          # 主程序
-├── config/                 # 配置文件目录
-├── models/                 # 模型文件目录（如使用本地ASR/TTS）
-└── data/                   # 数据目录
+├── milestones_server          # Chương trình chính
+├── config/                 # Thư mục chứa file cấu hình
+├── models/                 # Thư mục chứa file model (nếu dùng ASR/TTS cục bộ)
+└── data/                   # Thư mục dữ liệu
 ```
 
 ---
 
-## 启动服务
+## Khởi động dịch vụ
 
 ### Windows
 
-双击 `start.bat`
+Nhấp đúp vào `start.bat`
 
 ### Linux
 
 ```bash
-# ten_vad 运行时依赖
+# Thư viện phụ thuộc runtime cho ten_vad
 sudo apt install -y libc++1 libc++abi1
 
 chmod +x milestones_server
@@ -50,68 +50,68 @@ chmod +x milestones_server
 ./milestones_server
 ```
 
-如果目录结构保持为：
+Nếu cấu trúc thư mục được giữ nguyên như sau:
 
 ```text
 ./milestones_server
 ./ten-vad/lib/macOS/ten_vad.framework
 ```
 
-则 macOS 包在执行过 `fix_rpath.sh` 后，默认不需要再手工设置 `DYLD_FRAMEWORK_PATH`。
+thì sau khi gói macOS đã được chạy qua `fix_rpath.sh`, mặc định bạn không cần thiết lập thủ công biến `DYLD_FRAMEWORK_PATH` nữa.
 
-如果你是从 IDE 临时目录调试，或手动移动了二进制导致相对目录结构被破坏，可使用兜底方式：
+Nếu bạn đang debug từ thư mục tạm của IDE, hoặc đã di chuyển file thực thi khiến cấu trúc thư mục tương đối bị phá vỡ, có thể dùng cách dự phòng sau:
 
 ```bash
 DYLD_FRAMEWORK_PATH="$PWD/ten-vad/lib/macOS" ./milestones_server
 ```
 
-如果你是在源码仓库里自行打 macOS 分发包，发布前需要额外执行一次：
+Nếu bạn tự đóng gói bản phân phối macOS trong repo mã nguồn, trước khi phát hành cần chạy thêm một lần lệnh sau:
 
 ```bash
 ./build/macos/fix_rpath.sh ./milestones_server
 ```
 
-这一步会把二进制里的 `rpath` 从开发机源码路径修正为 `@executable_path/ten-vad/lib/macOS`，让发布包在目录结构正确时直接运行。
+Bước này sẽ chỉnh sửa `rpath` bên trong file thực thi, từ đường dẫn mã nguồn trên máy dev sang `@executable_path/ten-vad/lib/macOS`, giúp gói phát hành chạy được ngay khi cấu trúc thư mục đúng.
 
 ---
 
-## 下一步
+## Bước tiếp theo
 
-### 1. 访问Web控制台
+### 1. Truy cập bảng điều khiển Web
 
-浏览器访问：**http://<服务器IP或域名>:8080**
+Mở trình duyệt và truy cập: **http://<IP hoặc domain của server>:8080**
 
-<!-- 截图位置：登录界面 -->
+<!-- Vị trí ảnh chụp màn hình: giao diện đăng nhập -->
 
-> 图：Web控制台登录界面
+> Hình: Giao diện đăng nhập bảng điều khiển Web
 
-### 2. 配置服务
+### 2. Cấu hình dịch vụ
 
-首次使用请按照配置向导完成设置，详见：
+Lần đầu sử dụng, vui lòng làm theo hướng dẫn cấu hình để hoàn tất thiết lập, xem chi tiết tại:
 
-**[管理后台使用指南 →](manager_console_guide.md)**
-
----
-
-## 声纹识别服务（可选）
-
-程序中已集成声纹服务
+**[Hướng dẫn sử dụng trang quản trị →](manager_console_guide.md)**
 
 ---
 
-## 常见问题
+## Dịch vụ nhận dạng giọng nói (Speaker Identification) (tuỳ chọn)
 
-### Q1: 启动后无法访问Web控制台？
+Chương trình đã tích hợp sẵn dịch vụ nhận dạng giọng nói (voice service).
 
-检查防火墙设置，确保8080端口可访问。
+---
 
-### Q2: 如何重启服务？
+## Câu hỏi thường gặp
 
-关闭程序后重新运行即可。配置文件保存在 `config/` 目录。
+### Q1: Sau khi khởi động không truy cập được bảng điều khiển Web?
 
-### Q3: 如何查看日志？
+Kiểm tra thiết lập tường lửa (firewall), đảm bảo cổng 8080 có thể truy cập được.
 
-控制台输出实时日志，如需保存可重定向：
+### Q2: Làm sao để khởi động lại dịch vụ?
+
+Chỉ cần tắt chương trình rồi chạy lại. File cấu hình được lưu trong thư mục `config/`.
+
+### Q3: Làm sao để xem log?
+
+Console sẽ hiển thị log theo thời gian thực, nếu cần lưu lại có thể redirect ra file:
 
 ```bash
 ./milestones_server > server.log 2>&1

@@ -1,91 +1,91 @@
-# MCP 功能与逻辑文档
+# Tài liệu Chức năng & Logic MCP
 
-## 1. 概述
+## 1. Tổng quan
 
-MCP（Model Context Protocol）是基于[Eino框架](https://github.com/cloudwego/eino)实现的通用工具管理与调用协议，支持全局和设备维度的工具注册、发现、调用，广泛应用于AI对话、物联网等场景。
+MCP (Model Context Protocol) là giao thức quản lý và gọi công cụ (tool) đa năng được triển khai dựa trên [Eino framework](https://github.com/cloudwego/eino), hỗ trợ đăng ký, khám phá và gọi công cụ ở cả cấp độ toàn cục (global) và cấp độ thiết bị (device). Giao thức này được ứng dụng rộng rãi trong các kịch bản đối thoại AI, IoT (Internet of Things)...
 
-## 2. 功能特性
+## 2. Đặc điểm chức năng
 
-### 🌐 全局 MCP 工具管理
+### 🌐 Quản lý công cụ MCP toàn cục
 
-- 支持通过SSE连接多个MCP服务器，实现工具自动发现与注册
-- 工具调用代理，统一接口
-- 连接状态监控与自动重连
+- Hỗ trợ kết nối nhiều MCP Server thông qua SSE, tự động khám phá và đăng ký công cụ
+- Proxy gọi công cụ, giao diện thống nhất
+- Giám sát trạng thái kết nối và tự động kết nối lại
 
-### 📱 设备维度 MCP 管理
+### 📱 Quản lý MCP theo thiết bị
 
-- 每个设备独立MCP连接，支持WebSocket协议
-- 设备特定工具注册与管理
-- 连接数限制与自动清理
+- Mỗi thiết bị có kết nối MCP độc lập, hỗ trợ giao thức WebSocket
+- Đăng ký và quản lý công cụ riêng cho từng thiết bị
+- Giới hạn số lượng kết nối và tự động dọn dẹp
 
-### 🔧 Eino 框架集成
+### 🔧 Tích hợp Eino Framework
 
-- 实现`tool.InvokableTool`接口，支持Eino原生工具调用
-- 类型安全、流式处理
+- Triển khai interface `tool.InvokableTool`, hỗ trợ gọi công cụ gốc (native) của Eino
+- An toàn kiểu dữ liệu (type-safe), xử lý theo luồng (streaming)
 
-## 3. 架构设计
+## 3. Thiết kế kiến trúc
 
 ```mermaid
 flowchart TD
-    subgraph 云端
-        A["GlobalMCPManager\nSSE连接多个MCP Server"]
-        B["云端MCP Server\n（SSE服务/工具注册）"]
+    subgraph Cloud["Trên Cloud"]
+        A["GlobalMCPManager\nKết nối SSE tới nhiều MCP Server"]
+        B["MCP Server trên Cloud\n(SSE Service/Đăng ký công cụ)"]
     end
-    subgraph 业务服务/大模型
+    subgraph Backend["Dịch vụ nghiệp vụ/Mô hình lớn"]
         C["WebSocket Server\n/milestones/mcp/{deviceId}"]
     end
-    subgraph 端侧
-        D["设备/IoT Client"]
-        E["端侧MCP Server\n（WebSocket信令通道）"]
+    subgraph Edge["Phía thiết bị"]
+        D["Thiết bị/IoT Client"]
+        E["MCP Server phía thiết bị\n(Kênh tín hiệu WebSocket)"]
     end
 
-    A -- "工具发现/注册" --> B
-    C -- "工具调用/管理" --> A
-    D -- "WebSocket信令通道" --> E
-    E -- "工具注册/调用/心跳" --> C
-    C -- "工具调用/响应" --> D
+    A -- "Khám phá/đăng ký công cụ" --> B
+    C -- "Gọi/quản lý công cụ" --> A
+    D -- "Kênh tín hiệu WebSocket" --> E
+    E -- "Đăng ký/gọi công cụ/heartbeat" --> C
+    C -- "Gọi công cụ/phản hồi" --> D
 ```
 
-## 4. 配置说明
+## 4. Hướng dẫn cấu hình
 
-### config.yaml 示例
+### Ví dụ config.yaml
 
 ```yaml
 mcp:
   global:
     enabled: true
     servers:
-      - name: "filesystem"
-        sse_url: "http://localhost:3001/sse"
+      - name: 'filesystem'
+        sse_url: 'http://localhost:3001/sse'
         enabled: true
     reconnect_interval: 5
     max_reconnect_attempts: 10
   device:
     enabled: true
-    websocket_path: "/milestones/mcp/"
+    websocket_path: '/milestones/mcp/'
     max_connections_per_device: 5
 ```
 
-### 参数说明
+### Giải thích tham số
 
-| 参数                                  | 类型   | 说明                  |
-| ------------------------------------- | ------ | --------------------- |
-| mcp.global.enabled                    | bool   | 是否启用全局MCP管理器 |
-| mcp.global.servers                    | array  | MCP服务器列表         |
-| mcp.global.reconnect_interval         | int    | 重连间隔（秒）        |
-| mcp.global.max_reconnect_attempts     | int    | 最大重连次数          |
-| mcp.device.enabled                    | bool   | 是否启用设备MCP管理器 |
-| mcp.device.websocket_path             | string | WebSocket路径前缀     |
-| mcp.device.max_connections_per_device | int    | 每设备最大连接数      |
+| Tham số                               | Kiểu   | Giải thích                                 |
+| ------------------------------------- | ------ | ------------------------------------------ |
+| mcp.global.enabled                    | bool   | Có bật MCP Manager toàn cục hay không      |
+| mcp.global.servers                    | array  | Danh sách MCP Server                       |
+| mcp.global.reconnect_interval         | int    | Khoảng thời gian kết nối lại (giây)        |
+| mcp.global.max_reconnect_attempts     | int    | Số lần kết nối lại tối đa                  |
+| mcp.device.enabled                    | bool   | Có bật MCP Manager theo thiết bị hay không |
+| mcp.device.websocket_path             | string | Tiền tố đường dẫn WebSocket                |
+| mcp.device.max_connections_per_device | int    | Số kết nối tối đa cho mỗi thiết bị         |
 
-## 5. API接口
+## 5. Giao diện API
 
-### WebSocket端点
+### Endpoint WebSocket
 
-- 设备MCP连接：
+- Kết nối MCP thiết bị:
   - `ws://<host>:<port>/milestones/mcp/{deviceId}`
-  - 连接后服务器发送初始化消息，客户端响应工具列表，建立双向通信
-- 消息格式示例：
+  - Sau khi kết nối, server gửi thông điệp khởi tạo (initialize), client phản hồi danh sách công cụ, thiết lập giao tiếp hai chiều
+- Ví dụ định dạng thông điệp:
 
 ```json
 {
@@ -96,11 +96,11 @@ mcp:
 }
 ```
 
-### REST接口
+### Giao diện REST
 
-- 获取设备工具列表：
+- Lấy danh sách công cụ của thiết bị:
   - `GET /milestones/api/mcp/tools/{deviceId}`
-  - 响应示例：
+  - Ví dụ phản hồi:
 
 ```json
 {
@@ -108,12 +108,12 @@ mcp:
   "tools": {
     "filesystem_read_file": {
       "name": "read_file",
-      "description": "读取文件内容",
+      "description": "Đọc nội dung file",
       "type": "global"
     },
     "device_sensor_data": {
       "name": "sensor_data",
-      "description": "获取传感器数据",
+      "description": "Lấy dữ liệu cảm biến",
       "type": "device"
     }
   },
@@ -124,41 +124,41 @@ mcp:
 }
 ```
 
-## 6. 典型使用示例
+## 6. Ví dụ sử dụng điển hình
 
-### Go 端调用
+### Gọi từ phía Go
 
 ```go
-// 获取全局工具
+// Lấy danh sách công cụ toàn cục
 manager := mcp.GetGlobalMCPManager()
 tools := manager.GetAllTools()
 for name, tool := range tools {
     result, err := tool.InvokableRun(context.Background(), `{"path": "/tmp/test.txt"}`)
     if err != nil {
-        log.Errorf("工具调用失败: %v", err)
+        log.Errorf("Gọi công cụ thất bại: %v", err)
         continue
     }
-    log.Infof("工具 %s 结果: %s", name, result)
+    log.Infof("Kết quả công cụ %s: %s", name, result)
 }
 ```
 
-### 设备端 WebSocket 连接（JS）
+### Kết nối WebSocket phía thiết bị (JS)
 
 ```javascript
-const ws = new WebSocket("ws://localhost:8989/milestones/mcp/device123");
+const ws = new WebSocket('ws://localhost:8989/milestones/mcp/device123');
 ws.onopen = function () {
-  console.log("MCP连接已建立");
+  console.log('Kết nối MCP đã được thiết lập');
 };
 ws.onmessage = function (event) {
   const message = JSON.parse(event.data);
-  if (message.method === "initialize") {
+  if (message.method === 'initialize') {
     ws.send(
       JSON.stringify({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: message.id,
         result: {
-          protocolVersion: "2024-11-05",
-          serverInfo: { name: "device-mcp-server", version: "1.0.0" },
+          protocolVersion: '2024-11-05',
+          serverInfo: { name: 'device-mcp-server', version: '1.0.0' },
         },
       }),
     );
@@ -166,44 +166,44 @@ ws.onmessage = function (event) {
 };
 ```
 
-## 7. 技术实现要点
+## 7. Các điểm kỹ thuật chính
 
-- 全局MCP管理器通过SSE与多个MCP服务器连接，自动发现和注册工具，支持断线重连和健康检查。
-- 设备MCP管理器为每个设备维护独立连接，支持WebSocket和IoT协议，自动清理离线设备。
-- 工具统一实现`InvokableTool`接口，支持参数校验、调用重试、结果格式化。
-- LLM集成时，自动获取所有MCP工具并传递给大模型，支持流式响应和工具调用闭环。
-- 错误处理健全，支持回退、日志追踪和兼容性保障。
+- MCP Manager toàn cục kết nối với nhiều MCP Server thông qua SSE, tự động khám phá và đăng ký công cụ, hỗ trợ tự động kết nối lại khi mất kết nối và kiểm tra sức khỏe (health check).
+- MCP Manager theo thiết bị duy trì kết nối độc lập cho mỗi thiết bị, hỗ trợ WebSocket và giao thức IoT, tự động dọn dẹp các thiết bị offline.
+- Công cụ được triển khai thống nhất theo interface `InvokableTool`, hỗ trợ kiểm tra tham số, thử lại khi gọi (retry), định dạng kết quả trả về.
+- Khi tích hợp với LLM, hệ thống tự động lấy toàn bộ công cụ MCP và truyền cho mô hình lớn, hỗ trợ phản hồi dạng streaming và vòng lặp khép kín gọi công cụ.
+- Xử lý lỗi đầy đủ, hỗ trợ cơ chế fallback, ghi log truy vết (logging/tracing) và đảm bảo tính tương thích.
 
-## 8. 故障排查与优化建议
+## 8. Xử lý sự cố và đề xuất tối ưu
 
-- 检查SSE/WebSocket连接状态，关注日志中的连接、注册、调用错误
-- 工具调用失败时，检查参数格式和工具注册情况
-- 合理设置重连间隔、最大连接数，定期清理无效会话
-- 可扩展权限控制、动态工具启用/禁用、结果回传等高级功能
+- Kiểm tra trạng thái kết nối SSE/WebSocket, chú ý các lỗi kết nối, đăng ký, gọi công cụ trong log
+- Khi gọi công cụ thất bại, kiểm tra định dạng tham số và tình trạng đăng ký công cụ
+- Thiết lập hợp lý khoảng thời gian kết nối lại, số kết nối tối đa, định kỳ dọn dẹp các phiên (session) không hợp lệ
+- Có thể mở rộng thêm các tính năng nâng cao như kiểm soát quyền, bật/tắt công cụ động, trả kết quả về...
 
-## 9. 参考资料
+## 9. Tài liệu tham khảo
 
-- [Eino 框架文档](https://www.cloudwego.io/docs/eino/)
-- [MCP 协议规范](https://github.com/mark3labs/mcp-go)
-- [SSE 规范](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-- [WebSocket 协议](https://tools.ietf.org/html/rfc6455)
+- [Tài liệu Eino Framework](https://www.cloudwego.io/docs/eino/)
+- [Đặc tả giao thức MCP](https://github.com/mark3labs/mcp-go)
+- [Đặc tả SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+- [Giao thức WebSocket](https://tools.ietf.org/html/rfc6455)
 
-## 10. 端侧MCP（WebSocket信令通道）
+## 10. MCP phía thiết bị (Kênh tín hiệu WebSocket)
 
-端侧MCP通过WebSocket信令通道与服务器建立连接，实现设备级工具注册、调用和会话管理，适用于边缘设备、IoT场景。
+MCP phía thiết bị thiết lập kết nối với server thông qua kênh tín hiệu WebSocket, thực hiện đăng ký công cụ, gọi công cụ và quản lý phiên (session) ở cấp độ thiết bị, phù hợp với các kịch bản thiết bị biên (edge device), IoT.
 
-### 典型流程
+### Quy trình điển hình
 
-1. 设备通过 `ws://<host>:<port>/milestones/mcp/{deviceId}` 建立WebSocket连接。
-2. 服务器收到连接后，创建/获取对应的设备MCP会话（DeviceMcpSession），并初始化MCP客户端实例。
-3. 服务器通过信令通道下发初始化消息，设备端响应并可同步工具列表。
-4. 双方可通过JSON-RPC协议进行工具调用、通知、心跳等交互。
-5. 连接断开或超时，自动清理会话和资源。
+1. Thiết bị thiết lập kết nối WebSocket qua `ws://<host>:<port>/milestones/mcp/{deviceId}`.
+2. Sau khi server nhận được kết nối, sẽ tạo/lấy phiên MCP thiết bị tương ứng (DeviceMcpSession), và khởi tạo instance MCP client.
+3. Server gửi thông điệp khởi tạo qua kênh tín hiệu, thiết bị phản hồi và có thể đồng bộ danh sách công cụ.
+4. Hai bên có thể tương tác qua giao thức JSON-RPC để gọi công cụ, gửi thông báo, heartbeat...
+5. Khi kết nối bị ngắt hoặc hết thời gian chờ, hệ thống tự động dọn dẹp phiên và tài nguyên.
 
-### 主要接口与消息格式
+### Giao diện chính và định dạng thông điệp
 
-- 连接端点：`ws://<host>:<port>/milestones/mcp/{deviceId}`
-- 初始化消息：
+- Endpoint kết nối: `ws://<host>:<port>/milestones/mcp/{deviceId}`
+- Thông điệp khởi tạo:
 
 ```json
 {
@@ -216,7 +216,7 @@ ws.onmessage = function (event) {
 }
 ```
 
-- 工具列表请求：
+- Yêu cầu danh sách công cụ:
 
 ```json
 {
@@ -227,21 +227,21 @@ ws.onmessage = function (event) {
 }
 ```
 
-- 工具调用请求/响应、通知等均遵循JSON-RPC 2.0规范。
+- Yêu cầu/phản hồi gọi công cụ, thông báo... đều tuân theo đặc tả JSON-RPC 2.0.
 
-### 会话与连接管理
+### Quản lý phiên và kết nối
 
-- 每个设备ID维护独立的DeviceMcpSession，支持多种MCP连接（WebSocket、IoT等）。
-- 支持最大连接数限制、定期心跳（ping）、自动断线检测与清理。
-- 断开连接时自动释放资源，保证系统稳定。
+- Mỗi ID thiết bị duy trì một DeviceMcpSession độc lập, hỗ trợ nhiều loại kết nối MCP (WebSocket, IoT...).
+- Hỗ trợ giới hạn số kết nối tối đa, gửi heartbeat (ping) định kỳ, tự động phát hiện và dọn dẹp khi mất kết nối.
+- Khi ngắt kết nối, tự động giải phóng tài nguyên, đảm bảo hệ thống ổn định.
 
-### 心跳与断线处理
+### Heartbeat và xử lý mất kết nối
 
-- 设备和服务器定期发送ping消息，检测连接活性。
-- 超过2分钟无心跳则判定为离线，自动断开并清理会话。
+- Thiết bị và server định kỳ gửi thông điệp ping để kiểm tra tính sống của kết nối.
+- Nếu quá 2 phút không có heartbeat, hệ thống coi là offline, tự động ngắt kết nối và dọn dẹp phiên.
 
-### 端云协作
+### Sự phối hợp giữa thiết bị và cloud
 
-- 端侧MCP适合设备本地工具注册、实时数据采集、边缘AI推理等场景。
-- 云端MCP负责全局工具注册、跨设备能力聚合、统一调度。
-- 两者可协同为大模型/业务系统提供丰富的工具调用能力。
+- MCP phía thiết bị phù hợp cho việc đăng ký công cụ cục bộ, thu thập dữ liệu thời gian thực, suy luận AI ở biên (edge AI inference)...
+- MCP phía Cloud chịu trách nhiệm đăng ký công cụ toàn cục, tổng hợp năng lực đa thiết bị, điều phối thống nhất.
+- Hai bên có thể phối hợp để cung cấp khả năng gọi công cụ phong phú cho mô hình lớn/hệ thống nghiệp vụ.

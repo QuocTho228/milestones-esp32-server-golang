@@ -1,60 +1,60 @@
-# OpenClaw Agent 维度集成实施方案
+# Phương án triển khai tích hợp OpenClaw Agent theo chiều Agent
 
-## 1. 目标
+## 1. Mục tiêu
 
-基于 `MILESTONES_OPENCLAW_PROTOCOL.md`，在 `milestones-esp32-server-golang` 中实现 OpenClaw 集成，要求如下：
+Dựa trên `MILESTONES_OPENCLAW_PROTOCOL.md`, triển khai tích hợp OpenClaw trong `milestones-esp32-server-golang`, với các yêu cầu sau:
 
-1. 控制台不新增独立 OpenClaw 配置页面。
-2. OpenClaw endpoint 生成方式与 MCP endpoint 一致（按智能体生成，token 内含 `user_id`、`agent_id`）。
-3. 主程序按 `agent_id` 管理 OpenClaw WebSocket 连接。
-4. 设备配置通过结构体下发 OpenClaw 配置（允许标记 + 进入/退出关键词）。
-5. ASR 后支持进入/退出 OpenClaw 模式；模式内消息绕过 LLM，直接走 OpenClaw，再走 TTS。
-6. OpenClaw 响应延迟到达时，设备离线则进入内存离线队列；设备下次上线补发。
-7. 离线队列策略：每设备最多 20 条，TTL 24 小时。
+1. Không thêm trang cấu hình OpenClaw độc lập trên control panel.
+2. Cách sinh OpenClaw endpoint giống với cách sinh MCP endpoint (sinh theo agent, token chứa `user_id`, `agent_id`).
+3. Chương trình chính quản lý kết nối OpenClaw WebSocket theo `agent_id`.
+4. Cấu hình thiết bị được đẩy xuống qua struct chứa cấu hình OpenClaw (cờ cho phép + từ khóa vào/ra).
+5. Sau ASR, hỗ trợ vào/ra chế độ OpenClaw; trong chế độ này, tin nhắn bỏ qua LLM, đi thẳng qua OpenClaw, rồi tới TTS.
+6. Khi phản hồi OpenClaw đến trễ và thiết bị đang offline, sẽ vào hàng đợi offline trong bộ nhớ; khi thiết bị online lần sau sẽ gửi bù.
+7. Chiến lược hàng đợi offline: tối đa 20 tin nhắn/thiết bị, TTL 24 giờ.
 
-## 2. 控制台改造（manager backend）
+## 2. Cải tạo control panel (manager backend)
 
-### 2.1 智能体字段扩展
+### 2.1 Mở rộng trường của agent
 
-扩展 `models.Agent`：
+Mở rộng `models.Agent`:
 
 - `OpenclawEnabled bool`
-- `OpenclawEnterKeywords string`（JSON 数组字符串）
-- `OpenclawExitKeywords string`（JSON 数组字符串）
+- `OpenclawEnterKeywords string` (chuỗi JSON array)
+- `OpenclawExitKeywords string` (chuỗi JSON array)
 
-说明：
+Lưu ý:
 
-- 不新增独立 OpenClaw endpoint 配置表。
-- endpoint 获取逻辑对齐 MCP：通过智能体接口动态生成并返回。
+- Không thêm bảng cấu hình endpoint OpenClaw độc lập.
+- Logic lấy endpoint được đồng bộ với MCP: sinh động và trả về qua interface của agent.
 
-### 2.2 Endpoint 接口
+### 2.2 Interface Endpoint
 
-新增接口（用户与管理端）：
+Thêm interface mới (cho cả người dùng và trang quản trị):
 
 - `GET /api/user/agents/:id/openclaw-endpoint`
 - `GET /api/admin/agents/:id/openclaw-endpoint`
 
-行为：
+Hành vi:
 
-1. 校验 agent 存在且归属合法。
-2. 读取 OTA 外网 WebSocket URL。
-3. 生成稳定 JWT token（长期有效，不设置 exp/iat）。
-4. 返回 `ws(s)://host/ws/openclaw?token=<token>`。
+1. Kiểm tra agent tồn tại và thuộc quyền hợp lệ.
+2. Đọc URL WebSocket ngoại mạng (external) của OTA.
+3. Sinh JWT token ổn định (có hiệu lực dài hạn, không đặt `exp`/`iat`).
+4. Trả về `ws(s)://host/ws/openclaw?token=<token>`.
 
-### 2.3 Token Claims
+### 2.3 Claims của Token
 
-新增 OpenClaw claims：
+Thêm các claims mới cho OpenClaw:
 
 - `user_id`
 - `agent_id`
-- `endpoint_id`（`agent_<agentID>`）
+- `endpoint_id` (`agent_<agentID>`)
 - `purpose=openclaw-endpoint`
 
-## 3. 设备配置下发与解析
+## 3. Đẩy và phân tích cấu hình thiết bị
 
-### 3.1 结构体
+### 3.1 Struct
 
-在主程序 `UConfig` 中新增：
+Trong `UConfig` của chương trình chính, thêm mới:
 
 ```go
 type OpenClawConfig struct {
@@ -64,15 +64,15 @@ type OpenClawConfig struct {
 }
 ```
 
-并在 `UConfig` 中加入：
+Và thêm vào `UConfig`:
 
 ```go
 OpenClaw OpenClawConfig `json:"openclaw"`
 ```
 
-### 3.2 /api/configs 响应
+### 3.2 Response của /api/configs
 
-管理端 `GetDeviceConfigs` 增加：
+`GetDeviceConfigs` phía quản trị thêm:
 
 ```json
 "openclaw": {
@@ -82,84 +82,84 @@ OpenClaw OpenClawConfig `json:"openclaw"`
 }
 ```
 
-填充规则：
+Quy tắc điền dữ liệu:
 
 1. `allowed = agent.openclaw_enabled`
-2. `enter_keywords/exit_keywords` 从 agent 字段解析 JSON 数组
-3. 若字段为空或解析失败则回退为空数组
+2. `enter_keywords/exit_keywords` được phân tích từ JSON array trong trường của agent
+3. Nếu trường rỗng hoặc phân tích thất bại, sẽ trả về mảng rỗng
 
-### 3.3 主程序配置拉取
+### 3.3 Lấy cấu hình phía chương trình chính
 
-`ConfigManager.GetUserConfig` 解析 `openclaw` 对象，写入 `types.UConfig.OpenClaw`。
+`ConfigManager.GetUserConfig` phân tích object `openclaw`, ghi vào `types.UConfig.OpenClaw`.
 
-## 4. 主程序 OpenClaw WebSocket 服务端
+## 4. Dịch vụ OpenClaw WebSocket phía chương trình chính (server-side)
 
-### 4.1 路由
+### 4.1 Route
 
-新增路由：
+Thêm route mới:
 
 - `/ws/openclaw`
 
-### 4.2 连接维度
+### 4.2 Chiều quản lý kết nối
 
-按 `agent_id` 管理连接池：
+Quản lý pool kết nối theo `agent_id`:
 
 - key: `agentID`
-- value: OpenClaw session（单连接）
+- value: OpenClaw session (một kết nối duy nhất)
 
-新连接建立时替换旧连接，保证一个 agent 只有一个活跃 OpenClaw WS 连接。
+Khi có kết nối mới được thiết lập, sẽ thay thế kết nối cũ, đảm bảo mỗi agent chỉ có một kết nối OpenClaw WS đang hoạt động.
 
-### 4.3 协议处理
+### 4.3 Xử lý giao thức
 
-1. 建连后先发 `handshake_ack`
-2. 收到 `ping` 回 `pong`
-3. 收到 `response` 时：
-   - 按 `correlation_id` 找 device 路由
-   - 若设备在线则推送 TTS
-   - 若设备离线则写离线队列
-4. 收到 `error/close` 记录并按会话清理
+1. Sau khi kết nối thành công, gửi `handshake_ack` trước
+2. Khi nhận `ping`, phản hồi `pong`
+3. Khi nhận `response`:
+   - Tìm route thiết bị theo `correlation_id`
+   - Nếu thiết bị online thì đẩy TTS
+   - Nếu thiết bị offline thì ghi vào hàng đợi offline
+4. Khi nhận `error/close`, ghi log và dọn dẹp theo session
 
-## 5. Chat 流程改造
+## 5. Cải tạo luồng Chat
 
-### 5.1 会话状态
+### 5.1 Trạng thái session
 
-`ClientState` 新增 OpenClaw 运行态：
+`ClientState` thêm trạng thái vận hành OpenClaw:
 
 - `OpenClawMode bool`
 
-### 5.2 ASR 后分流
+### 5.2 Phân luồng sau ASR
 
-在 `ChatSession.actionDoChat` 增加流程：
+Trong `ChatSession.actionDoChat` thêm luồng xử lý:
 
-1. 识别退出关键词（优先级最高）
-2. 识别进入关键词
-3. 若当前是 OpenClaw 模式：
-   - 文本直接发 OpenClaw
-   - 不调用 LLM
-4. 若非 OpenClaw 模式：
-   - 保持原 LLM 流程
+1. Nhận diện từ khóa thoát (ưu tiên cao nhất)
+2. Nhận diện từ khóa vào
+3. Nếu hiện đang ở chế độ OpenClaw:
+   - Gửi thẳng văn bản cho OpenClaw
+   - Không gọi LLM
+4. Nếu không ở chế độ OpenClaw:
+   - Giữ nguyên luồng LLM cũ
 
-关键词匹配方式：先归一化文本（去首尾空白、常见标点），再 `contains` 匹配。
+Cách khớp từ khóa: chuẩn hóa văn bản trước (loại bỏ khoảng trắng đầu/cuối, các dấu câu thông thường), sau đó khớp theo kiểu `contains`.
 
-## 6. 离线消息队列
+## 6. Hàng đợi tin nhắn offline
 
-新增内存离线队列管理器：
+Thêm bộ quản lý hàng đợi offline trong bộ nhớ:
 
 - key: `deviceID`
 - value: `[]OfflineMessage`
-- 每条记录字段：`Text`、`CreatedAt`、`CorrelationID`
+- Mỗi bản ghi gồm các trường: `Text`, `CreatedAt`, `CorrelationID`
 
-策略：
+Chiến lược:
 
-1. 每设备最多 20 条（超出时丢最旧）
-2. TTL 24h（写入与读取时双重清理）
-3. 设备上线时自动回放并清空成功发送消息
+1. Mỗi thiết bị tối đa 20 tin nhắn (khi vượt quá, loại bỏ tin cũ nhất)
+2. TTL 24 giờ (dọn dẹp kép cả khi ghi và khi đọc)
+3. Khi thiết bị online, tự động phát lại (replay) và xóa các tin nhắn đã gửi thành công
 
-上线触发点：
+Điểm kích hoạt online:
 
-- `App.OnNewConnection` 中设备在线后，触发该设备离线消息回放
+- Trong `App.OnNewConnection`, sau khi thiết bị online, kích hoạt việc phát lại tin nhắn offline cho thiết bị đó
 
-## 7. 主要代码改动点
+## 7. Các điểm thay đổi code chính
 
 1. `manager/backend/models/models.go`
 2. `manager/backend/controllers/admin.go`
@@ -168,28 +168,28 @@ OpenClaw OpenClawConfig `json:"openclaw"`
 5. `internal/domain/config/types/types.go`
 6. `internal/domain/config/manager/manager.go`
 7. `internal/app/server/websocket/websocket_server.go`
-8. `internal/app/server/websocket/openclaw.go`（新增）
-9. `internal/domain/openclaw/*`（新增：连接池、消息模型、离线队列）
+8. `internal/app/server/websocket/openclaw.go` (mới)
+9. `internal/domain/openclaw/*` (mới: connection pool, message model, hàng đợi offline)
 10. `internal/data/client/client.go`
 11. `internal/app/server/chat/session.go`
 12. `internal/app/server/app.go`
 
-## 8. 安装步骤（含配置channel）
+## 8. Các bước cài đặt (bao gồm cấu hình channel)
 
-1. 安装 milestones OpenClaw 插件：
+1. Cài đặt plugin milestones OpenClaw:
    `openclaw plugins install @milestones_openclaw/milestones`
-2. 在控制台打开智能体 OpenClaw 配置，复制该智能体的 OpenClaw 接入点（`ws(s)://.../ws/openclaw?token=...`）。
-3. 在 OpenClaw 会话中执行“配置channel”：
-   - 将上一步接入点直接发给 OpenClaw
-   - 明确告诉它：`配置milestones渠道插件`
-4. 配置完成后，使用测试会话发送一条消息，确认能收到 OpenClaw 回复。
+2. Trong control panel, mở cấu hình OpenClaw của agent, sao chép endpoint kết nối OpenClaw của agent đó (`ws(s)://.../ws/openclaw?token=...`).
+3. Trong phiên OpenClaw, thực hiện "cấu hình channel":
+   - Gửi trực tiếp endpoint ở bước trên cho OpenClaw
+   - Nói rõ với nó: `配置milestones渠道插件` ("cấu hình plugin channel milestones")
+4. Sau khi cấu hình xong, dùng phiên kiểm thử gửi một tin nhắn, xác nhận có thể nhận được phản hồi từ OpenClaw.
 
-## 9. 验证清单
+## 9. Danh sách nghiệm thu
 
-1. 控制台可获取 OpenClaw endpoint（与 MCP 生成逻辑一致）。
-2. `/api/configs` 返回结构化 `openclaw` 字段。
-3. OpenClaw client 可通过 `/ws/openclaw` 建立连接并握手。
-4. 进入关键词可切入 OpenClaw 模式，退出关键词可退出模式。
-5. OpenClaw 模式下消息不走 LLM，响应可转 TTS。
-6. 设备离线时响应进入离线队列；上线后补发。
-7. 离线队列满足 20 条上限与 24 小时 TTL。
+1. Control panel có thể lấy được OpenClaw endpoint (logic đồng bộ với MCP).
+2. `/api/configs` trả về trường `openclaw` có cấu trúc.
+3. Client OpenClaw có thể thiết lập kết nối qua `/ws/openclaw` và bắt tay (handshake).
+4. Từ khóa vào có thể chuyển sang chế độ OpenClaw, từ khóa ra có thể thoát khỏi chế độ.
+5. Trong chế độ OpenClaw, tin nhắn không đi qua LLM, phản hồi có thể chuyển sang TTS.
+6. Khi thiết bị offline, phản hồi vào hàng đợi offline; khi online sẽ gửi bù.
+7. Hàng đợi offline đáp ứng giới hạn 20 tin nhắn và TTL 24 giờ.

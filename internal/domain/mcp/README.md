@@ -1,58 +1,59 @@
-# MCP Host 实现
+# Triển khai MCP Host
 
-基于 [Eino 框架](https://github.com/cloudwego/eino) 实现的 MCP (Model Context Protocol) Host，支持全局和设备维度的工具管理。
+MCP (Model Context Protocol) Host được triển khai dựa trên [Eino framework](https://github.com/cloudwego/eino), hỗ trợ quản lý công cụ (tool) ở cả cấp độ toàn cục và cấp độ thiết bị.
 
-## 功能特性
+## Đặc điểm chức năng
 
-### 🌐 全局 MCP 工具管理
+### 🌐 Quản lý công cụ MCP toàn cục
 
-- 通过 SSE 连接到多个 MCP 服务器
-- 自动工具发现和注册
-- 连接状态监控和自动重连
-- 工具调用代理
+- Kết nối tới nhiều MCP Server thông qua SSE
+- Tự động khám phá và đăng ký công cụ
+- Giám sát trạng thái kết nối và tự động kết nối lại
+- Proxy gọi công cụ
 
-### 📱 设备维度 MCP 管理
+### 📱 Quản lý MCP theo thiết bị
 
-- 每个设备独立的 MCP 连接
-- WebSocket 协议支持
-- 设备特定工具注册
-- 连接数限制和清理
+- Mỗi thiết bị có kết nối MCP độc lập
+- Hỗ trợ giao thức WebSocket
+- Đăng ký công cụ riêng cho từng thiết bị
+- Giới hạn số lượng kết nối và dọn dẹp
 
-### 🔧 Eino 框架集成
+### 🔧 Tích hợp Eino Framework
 
-- 实现 `tool.InvokableTool` 接口
-- 支持 Eino 原生工具调用
-- 完整的类型安全
-- 流式处理支持
+- Triển khai interface `tool.InvokableTool`
+- Hỗ trợ gọi công cụ gốc của Eino
+- Đảm bảo an toàn kiểu dữ liệu (type safety) hoàn toàn
+- Hỗ trợ xử lý theo luồng (streaming)
 
-## 架构设计
+## Thiết kế kiến trúc
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    WebSocket Server                        │
-│  /milestones/mcp/{deviceId} - 设备MCP连接                      │
-│  /milestones/api/mcp/tools/{deviceId} - 工具列表API            │
+│  /milestones/mcp/{deviceId} - Kết nối MCP của thiết bị        │
+│  /milestones/api/mcp/tools/{deviceId} - API danh sách công cụ  │
 └─────────────────────────────────────────────────────────────┘
                               │
                     ┌─────────┴─────────┐
                     ▼                   ▼
 ┌─────────────────────────┐  ┌─────────────────────────┐
 │   GlobalMCPManager      │  │   DeviceMCPManager      │
-│   • SSE 连接管理        │  │   • WebSocket 连接管理   │
-│   • 全局工具注册        │  │   • 设备工具注册         │
-│   • 自动重连           │  │   • 连接清理            │
+│   • Quản lý kết nối SSE │  │   • Quản lý kết nối WS   │
+│   • Đăng ký công cụ     │  │   • Đăng ký công cụ      │
+│     toàn cục            │  │     thiết bị             │
+│   • Tự động kết nối lại │  │   • Dọn dẹp kết nối      │
 └─────────────────────────┘  └─────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Eino Tool Interface                     │
-│  tool.InvokableTool - 统一工具调用接口                      │
+│  tool.InvokableTool - Interface gọi công cụ thống nhất      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 配置说明
+## Hướng dẫn cấu hình
 
-### config.json 配置
+### Cấu hình config.json
 
 ```json
 {
@@ -83,36 +84,36 @@
 }
 ```
 
-### 配置参数说明
+### Giải thích tham số cấu hình
 
-| 参数                                    | 类型   | 说明                  |
-| --------------------------------------- | ------ | --------------------- |
-| `mcp.global.enabled`                    | bool   | 是否启用全局MCP管理器 |
-| `mcp.global.servers`                    | array  | MCP服务器列表         |
-| `mcp.global.reconnect_interval`         | int    | 重连间隔（秒）        |
-| `mcp.global.max_reconnect_attempts`     | int    | 最大重连次数          |
-| `mcp.device.enabled`                    | bool   | 是否启用设备MCP管理器 |
-| `mcp.device.websocket_path`             | string | WebSocket路径前缀     |
-| `mcp.device.max_connections_per_device` | int    | 每设备最大连接数      |
+| Tham số                                 | Kiểu   | Giải thích                                 |
+| --------------------------------------- | ------ | ------------------------------------------ |
+| `mcp.global.enabled`                    | bool   | Có bật MCP Manager toàn cục hay không      |
+| `mcp.global.servers`                    | array  | Danh sách MCP Server                       |
+| `mcp.global.reconnect_interval`         | int    | Khoảng thời gian kết nối lại (giây)        |
+| `mcp.global.max_reconnect_attempts`     | int    | Số lần kết nối lại tối đa                  |
+| `mcp.device.enabled`                    | bool   | Có bật MCP Manager theo thiết bị hay không |
+| `mcp.device.websocket_path`             | string | Tiền tố đường dẫn WebSocket                |
+| `mcp.device.max_connections_per_device` | int    | Số kết nối tối đa cho mỗi thiết bị         |
 
-## API 接口
+## Giao diện API
 
-### WebSocket 端点
+### Endpoint WebSocket
 
-#### 设备 MCP 连接
+#### Kết nối MCP thiết bị
 
 ```
 ws://localhost:8989/milestones/mcp/{deviceId}
 ```
 
-**连接流程：**
+**Quy trình kết nối:**
 
-1. 客户端连接到 WebSocket 端点
-2. 服务器发送初始化消息
-3. 客户端响应工具列表
-4. 建立双向通信
+1. Client kết nối tới endpoint WebSocket
+2. Server gửi thông điệp khởi tạo (initialize)
+3. Client phản hồi danh sách công cụ
+4. Thiết lập giao tiếp hai chiều
 
-**消息格式：**
+**Định dạng thông điệp:**
 
 ```json
 {
@@ -125,13 +126,13 @@ ws://localhost:8989/milestones/mcp/{deviceId}
 
 ### REST API
 
-#### 获取设备工具列表
+#### Lấy danh sách công cụ của thiết bị
 
 ```http
 GET /milestones/api/mcp/tools/{deviceId}
 ```
 
-**响应示例：**
+**Ví dụ phản hồi:**
 
 ```json
 {
@@ -139,12 +140,12 @@ GET /milestones/api/mcp/tools/{deviceId}
   "tools": {
     "filesystem_read_file": {
       "name": "read_file",
-      "description": "读取文件内容",
+      "description": "Đọc nội dung file",
       "type": "global"
     },
     "device_sensor_data": {
       "name": "sensor_data",
-      "description": "获取传感器数据",
+      "description": "Lấy dữ liệu cảm biến",
       "type": "device"
     }
   },
@@ -155,9 +156,9 @@ GET /milestones/api/mcp/tools/{deviceId}
 }
 ```
 
-## 使用示例
+## Ví dụ sử dụng
 
-### 1. 启动服务器
+### 1. Khởi động Server
 
 ```go
 package main
@@ -172,36 +173,36 @@ func main() {
 }
 ```
 
-### 2. 连接 MCP 服务器
+### 2. Kết nối tới MCP Server
 
-MCP 服务器需要提供 SSE 端点，支持以下事件：
+MCP Server cần cung cấp endpoint SSE, hỗ trợ các sự kiện sau:
 
-- `tools` - 工具列表更新
-- `status` - 连接状态更新
+- `tools` - Cập nhật danh sách công cụ
+- `status` - Cập nhật trạng thái kết nối
 
-### 3. 设备连接示例
+### 3. Ví dụ kết nối thiết bị
 
 ```javascript
-// 设备端 WebSocket 连接
-const ws = new WebSocket("ws://localhost:8989/milestones/mcp/device123");
+// Kết nối WebSocket phía thiết bị
+const ws = new WebSocket('ws://localhost:8989/milestones/mcp/device123');
 
 ws.onopen = function () {
-  console.log("MCP连接已建立");
+  console.log('Kết nối MCP đã được thiết lập');
 };
 
 ws.onmessage = function (event) {
   const message = JSON.parse(event.data);
-  if (message.method === "initialize") {
-    // 响应初始化
+  if (message.method === 'initialize') {
+    // Phản hồi khởi tạo
     ws.send(
       JSON.stringify({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: message.id,
         result: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: '2024-11-05',
           serverInfo: {
-            name: "device-mcp-server",
-            version: "1.0.0",
+            name: 'device-mcp-server',
+            version: '1.0.0',
           },
         },
       }),
@@ -210,30 +211,30 @@ ws.onmessage = function (event) {
 };
 ```
 
-### 4. 工具调用示例
+### 4. Ví dụ gọi công cụ
 
 ```go
-// 获取全局工具
+// Lấy danh sách công cụ toàn cục
 globalManager := mcp.GetGlobalMCPManager()
 tools := globalManager.GetAllTools()
 
-// 调用工具
+// Gọi công cụ
 for name, tool := range tools {
     result, err := tool.InvokableRun(
         context.Background(),
         `{"path": "/tmp/test.txt"}`,
     )
     if err != nil {
-        log.Errorf("工具调用失败: %v", err)
+        log.Errorf("Gọi công cụ thất bại: %v", err)
         continue
     }
-    log.Infof("工具 %s 结果: %s", name, result)
+    log.Infof("Kết quả công cụ %s: %s", name, result)
 }
 ```
 
-## 开发指南
+## Hướng dẫn phát triển
 
-### 实现自定义 MCP 工具
+### Triển khai công cụ MCP tùy chỉnh
 
 ```go
 type customTool struct {
@@ -246,70 +247,70 @@ func (t *customTool) Info(ctx context.Context) (*schema.ToolInfo, error) {
         Name: t.name,
         Desc: t.description,
         ParamsOneOf: &schema.ParamsOneOf{
-            // 参数定义
+            // Định nghĩa tham số
         },
     }, nil
 }
 
 func (t *customTool) InvokableRun(ctx context.Context, argumentsInJSON string, opts ...tool.Option) (string, error) {
-    // 工具实现逻辑
+    // Logic triển khai công cụ
     return "result", nil
 }
 ```
 
-### 扩展 MCP 协议
+### Mở rộng giao thức MCP
 
-1. 在 `MCPMessage` 结构体中添加新字段
-2. 在 `handleMessage` 方法中添加新的消息处理
-3. 实现对应的处理函数
+1. Thêm trường mới trong struct `MCPMessage`
+2. Thêm xử lý thông điệp mới trong phương thức `handleMessage`
+3. Triển khai hàm xử lý tương ứng
 
-## 监控和调试
+## Giám sát và Debug
 
-### 日志级别
+### Cấp độ log
 
-- `INFO` - 连接建立、工具注册等关键事件
-- `ERROR` - 连接失败、工具调用错误等
-- `DEBUG` - 详细的协议交互信息
+- `INFO` - Các sự kiện quan trọng như thiết lập kết nối, đăng ký công cụ...
+- `ERROR` - Kết nối thất bại, lỗi khi gọi công cụ...
+- `DEBUG` - Thông tin tương tác giao thức chi tiết
 
-### 健康检查
+### Kiểm tra sức khỏe (Health check)
 
 ```bash
-# 检查全局工具
+# Kiểm tra công cụ toàn cục
 curl http://localhost:8989/milestones/api/mcp/tools/health_check
 
-# 检查特定设备工具
+# Kiểm tra công cụ của thiết bị cụ thể
 curl http://localhost:8989/milestones/api/mcp/tools/device123
 ```
 
-## 故障排除
+## Xử lý sự cố
 
-### 常见问题
+### Các vấn đề thường gặp
 
-1. **SSE 连接失败**
-   - 检查 MCP 服务器是否运行
-   - 验证 SSE URL 配置
-   - 查看网络连接
+1. **Kết nối SSE thất bại**
+   - Kiểm tra MCP Server có đang chạy hay không
+   - Xác nhận cấu hình URL của SSE
+   - Kiểm tra kết nối mạng
 
-2. **WebSocket 连接断开**
-   - 检查心跳机制
-   - 验证设备 ID 格式
-   - 查看连接数限制
+2. **Kết nối WebSocket bị ngắt**
+   - Kiểm tra cơ chế heartbeat
+   - Xác nhận định dạng Device ID
+   - Kiểm tra giới hạn số lượng kết nối
 
-3. **工具调用失败**
-   - 验证工具参数格式
-   - 检查工具是否已注册
-   - 查看错误日志
+3. **Gọi công cụ thất bại**
+   - Xác nhận định dạng tham số của công cụ
+   - Kiểm tra công cụ đã được đăng ký hay chưa
+   - Xem log lỗi
 
-### 性能优化
+### Tối ưu hiệu năng
 
-- 调整重连间隔和次数
-- 设置合适的连接数限制
-- 启用连接池复用
-- 定期清理过期连接
+- Điều chỉnh khoảng thời gian và số lần kết nối lại
+- Thiết lập giới hạn số lượng kết nối phù hợp
+- Bật cơ chế tái sử dụng connection pool
+- Định kỳ dọn dẹp các kết nối đã hết hạn
 
-## 参考资料
+## Tài liệu tham khảo
 
-- [Eino 框架文档](https://www.cloudwego.io/docs/eino/)
-- [MCP 协议规范](https://github.com/mark3labs/mcp-go)
-- [SSE 规范](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-- [WebSocket 协议](https://tools.ietf.org/html/rfc6455)
+- [Tài liệu Eino Framework](https://www.cloudwego.io/docs/eino/)
+- [Đặc tả giao thức MCP](https://github.com/mark3labs/mcp-go)
+- [Đặc tả SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+- [Giao thức WebSocket](https://tools.ietf.org/html/rfc6455)

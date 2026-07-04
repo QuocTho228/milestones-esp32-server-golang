@@ -1,4 +1,4 @@
-ESP32_Server_Golang/
+Milestones_ESP32_Server_Golang/
 ├── 📄 go.mod # Module định nghĩa cho Go project
 ├── 📄 go.sum # Checksum của dependencies
 ├── 📄 LICENSE # License file
