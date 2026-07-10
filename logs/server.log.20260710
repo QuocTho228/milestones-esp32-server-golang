@@ -25346,3 +25346,13 @@ Thuật ngữ không đồng nghĩa với việc ủng hộ bạo lực; nó ch�
 2026-07-10 07:50:00.434[37m [debug] [websocket_client.go:959] [0mĐã gửi phản hồi: ID=2e2bdf39-974d-4245-a064-d807f0ac1c46, Status=200
 2026-07-10 07:50:27.948[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
 2026-07-10 07:50:27.949[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-10 07:50:57.947[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-10 07:50:57.947[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-10 07:51:09.665[36m [info] [global_manage.go:537] [0mDanh sách công cụ Weather của máy chủ MCP đã được cập nhật với tổng 8 công cụ
+2026-07-10 07:51:17.763[37m [debug] [device_manager.go:543] [0mThiết bị ws_endpoint_mcp_1_172.18.0.1:52358 ping thành công
+2026-07-10 07:51:27.943[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-10 07:51:27.943[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-10 07:51:57.941[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-10 07:51:57.941[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-10 07:52:27.939[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-10 07:52:27.939[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
