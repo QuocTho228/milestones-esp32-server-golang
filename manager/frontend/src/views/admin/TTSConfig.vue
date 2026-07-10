@@ -81,7 +81,7 @@
     <el-dialog
       v-model="showDialog"
       :title="editingConfig ? 'Chỉnh sửa cấu hình TTS' : 'Thêm cấu hình TTS'"
-      width="600px"
+      width="720px"
       @close="handleDialogClose"
     >
       <TTSConfigForm

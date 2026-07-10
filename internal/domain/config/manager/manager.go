@@ -45,7 +45,7 @@ type ConfigManager struct {
 
 // NewConfigManager - Tạo trình quản lý cấu hình mới
 func NewManagerUserConfigProvider(config map[string]interface{}) (*ConfigManager, error) {
-	// Lấy URL cơ sở của hệ thống quản trị backend từ cấu hình
+	// Lấy baseURL của hệ thống quản trị backend từ cấu hình
 	var baseURL string
 	if backendUrl := config["backend_url"]; backendUrl != nil {
 		baseURL = backendUrl.(string)

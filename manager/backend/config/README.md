@@ -1,120 +1,120 @@
-# 配置文件说明
+# Hướng dẫn về file cấu hình
 
-## 配置文件列表
+## Danh sách file cấu hình
 
-- `config.json` - 默认配置文件
-- `config.dev.json` - 开发环境配置
-- `config.prod.json` - 生产环境配置
-- `config.example.json` - 配置文件示例
+- `config.json` - File cấu hình mặc định
+- `config.dev.json` - Cấu hình môi trường phát triển (development)
+- `config.prod.json` - Cấu hình môi trường production
+- `config.example.json` - File cấu hình mẫu (ví dụ)
 
-## 配置文件结构
+## Cấu trúc file cấu hình
 
 ```json
 {
   "server": {
-    "port": "8080", // 服务器端口
-    "mode": "debug" // 运行模式: debug/release
+    "port": "8080", // Cổng server
+    "mode": "debug" // Chế độ chạy: debug/release
   },
   "database": {
-    "host": "localhost", // 数据库主机
-    "port": "3306", // 数据库端口
-    "username": "root", // 数据库用户名
-    "password": "password", // 数据库密码
-    "database": "milestones_admin" // 数据库名称
+    "host": "localhost", // Host của database
+    "port": "3306", // Cổng database
+    "username": "root", // Tên đăng nhập database
+    "password": "password", // Mật khẩu database
+    "database": "milestones_admin" // Tên database
   },
   "jwt": {
-    "secret": "your_secret_key", // JWT签名密钥
-    "expire_hour": 24 // Token过期时间(小时)
+    "secret": "your_secret_key", // Khóa bí mật (secret key) để ký JWT
+    "expire_hour": 24 // Thời gian hết hạn của Token (tính bằng giờ)
   }
 }
 ```
 
-## 使用方法
+## Cách sử dụng
 
-### 1. 命令行参数
+### 1. Tham số dòng lệnh (command line)
 
 ```bash
-# 使用默认配置文件
+# Sử dụng file cấu hình mặc định
 go run main.go
 
-# 指定配置文件
+# Chỉ định file cấu hình
 go run main.go -config=config/config.dev.json
 go run main.go -c config/config.prod.json
 ```
 
-### 2. 启动脚本
+### 2. Script khởi động
 
 **Windows:**
 
 ```cmd
-start.bat                    # 默认配置
-start.bat dev                # 开发环境
-start.bat prod               # 生产环境
-start.bat custom my.json     # 自定义配置
-start.bat help               # 显示帮助
+start.bat                    # Cấu hình mặc định
+start.bat dev                # Môi trường phát triển
+start.bat prod               # Môi trường production
+start.bat custom my.json     # Cấu hình tùy chỉnh
+start.bat help               # Hiển thị trợ giúp
 ```
 
 **Linux/Mac:**
 
 ```bash
-./start.sh                   # 默认配置
-./start.sh dev               # 开发环境
-./start.sh prod              # 生产环境
-./start.sh custom my.json    # 自定义配置
-./start.sh help              # 显示帮助
+./start.sh                    # Cấu hình mặc định
+./start.sh dev                # Môi trường phát triển
+./start.sh prod               # Môi trường production
+./start.sh custom my.json     # Cấu hình tùy chỉnh
+./start.sh help               # Hiển thị trợ giúp
 ```
 
-## 环境配置建议
+## Khuyến nghị cấu hình theo môi trường
 
-### 开发环境 (config.dev.json)
+### Môi trường phát triển (config.dev.json)
 
-- 使用debug模式
-- 数据库名称添加\_dev后缀
-- JWT密钥可以使用简单的字符串
-- Token过期时间可以设置较长
+- Sử dụng chế độ debug
+- Tên database nên thêm hậu tố `_dev`
+- Khóa bí mật JWT có thể dùng chuỗi đơn giản
+- Thời gian hết hạn Token có thể đặt dài hơn
 
-### 生产环境 (config.prod.json)
+### Môi trường production (config.prod.json)
 
-- 使用release模式
-- 使用独立的生产数据库
-- JWT密钥必须使用强密码
-- Token过期时间建议设置较短
-- 数据库用户权限最小化
+- Sử dụng chế độ release
+- Sử dụng database production riêng biệt
+- Khóa bí mật JWT bắt buộc phải dùng mật khẩu mạnh
+- Thời gian hết hạn Token nên đặt ngắn hơn
+- Quyền của tài khoản database nên được giới hạn tối thiểu (nguyên tắc đặc quyền tối thiểu)
 
-## 安全注意事项
+## Lưu ý về bảo mật
 
-1. **不要将生产环境配置文件提交到版本控制系统**
-2. **JWT密钥必须保密且足够复杂**
-3. **数据库密码应该定期更换**
-4. **生产环境建议使用环境变量覆盖敏感配置**
+1. **Không được commit file cấu hình môi trường production vào hệ thống quản lý phiên bản (version control)**
+2. **Khóa bí mật JWT phải được giữ kín và đủ phức tạp**
+3. **Mật khẩu database nên được thay đổi định kỳ**
+4. **Ở môi trường production, khuyến nghị sử dụng biến môi trường để ghi đè các cấu hình nhạy cảm**
 
-## 配置文件优先级
+## Thứ tự ưu tiên của file cấu hình
 
-1. 命令行指定的配置文件
-2. 默认配置文件 (config.json)
+1. File cấu hình được chỉ định qua tham số dòng lệnh
+2. File cấu hình mặc định (config.json)
 
-## 故障排除
+## Xử lý sự cố (Troubleshooting)
 
-### 配置文件不存在
-
-```
-错误: 无法打开配置文件 config/missing.json: no such file or directory
-```
-
-**解决方案**: 检查配置文件路径是否正确
-
-### 配置文件格式错误
+### File cấu hình không tồn tại
 
 ```
-错误: 解析配置文件失败 config/config.json: invalid character '}' looking for beginning of object key string
+Lỗi: không thể mở file cấu hình config/missing.json: no such file or directory
 ```
 
-**解决方案**: 检查JSON格式是否正确，可以使用JSON验证工具
+**Cách khắc phục**: Kiểm tra lại đường dẫn file cấu hình có chính xác không
 
-### 数据库连接失败
+### File cấu hình sai định dạng
 
 ```
-错误: 数据库连接失败: Error 1045: Access denied for user 'root'@'localhost'
+Lỗi: phân tích (parse) file cấu hình thất bại config/config.json: invalid character '}' looking for beginning of object key string
 ```
 
-**解决方案**: 检查数据库配置信息是否正确
+**Cách khắc phục**: Kiểm tra lại định dạng JSON có đúng không, có thể dùng công cụ kiểm tra (validate) JSON để hỗ trợ
+
+### Kết nối database thất bại
+
+```
+Lỗi: kết nối database thất bại: Error 1045: Access denied for user 'root'@'localhost'
+```
+
+**Cách khắc phục**: Kiểm tra lại thông tin cấu hình database có chính xác không

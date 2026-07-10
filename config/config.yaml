@@ -372,7 +372,8 @@ ota:
   # Cấu hình môi trường bên ngoài, dùng cho môi trường trực tuyến
   external:
     websocket:
-      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/' # Địa chỉ WebSocket
+      # url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/' # Địa chỉ WebSocket
+      url: 'wss://quoctho228.tail0389ec.ts.net:433/milestones/v1/'
     mqtt:
       enable: false # Khi đúng, mqtt sẽ được cấu hình cho thiết bị
       endpoint: 'www.youdomain.cn' # Điểm cuối MQTT, có thể lấy cổng

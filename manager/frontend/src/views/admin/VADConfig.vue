@@ -77,11 +77,11 @@
       </el-table-column>
     </el-table>
 
-    <!-- Thêm/Chỉnh sửaDialog cấu hình -->
+    <!-- Thêm/Chỉnh sửa Dialog cấu hình -->
     <el-dialog
       v-model="showDialog"
       :title="editingConfig ? 'Chỉnh sửa cấu hình VAD' : 'Thêm cấu hình VAD'"
-      width="600px"
+      width="720px"
       @close="handleDialogClose"
     >
       <VADConfigForm ref="formRef" :model="form" :rules="rules" />

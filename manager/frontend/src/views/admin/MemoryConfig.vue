@@ -60,10 +60,10 @@
     <el-dialog
       v-model="showDialog"
       :title="editingConfig ? 'Chỉnh sửa cấu hình Memory' : 'Thêm cấu hình Memory'"
-      width="600px"
+      width="720px"
       @close="handleDialogClose"
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="150px">
         <el-form-item label="Nhà cung cấp" prop="provider">
           <el-select
             v-model="form.provider"
@@ -87,17 +87,17 @@
 
         <!-- Các trường cấu hình Memobase -->
         <template v-if="form.provider === 'memobase'">
-          <el-form-item label="Khóa API" prop="api_key">
+          <el-form-item label="API key" prop="api_key">
             <el-input
               v-model="form.api_key"
               type="password"
-              placeholder="Vui lòng nhập khóa API Memobase"
+              placeholder="Vui lòng nhập API key Memobase"
               show-password
             />
           </el-form-item>
 
-          <el-form-item label="URL cơ sở" prop="base_url">
-            <el-input v-model="form.base_url" placeholder="Vui lòng nhập URL cơ sở Memobase" />
+          <el-form-item label="baseURL" prop="base_url">
+            <el-input v-model="form.base_url" placeholder="Vui lòng nhập baseURL Memobase" />
           </el-form-item>
 
           <el-form-item label="Bật tìm kiếm" prop="enable_search">
@@ -122,22 +122,22 @@
 
         <!-- Các trường cấu hình Mem0 -->
         <template v-if="form.provider === 'mem0' || form.provider === 'memos'">
-          <el-form-item label="Khóa API" prop="api_key">
+          <el-form-item label="API key" prop="api_key">
             <el-input
               v-model="form.api_key"
               type="password"
               :placeholder="
-                form.provider === 'memos' ? 'Vui lòng nhập khóa API tương thích MemOS' : 'Vui lòng nhập khóa API Mem0'
+                form.provider === 'memos' ? 'Vui lòng nhập API key tương thích MemOS' : 'Vui lòng nhập API key Mem0'
               "
               show-password
             />
           </el-form-item>
 
-          <el-form-item label="URL cơ sở" prop="base_url">
+          <el-form-item label="baseURL" prop="base_url">
             <el-input
               v-model="form.base_url"
               :placeholder="
-                form.provider === 'memos' ? 'Vui lòng nhập URL cơ sở dịch vụ MemOS' : 'Vui lòng nhập URL cơ sở Mem0'
+                form.provider === 'memos' ? 'Vui lòng nhập baseURL dịch vụ MemOS' : 'Vui lòng nhập baseURL Mem0'
               "
             />
           </el-form-item>
@@ -263,8 +263,8 @@ const rules = {
   name: [{ required: true, message: 'Vui lòng nhập tên cấu hình', trigger: 'blur' }],
   config_id: [{ required: true, message: 'Vui lòng nhập ID cấu hình', trigger: 'blur' }],
   provider: [{ required: true, message: 'Vui lòng chọn nhà cung cấp', trigger: 'change' }],
-  api_key: [{ required: true, message: 'Vui lòng nhập khóa API', trigger: 'blur' }],
-  base_url: [{ required: true, message: 'Vui lòng nhập URL cơ sở', trigger: 'blur' }],
+  api_key: [{ required: true, message: 'Vui lòng nhập API key', trigger: 'blur' }],
+  base_url: [{ required: true, message: 'Vui lòng nhập baseURL', trigger: 'blur' }],
 };
 
 const formatDate = (dateString) => {

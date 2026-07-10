@@ -62,7 +62,7 @@ Phía quản trị hỗ trợ duy trì nhiều cấu hình provider, và chỉ �
 
 Các mục cấu hình thường gặp (khác nhau tùy theo provider):
 
-- `Base URL`
+- `baseURL`
 - `API Key / Token`
 - Ngưỡng truy hồi mặc định
 - Tham số riêng của provider (như ngưỡng tương đồng của RAGFlow, tham số chia chunk của WeKnora, v.v.)

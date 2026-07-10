@@ -95,7 +95,7 @@
     <el-dialog
       v-model="showDialog"
       :title="editingConfig ? 'Chỉnh sửa cấu hình LLM' : 'Thêm cấu hình LLM'"
-      width="600px"
+      width="720px"
       @close="handleDialogClose"
     >
       <LLMConfigForm ref="formRef" :model="form" :rules="rules" />
@@ -184,7 +184,7 @@ const rules = {
       validator: (_, value, callback) => {
         const provider = resolveLLMProvider(form.provider, form.type);
         if (getProviderFixedType(provider) !== 'ollama' && !value) {
-          callback(new Error('Vui lòng nhập khóa API'));
+          callback(new Error('Vui lòng nhập API key'));
           return;
         }
         callback();
@@ -197,7 +197,7 @@ const rules = {
       validator: (_, value, callback) => {
         const provider = resolveLLMProvider(form.provider, form.type);
         if (isProviderBaseURLEditable(provider) && !value) {
-          callback(new Error('Vui lòng nhập URL cơ sở'));
+          callback(new Error('Vui lòng nhập baseURL'));
           return;
         }
         callback();
@@ -235,7 +235,7 @@ const rules = {
       trigger: 'blur',
     },
   ],
-  temperature: [{ type: 'number', min: 0, max: 2, message: 'Nhiệt độ phải trong khoảng 0-2', trigger: 'blur' }],
+  temperature: [{ type: 'number', min: 0, max: 2, message: 'Temperature phải trong khoảng 0-2', trigger: 'blur' }],
   top_p: [{ type: 'number', min: 0, max: 1, message: 'Top P phải trong khoảng 0-1', trigger: 'blur' }],
 };
 

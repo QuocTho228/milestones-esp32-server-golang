@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-form ref="baseFormRef" :model="baseForm" :rules="baseRules" label-width="120px" style="max-width: 600px">
+      <el-form ref="baseFormRef" :model="baseForm" :rules="baseRules" label-width="150px" style="max-width: 600px">
         <el-form-item label="Bật xác thực" prop="enable_auth">
           <el-switch v-model="baseForm.enable_auth" />
           <div class="form-tip">Có bật xác thực cho giao diện nhận dạng hình ảnh không</div>
@@ -73,35 +73,35 @@
     <el-dialog
       v-model="showDialog"
       :title="editingConfig ? 'Chỉnh sửa cấu hình Vision' : 'Thêm cấu hình Vision'"
-      width="700px"
+      width="720px"
       @close="handleDialogClose"
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="180px">
         <el-form-item label="Nhà cung cấp" prop="provider">
-          <el-select v-model="form.provider" placeholder="Vui lòng chọnNhà cung cấp" style="width: 100%">
+          <el-select v-model="form.provider" placeholder="Vui lòng chọn Nhà cung cấp" style="width: 100%">
             <el-option label="Alibaba Cloud Vision" value="aliyun_vision" />
             <el-option label="Doubao Vision" value="doubao_vision" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="Tên cấu hình" prop="name">
-          <el-input v-model="form.name" placeholder="Vui lòng nhậpTên cấu hình" />
+          <el-input v-model="form.name" placeholder="Vui lòng nhập Tên cấu hình" />
         </el-form-item>
 
         <el-form-item label="Loại" prop="type">
-          <el-input v-model="form.type" placeholder="Vui lòng nhậpLoại" />
+          <el-input v-model="form.type" placeholder="Vui lòng nhập Loại" />
         </el-form-item>
 
         <el-form-item label="Tên mô hình" prop="model_name">
-          <el-input v-model="form.model_name" placeholder="Vui lòng nhậpTên mô hình" />
+          <el-input v-model="form.model_name" placeholder="Vui lòng nhập Tên mô hình" />
         </el-form-item>
 
-        <el-form-item label="Khóa API" prop="api_key">
-          <el-input v-model="form.api_key" type="password" placeholder="Vui lòng nhậpKhóa API" show-password />
+        <el-form-item label="API key" prop="api_key">
+          <el-input v-model="form.api_key" type="password" placeholder="Vui lòng nhập API key" show-password />
         </el-form-item>
 
-        <el-form-item label="URL cơ sở" prop="base_url">
-          <el-input v-model="form.base_url" placeholder="Vui lòng nhậpURL cơ sở" />
+        <el-form-item label="baseURL" prop="base_url">
+          <el-input v-model="form.base_url" placeholder="Vui lòng nhập baseURL" />
         </el-form-item>
 
         <el-form-item label="Số token tối đa" prop="max_tokens">
@@ -109,18 +109,18 @@
             v-model="form.max_tokens"
             :min="1"
             :max="100000"
-            placeholder="Vui lòng nhậpSố token tối đa"
+            placeholder="Vui lòng nhập Số token tối đa"
             style="width: 100%"
           />
         </el-form-item>
 
-        <el-form-item label="Nhiệt độ (Temperature)" prop="temperature">
+        <el-form-item label="Temperature" prop="temperature">
           <el-input-number
             v-model="form.temperature"
             :min="0"
             :max="2"
             :step="0.1"
-            placeholder="Vui lòng nhậpNhiệt độ (Temperature)"
+            placeholder="Vui lòng nhập Temperature"
             style="width: 100%"
           />
         </el-form-item>
@@ -219,9 +219,9 @@ const rules = {
   provider: [{ required: true, message: 'Vui lòng chọnNhà cung cấp', trigger: 'change' }],
   type: [{ required: true, message: 'Vui lòng nhậpLoại', trigger: 'blur' }],
   model_name: [{ required: true, message: 'Vui lòng nhậpTên mô hình', trigger: 'blur' }],
-  api_key: [{ required: true, message: 'Vui lòng nhậpKhóa API', trigger: 'blur' }],
+  api_key: [{ required: true, message: 'Vui lòng nhậpAPI key', trigger: 'blur' }],
   base_url: [
-    { required: true, message: 'Vui lòng nhậpURL cơ sở', trigger: 'blur' },
+    { required: true, message: 'Vui lòng nhậpbaseURL', trigger: 'blur' },
     { type: 'url', message: 'Vui lòng nhập URL hợp lệ', trigger: 'blur' },
   ],
   max_tokens: [{ required: true, message: 'Vui lòng nhậpSố token tối đa', trigger: 'blur' }],

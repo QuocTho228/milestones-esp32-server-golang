@@ -18,9 +18,9 @@
         <div class="login-meta">
           <span class="apple-chip is-primary">Điều phối tác nhân thông minh</span>
           <span class="apple-chip">Truy cập thiết bị</span>
-          <span class="apple-chip">Nhận dạng giọng nói và cơ sở tri thức</span>
+          <span class="apple-chip">Nhận dạng giọng nói và kho kiến thức</span>
           <span class="apple-chip">MCP / OpenClaw</span>
-          <span class="apple-chip">Gọi từ xa MCP</span>
+          <span class="apple-chip">Gọi MCP</span>
           <span class="apple-chip">Chủ động gửi giọng nói</span>
         </div>
       </section>
@@ -475,7 +475,7 @@ onMounted(async () => {
 .card-header h2 {
   margin: 0;
   color: var(--apple-text);
-  font-size: 28px;
+  font-size: 25px;
   letter-spacing: -0.03em;
 }
 

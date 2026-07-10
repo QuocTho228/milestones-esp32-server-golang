@@ -79,10 +79,10 @@
     <el-dialog
       v-model="dialogVisible"
       :title="editing ? 'Chỉnh sửa kho kiến thức' : 'Thêm kho kiến thức'"
-      width="680px"
+      width="720px"
     >
-      <el-form :model="form" label-width="90px">
-        <el-form-item label="Tên">
+      <el-form :model="form" label-width="150px">
+        <el-form-item label="Tên kho">
           <el-input v-model="form.name" maxlength="100" show-word-limit />
         </el-form-item>
         <el-form-item label="Mô tả">

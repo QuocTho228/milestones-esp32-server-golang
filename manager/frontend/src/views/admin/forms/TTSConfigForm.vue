@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="formRef" :model="model" :rules="rules" label-width="120px">
+  <el-form ref="formRef" :model="model" :rules="rules" label-width="220px">
     <el-form-item label="Nhà cung cấp" prop="provider">
       <el-select v-model="model.provider" placeholder="Vui lòng chọn nhà cung cấp" style="width: 100%">
         <el-option

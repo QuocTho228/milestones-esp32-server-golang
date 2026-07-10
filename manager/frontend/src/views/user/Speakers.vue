@@ -88,9 +88,9 @@
     <el-dialog
       v-model="showGroupDialog"
       :title="groupDialogMode === 'add' ? 'Tạo nhóm giọng nói' : 'Chỉnh sửa nhóm giọng nói'"
-      width="600px"
+      width="720px"
     >
-      <el-form ref="groupFormRef" :model="groupForm" :rules="groupRules" label-width="100px">
+      <el-form ref="groupFormRef" :model="groupForm" :rules="groupRules" label-width="150px">
         <el-form-item label="Trợ lý AI liên kết" prop="agent_id">
           <el-select v-model="groupForm.agent_id" placeholder="Chọn trợ lý AI" style="width: 100%">
             <el-option v-for="agent in agents" :key="agent.id" :label="agent.name" :value="agent.id" />

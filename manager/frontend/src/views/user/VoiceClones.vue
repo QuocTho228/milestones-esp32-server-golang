@@ -97,7 +97,7 @@
       @change="handleAppendAudioFileChange"
     />
 
-    <el-dialog v-model="createDialogVisible" title="Tạo giọng đọc sao chép" width="680px">
+    <el-dialog v-model="createDialogVisible" title="Tạo giọng đọc sao chép" width="720px">
       <el-form label-width="140px">
         <el-form-item label="Tên sao chép">
           <el-input v-model="form.name" placeholder="Tuỳ chọn, không điền sẽ tự dùng tên tệp" />
@@ -172,7 +172,7 @@
 
         <el-form-item label="Ngôn ngữ văn bản">
           <el-select v-model="form.transcript_lang" style="width: 220px">
-            <el-option label="Tiếng Trung (zh-CN)" value="zh-CN" />
+            <el-option label="Tiếng Việt (vi-VN)" value="vi-VN" />
             <el-option label="Tiếng Anh (en-US)" value="en-US" />
           </el-select>
         </el-form-item>
@@ -301,7 +301,7 @@ const form = ref({
   tts_config_id: '',
   source_type: 'upload',
   transcript: '',
-  transcript_lang: 'zh-CN',
+  transcript_lang: 'vi-VN',
   audioFile: null,
   recordBlob: null,
   audioDurationSec: 0,

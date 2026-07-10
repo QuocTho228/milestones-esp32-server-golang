@@ -160,7 +160,7 @@
     <el-dialog
       v-model="showAddAgentDialog"
       title="Thêm trợ lý AI"
-      width="560px"
+      width="720px"
       class="agent-dialog"
       :before-close="handleCloseAddAgent"
     >
@@ -323,7 +323,7 @@ const resetAddDeviceForm = () => {
 
 const openAddDeviceDialog = () => {
   if (!agents.value.length) {
-    ElMessage.warning('Vui lòng trướcTạo trợ lý AI，rồi liên kếtThiết bị');
+    ElMessage.warning('Vui lòng Thêm trợ lý AI trước, rồi sau đó Thêm thiết bị');
     return;
   }
   resetAddDeviceForm();

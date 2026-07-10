@@ -40,7 +40,7 @@
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="editing ? 'Chỉnh sửa cấu hình' : 'Thêm cấu hình mới'" width="700px">
-      <el-form :model="form" label-width="100px">
+      <el-form :model="form" label-width="180px">
         <el-form-item label="Nhà cung cấp">
           <el-select v-model="form.provider" style="width: 100%" @change="onProviderChange">
             <el-option value="dify" label="dify" />
@@ -61,7 +61,7 @@
         <el-form-item label="Tên"><el-input v-model="form.name" /></el-form-item>
         <el-form-item label="ID cấu hình"><el-input v-model="form.config_id" /></el-form-item>
         <template v-if="form.provider === 'dify'">
-          <el-form-item label="Base URL"
+          <el-form-item label="baseURL"
             ><el-input v-model="form.base_url" :placeholder="DEFAULT_DIFY_BASE_URL"
           /></el-form-item>
           <el-form-item label="API Key"><el-input v-model="form.api_key" type="password" show-password /></el-form-item>
@@ -96,7 +96,7 @@
           </el-form-item>
         </template>
         <template v-else-if="form.provider === 'ragflow'">
-          <el-form-item label="Base URL"
+          <el-form-item label="baseURL"
             ><el-input v-model="form.base_url" :placeholder="DEFAULT_RAGFLOW_BASE_URL"
           /></el-form-item>
           <el-form-item label="API Key"><el-input v-model="form.api_key" type="password" show-password /></el-form-item>
@@ -140,7 +140,7 @@
           </el-form-item>
         </template>
         <template v-else-if="form.provider === 'weknora'">
-          <el-form-item label="Base URL"
+          <el-form-item label="baseURL"
             ><el-input v-model="form.base_url" :placeholder="DEFAULT_WEKNORA_BASE_URL"
           /></el-form-item>
           <el-form-item label="API Key"><el-input v-model="form.api_key" type="password" show-password /></el-form-item>
@@ -379,7 +379,7 @@ const fetchWeknoraModels = async (force = false, silent = true) => {
   const apiKey = String(form.api_key || '').trim();
   if (!baseURL || !apiKey) {
     if (!silent) {
-      ElMessage.warning('Vui lòng điền WeKnora Base URL và API Key trước');
+      ElMessage.warning('Vui lòng điền WeKnora baseURL và API Key trước');
     }
     return;
   }

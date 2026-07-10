@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="formRef" :model="model" :rules="rules" label-width="120px">
+  <el-form ref="formRef" :model="model" :rules="rules" label-width="150px">
     <el-form-item label="Nhà cung cấp" prop="provider" required>
       <el-select
         v-model="model.provider"
@@ -45,12 +45,12 @@
       <el-alert :title="modelHint" type="info" :closable="false" show-icon />
     </el-form-item>
 
-    <el-form-item label="Khóa API" prop="api_key" :required="apiKeyRequired">
-      <el-input v-model="model.api_key" type="password" placeholder="Vui lòng nhập khóa API" show-password />
+    <el-form-item label="API key" prop="api_key" :required="apiKeyRequired">
+      <el-input v-model="model.api_key" type="password" placeholder="Vui lòng nhập API key" show-password />
     </el-form-item>
 
-    <el-form-item v-if="showBaseURL" label="URL cơ sở" prop="base_url" required>
-      <el-input v-model="model.base_url" placeholder="Vui lòng nhập URL cơ sở" style="width: 100%" />
+    <el-form-item v-if="showBaseURL" label="baseURL" prop="base_url" required>
+      <el-input v-model="model.base_url" placeholder="Vui lòng nhập baseURL" style="width: 100%" />
     </el-form-item>
 
     <el-form-item v-if="isCoze" label="Bot ID" prop="bot_id" required>
@@ -69,13 +69,13 @@
       <el-input-number v-model="model.max_tokens" :min="1" :max="100000" placeholder="max_tokens" style="width: 100%" />
     </el-form-item>
 
-    <el-form-item v-if="isOpenAIOrOllama && requestConfig.allowTemperature" label="Nhiệt độ" prop="temperature">
+    <el-form-item v-if="isOpenAIOrOllama && requestConfig.allowTemperature" label="Temperature" prop="temperature">
       <el-input-number
         v-model="model.temperature"
         :min="0"
         :max="requestConfig.temperatureMax"
         :step="0.1"
-        placeholder="Nhiệt độ"
+        placeholder="Temperature"
         style="width: 100%"
       />
     </el-form-item>

@@ -93,7 +93,7 @@
             <div class="card-head">
               <div>
                 <p class="card-kicker">External</p>
-                <h3>Phân phối môi trường bên ngoài</h3>
+                <h3>Phân phối môi trường sản xuất</h3>
                 <p class="card-description">
                   Dùng cho môi trường sản xuất hoặc mạng công khai. Khuyến nghị nhập địa chỉ WebSocket và MQTT có thể
                   truy cập thực tế, không nên dùng lại địa chỉ mạng nội bộ.

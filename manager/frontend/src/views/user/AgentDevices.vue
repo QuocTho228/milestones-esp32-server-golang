@@ -174,7 +174,7 @@
     <el-dialog
       v-model="showAddDeviceDialog"
       title="Liên kết thiết bị"
-      width="520px"
+      width="720px"
       :close-on-click-modal="false"
       @closed="resetAddDeviceForm"
     >
@@ -266,7 +266,7 @@
               <div v-if="currentDevice.role_id">
                 <el-tag type="success" size="large">Đã liên kết vai trò</el-tag>
                 <div class="current-role-info">
-                  <p><strong>Vai tròID:</strong> {{ currentDevice.role_id }}</p>
+                  <p><strong>ID vai trò:</strong> {{ currentDevice.role_id }}</p>
                 </div>
               </div>
               <el-tag v-else type="info" size="large">Chưa liên kết vai trò (dùng cấu hình trợ lý AI)</el-tag>

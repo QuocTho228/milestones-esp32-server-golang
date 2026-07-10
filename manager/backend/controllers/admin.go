@@ -2414,7 +2414,7 @@ func (ac *AdminController) ResetUserPassword(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Vui lòng nhập mật khẩu mới hợp lệ (ít nhất 6 ký tự)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Vui lòng nhập mật khẩu mới (ít nhất 6 ký tự)"})
 		return
 	}
 

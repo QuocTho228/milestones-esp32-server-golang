@@ -201,7 +201,7 @@ Tạo phản hồi có kiểm soát context.
 | `type`       | string | ✅       | Loại provider: "openai", "ollama"              |
 | `model_name` | string | ✅       | Tên model                                      |
 | `api_key`    | string | ⚠️       | API key (bắt buộc với OpenAI)                  |
-| `base_url`   | string | ❌       | URL cơ sở                                      |
+| `base_url`   | string | ❌       | baseURL                                        |
 | `max_tokens` | int    | ❌       | Số token tối đa (mặc định: 500)                |
 | `streamable` | bool   | ❌       | Có hỗ trợ streaming hay không (mặc định: true) |
 

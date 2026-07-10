@@ -77,8 +77,8 @@ OpenClaw OpenClawConfig `json:"openclaw"`
 ```json
 "openclaw": {
   "allowed": true,
-  "enter_keywords": ["进入爪子模式", "openclaw"],
-  "exit_keywords": ["退出爪子模式", "退出openclaw"]
+  "enter_keywords": ["Mở OpenClaw","Khởi động OpenClaw"],
+  "exit_keywords": ["Đóng OpenClaw","Thoát OpenClaw"]
 }
 ```
 

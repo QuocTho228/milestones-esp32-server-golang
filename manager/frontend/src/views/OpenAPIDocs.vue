@@ -12,7 +12,7 @@
           Truy cập công khai, cung cấp phương thức gọi, tham số đầu vào, đầu ra và ví dụ theo từng endpoint.
         </p>
         <div class="hero-meta">
-          <span>Base URL: <code>/api/open/v1</code></span>
+          <span>baseURL: <code>/api/open/v1</code></span>
           <span>Content-Type: <code>application/json</code></span>
           <el-button size="small" type="primary" plain @click="$router.push('/login')">Quay lại đăng nhập</el-button>
         </div>

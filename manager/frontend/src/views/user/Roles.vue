@@ -70,7 +70,7 @@
     <el-dialog
       v-model="showCreateDialog"
       :title="editingRole ? 'Chỉnh sửa vai trò' : 'Tạo vai trò'"
-      width="800px"
+      width="720px"
       class="role-dialog"
       @close="handleDialogClose"
     >
@@ -91,12 +91,12 @@
 
           <section class="dialog-section">
             <h4 class="dialog-section-title">Cấu hình Prompt</h4>
-            <el-form-item label="Từ gợi ý hệ thống" prop="prompt">
+            <el-form-item label="User prompt" prop="prompt">
               <el-input
                 v-model="form.prompt"
                 type="textarea"
                 :rows="6"
-                placeholder="Nhập từ gợi ý hệ thống, định nghĩa hành vi và tính cách vai trò"
+                placeholder="Nhập user prompt, định nghĩa hành vi và tính cách vai trò"
               />
               <div class="prompt-tips">
                 <el-text size="small" type="info">
@@ -229,7 +229,7 @@ const form = reactive({
 
 const rules = {
   name: [{ required: true, message: 'Vui lòng nhập tên vai trò', trigger: 'blur' }],
-  prompt: [{ required: true, message: 'Vui lòng nhập từ gợi ý hệ thống', trigger: 'blur' }],
+  prompt: [{ required: true, message: 'Vui lòng nhập user prompt', trigger: 'blur' }],
 };
 
 // Tải danh sách vai trò

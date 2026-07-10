@@ -19,7 +19,7 @@
           </template>
 
           <div class="field-grid field-grid-main">
-            <el-form-item label="Bật MCP toàn cục" prop="mcp.global.enabled">
+            <el-form-item label="Bật MCP toàn cục" prop="mcp.global.enabled" class="field-span-full">
               <div class="switch-field">
                 <div>
                   <div class="switch-title">Cho phép server kết nối MCP tập trung</div>
@@ -535,7 +535,7 @@ onMounted(() => {
 }
 
 .field-grid-main {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .field-stack {
@@ -552,6 +552,11 @@ onMounted(() => {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px 18px;
   align-items: center;
+  width: 100%;
+}
+
+:deep(.el-form-item__content) {
+  width: 100%;
 }
 
 .switch-title {

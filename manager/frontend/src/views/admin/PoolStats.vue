@@ -9,7 +9,7 @@
               <el-icon><Refresh /></el-icon>
               Làm mới
             </el-button>
-            <el-select v-model="viewType" size="small" style="width: 120px; margin-left: 10px" disabled>
+            <el-select v-model="viewType" size="small" style="width: 250px; margin-left: 10px" disabled>
               <el-option label="Dữ liệu mới nhất" value="latest" />
             </el-select>
           </div>

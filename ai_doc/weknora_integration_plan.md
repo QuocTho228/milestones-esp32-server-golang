@@ -10,7 +10,7 @@
 
 ## 2. Căn cứ theo API chính thức
 
-- Tổng quan API và xác thực (`X-API-Key`, Base URL `/api/v1`):
+- Tổng quan API và xác thực (`X-API-Key`, baseURL `/api/v1`):
   - <https://github.com/Tencent/WeKnora/blob/main/docs/api/README.md>
 - Quản lý knowledge base:
   - <https://github.com/Tencent/WeKnora/blob/main/docs/api/knowledge-base.md>

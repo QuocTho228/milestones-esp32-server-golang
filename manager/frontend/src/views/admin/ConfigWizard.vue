@@ -444,7 +444,7 @@ const llmFormRules = {
     {
       validator: (_, value, callback) => {
         if (getResolvedLLMType(llmForm.provider, llmForm.type) !== 'coze' && !value) {
-          callback(new Error('Vui lòng nhập Base URL'));
+          callback(new Error('Vui lòng nhập baseURL'));
           return;
         }
         callback();

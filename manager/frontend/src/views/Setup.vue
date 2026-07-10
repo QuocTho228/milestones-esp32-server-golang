@@ -60,7 +60,7 @@
                   required
                   minlength="6"
                   maxlength="100"
-                  placeholder="Vui lòng nhập mật khẩu quản trị viên (ít nhất 6 chữ số)"
+                  placeholder="Vui lòng nhập mật khẩu (ít nhất 6 chữ số)"
                 />
               </div>
 
