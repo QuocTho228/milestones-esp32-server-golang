@@ -317,7 +317,7 @@ func GetToolsByDeviceIdWithTransport(deviceId string, agentId string, transportT
 			log.Errorf("Lấy tool của agent %s thất bại: %v", agentId, err)
 			return retTools, nil
 		}
-		log.Debugf("Lấy được %d tool MCP ws endpoint từ agent %s, device=%s", agentId, len(agentTools), deviceId)
+		log.Debugf("Lấy được %d tool MCP ws endpoint từ agent %s, device=%s", len(agentTools), agentId, deviceId)
 		for toolName, tool := range agentTools {
 			if _, exists := retTools[toolName]; !exists {
 				retTools[toolName] = tool

@@ -300,7 +300,7 @@ func (s *ServerTransport) RecvMcpMsg(ctx context.Context, timeOut int) ([]byte, 
 		}
 		return msg, nil
 	case <-time.After(time.Duration(timeOut) * time.Millisecond):
-		return nil, fmt.Errorf("Thời gian chờ nhận tin nhắn MCP đã hết")
+    	return nil, fmt.Errorf("timeout: hết thời gian chờ nhận tin nhắn MCP")
 	}
 }
 
