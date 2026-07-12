@@ -101,12 +101,26 @@ services:
       - milestones-network
     restart: unless-stopped
 
-  # Dịch vụ MCP thời tiết
-  mcp-weather:
-    image: dog830228/mcp_weather_server:latest
-    container_name: mcp-weather
-    entrypoint: ['uv', 'run', 'python', '-m', 'mcp_weather_server']
-    command: ['--mode', 'streamable-http', '--host', '0.0.0.0', '--port', '8080']
+  # ============== CÁC MCP SERVER ==============
+
+  # MCP: tra cứu Wikipedia tiếng Việt (tự build, xem docker/Dockerfile.mcp)
+  mcp-wikipedia:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+      target: wikipedia
+    container_name: mcp-wikipedia
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # MCP: thời tiết + giờ giấc + máy tính + đổi đơn vị (tự build, xem docker/utilities/)
+  mcp-utilities:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+      target: utilities
+    container_name: mcp-utilities
     networks:
       - milestones-network
     restart: unless-stopped

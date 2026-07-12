@@ -1,0 +1,40 @@
+# =====================================================================
+# Dockerfile.mcp — chứa tất cả MCP server TỰ VIẾT/TỰ BUILD của dự án.
+# Mỗi MCP server là 1 "stage" riêng, build độc lập qua --target.
+# Container weather (dog830228/mcp_weather_server) KHÔNG nằm ở đây vì
+# đó là image có sẵn của bên thứ ba, cứ giữ nguyên trong compose.
+#
+# Cách thêm 1 MCP server mới:
+#   1. Thêm 1 stage mới bên dưới (copy khối "wikipedia" rồi sửa lại)
+#   2. Thêm 1 service mới trong docker-composer_build.yml, trỏ đúng
+#      "target" của stage đó.
+# =====================================================================
+
+# ---------- Stage: wikipedia ----------
+# Tra cứu thông tin bách khoa (nhân vật lịch sử, sự kiện, khái niệm...)
+# từ Wikipedia tiếng Việt. Native Streamable HTTP, không cần proxy.
+FROM python:3.12-slim AS wikipedia
+RUN pip install --no-cache-dir wikipedia-mcp
+EXPOSE 8080
+ENTRYPOINT ["wikipedia-mcp"]
+CMD ["--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8080", "--path", "/mcp", "--language", "vi"]
+
+# ---------- Stage: utilities (thời tiết + giờ giấc + máy tính + đổi đơn vị) ----------
+# Gộp chung các tool nhỏ, không cần API key, phục vụ học tập & đời sống hằng ngày.
+# Thay thế cho image cộng đồng dog830228/mcp_weather_server (khó đoán entrypoint).
+FROM python:3.12-slim AS utilities
+WORKDIR /app
+COPY utilities/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY utilities/server.py .
+EXPOSE 8080
+CMD ["python", "server.py"]
+
+# ---------- Stage: vietnam-news (tin tức mới nhất VN) ----------
+# TODO: sẽ điền code nếu sau này bạn cần.
+# FROM python:3.12-slim AS vietnam-news
+# WORKDIR /app
+# COPY vietnam_news/ .
+# RUN pip install --no-cache-dir -r requirements.txt
+# EXPOSE 8080
+# CMD ["python", "server.py"]
