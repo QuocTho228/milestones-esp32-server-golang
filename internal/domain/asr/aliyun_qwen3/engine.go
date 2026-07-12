@@ -486,6 +486,11 @@ func (a *AliyunQwen3ASR) StreamingRecognize(ctx context.Context, audioStream <-c
 			}
 
 			if !waitForResult {
+				// Context bị cancel giữa chừng: vẫn phải đóng connection để
+				// turn kế tiếp không tái sử dụng một session dở dang.
+				if conn != nil {
+					a.resetConn(conn)
+				}
 				return
 			}
 
@@ -521,6 +526,21 @@ func (a *AliyunQwen3ASR) StreamingRecognize(ctx context.Context, audioStream <-c
 				log.Debugf("[aliyun_qwen3] context cancelled while waiting for session.finished")
 			}
 			timer.Stop()
+
+			// QUAN TRỌNG: luôn đóng WebSocket sau khi turn kết thúc (dù thành
+			// công, timeout, hay bị cancel), bất kể trước đó có lỗi hay không.
+			// Aliyun Qwen3-Realtime giữ conversation context xuyên suốt vòng
+			// đời của 1 WebSocket connection; nếu connection được tái sử dụng
+			// cho turn kế tiếp (như code cũ), model đôi khi "neo" lại vào
+			// transcript của các turn trước đó (thường là turn đầu tiên của
+			// phiên) thay vì audio thực tế của turn hiện tại. Đóng connection
+			// ở đây ép ensureConnection() ở turn kế tiếp phải dial một
+			// WebSocket + session hoàn toàn mới, loại bỏ hẳn khả năng rò rỉ
+			// context giữa các turn. Đánh đổi: mỗi turn tốn thêm một lần
+			// handshake WebSocket (thường ~100-300ms theo log đo được).
+			if conn != nil {
+				a.resetConn(conn)
+			}
 		}()
 
 		for {
