@@ -10266,3 +10266,183 @@ tool_call_id: fc_54a521a9-8e80-461f-a9cb-cea3549768ac
 2026-07-12 10:57:05.504[37m [debug] [device_manager.go:543] [0mThiết bị ws_endpoint_mcp_1_172.18.0.1:49696 ping thành công
 2026-07-12 10:57:29.423[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
 2026-07-12 10:57:29.424[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+[36mINFO[0m[0000] Initializing config system with provider: manager  [36mcaller[0m="config_init.go:35"
+[36mINFO[0m[0000] Initializing Manager config provider with WebSocket client  [36mcaller[0m="websocket_client.go:1219"
+[37mDEBU[0m[0000] Máy khách WebSocket được kết nối với: ws://backend:8080/ws  [37mcaller[0m="websocket_client.go:165"
+[36mINFO[0m[0000] Manager config provider initialized successfully  [36mcaller[0m="websocket_client.go:1230"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 2 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 0 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[37mDEBU[0m[0000] Đã nhận được cấu hình thành công              [37mcaller[0m="config.go:230"
+[36mINFO[0m[0000] Cập nhật cấu hình định kỳ đã được bắt đầu, khoảng thời gian cập nhật: 5m0s  [36mcaller[0m="config.go:115"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 1 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[36mINFO[0m[0000] Đang bắt đầu khởi tạo mô-đun VAD...           [36mcaller[0m="config.go:288"
+[36mINFO[0m[0000] Nhà cung cấp VAD: ten_vad                     [36mcaller[0m="config.go:290"
+[36mINFO[0m[0000] Mô-đun VAD sẽ sử dụng chế độ tải chậm và tự động khởi tạo trong lần sử dụng đầu tiên  [36mcaller[0m="config.go:293"
+2026-07-12 14:23:45.257[36m [info] [once.go:78] [0mKhởi tạo máy khách Redis thành công.
+2026-07-12 14:23:45.260[36m [info] [main.go:57] [0mDịch vụ pprof bị vô hiệu hóa
+2026-07-12 14:23:45.261[36m [info] [udp_server.go:64] [0mMáy chủ UDP đã khởi động trong 0.0.0.0:8990
+2026-07-12 14:23:45.263[36m [info] [app.go:62] [0menter Run, mqtt_server.enable: true
+2026-07-12 14:23:45.263[36m [info] [manager.go:47] [0m=== Khởi động cụm MCP Manager ===
+2026-07-12 14:23:45.264[36m [info] [manager.go:50] [0mKhởi chạy trình quản lý MCP cục bộ...
+2026-07-12 14:23:45.265[36m [info] [local_manager.go:172] [0mNgười quản lý MCP cục bộ đã bắt đầu
+2026-07-12 14:23:45.266[36m [info] [mqtt_server.go:84] [0mMáy chủ MQTT khởi động và lắng nghe trên địa chỉ 0.0.0.0:2883...
+2026-07-12 14:23:45.264[36m [info] [local_mcp_tool.go:31] [0mKhởi tạo các công cụ MCP cục bộ liên quan đến trò chuyện...
+2026-07-12 14:23:45.268[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: exit_conversation - 当用户明确表示要结束对话、退出系统或告别时使用，用于优雅地关闭当前聊天会话
+2026-07-12 14:23:45.266[36m [info] [manager.go:57] [0mKhởi chạy trình quản lý MCP toàn cục...
+2026-07-12 14:23:45.270[36m [info] [config_checker.go:15] [0m=== Kiểm tra cấu hình MCP ===
+2026-07-12 14:23:45.271[36m [info] [config_checker.go:19] [0mTrạng thái kích hoạt MCP toàn cục: true
+2026-07-12 14:23:45.264[36m [info] [mqtt_udp_adapter.go:184] [0mMqttUdpAdapter khởi động và kết nối với máy chủ MQTT trong nền. Broker=127.0.0.1:2883 ClientID=milestones_server
+2026-07-12 14:23:45.271[36m [info] [config_checker.go:29] [0mCấu hình kết nối lại: Khoảng thời gian = 300 giây, Số lần thử tối đa = 10
+2026-07-12 14:23:45.273[36m [info] [config_checker.go:43] [0mTổng cộng có 2 máy chủ MCP đã được cấu hình:
+2026-07-12 14:23:45.272[36m [info] [mqtt_udp_adapter.go:211] [0mĐã kết nối MQTT
+2026-07-12 14:23:45.269[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: clear_conversation_history - 当用户要求清空、清除或重置历史对话记录时使用，用于清空当前会话的所有历史对话内容
+2026-07-12 14:23:45.276[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: switch_device_role - 当用户要求把当前设备切换到某个角色时使用，参数 role_name 支持模糊匹配（会在全局角色和该设备所属用户角色中匹配）
+2026-07-12 14:23:45.276[36m [info] [device_hook.go:136] [0m=== Đã nhận được gói đăng ký ===
+2026-07-12 14:23:45.278[36m [info] [device_hook.go:137] [0mID khách hàng: milestones_server
+2026-07-12 14:23:45.278[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: restore_device_default_role - 当用户要求恢复设备默认角色、取消当前设备角色覆盖时使用
+2026-07-12 14:23:45.280[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: search_knowledge - 当用户问题需要事实依据、流程规则、参数细节、文档条款时，检索当前智能体关联知识库并返回相关片段；可选传 knowledge_base_ids 仅查指定知识库；闲聊或纯创作场景不要调用
+2026-07-12 14:23:45.274[36m [info] [config_checker.go:87] [0m  [1] ✅ Utilities (URL: http://mcp-utilities:8080/mcp, cho phép: true)
+2026-07-12 14:23:45.282[36m [info] [config_checker.go:87] [0m  [2] ✅ Wikipedia (URL: http://mcp-wikipedia:8080/mcp, cho phép: true)
+2026-07-12 14:23:45.282[36m [info] [config_checker.go:92] [0mKiểm tra cấu hình hoàn tất: 2 máy chủ đã được kích hoạt, 0 máy chủ gặp sự cố.
+2026-07-12 14:23:45.279[36m [info] [device_hook.go:138] [0mLoại gói: 8
+2026-07-12 14:23:45.284[36m [info] [device_hook.go:139] [0mID gói: 1
+2026-07-12 14:23:45.285[36m [info] [device_hook.go:142] [0mThông tin đăng ký:
+2026-07-12 14:23:45.281[36m [info] [local_mcp_tool.go:94] [0mCác công cụ MCP cục bộ liên quan đến trò chuyện đã được khởi tạo.
+2026-07-12 14:23:45.287[36m [info] [app.go:470] [0mCác công cụ MCP cục bộ liên quan đến trò chuyện đã được đăng ký.
+2026-07-12 14:23:45.287[36m [info] [app.go:501] [0mregisterHandler: config_provider.type=manager
+2026-07-12 14:23:45.283[36m [info] [config_checker.go:98] [0m=== Kiểm tra cấu hình MCP đã hoàn tất ===
+2026-07-12 14:23:45.289[36m [info] [global_manage.go:129] [0m2 cấu hình máy chủ MCP đã được đọc từ cấu hình
+2026-07-12 14:23:45.289[36m [info] [global_manage.go:133] [0mMáy chủ MCP[1]: Type=streamablehttp, Name=Utilities, Url=http://mcp-utilities:8080/mcp, SSEUrl=, Enabled=true
+2026-07-12 14:23:45.286[36m [info] [device_hook.go:144] [0m  1. chủ đề: /p2p/device_public/#, QoS: 0
+2026-07-12 14:23:45.291[36m [info] [device_hook.go:148] [0m==================
+2026-07-12 14:23:45.291[36m [info] [global_manage.go:133] [0mMáy chủ MCP[2]: Type=streamablehttp, Name=Wikipedia, Url=http://mcp-wikipedia:8080/mcp, SSEUrl=, Enabled=true
+2026-07-12 14:23:45.288[36m [info] [app.go:508] [0mregisterHandler: registered paths=[/api/device/inject_msg]
+2026-07-12 14:23:45.294[36m [info] [event_handle.go:56] [0mQuá trình khởi tạo UnifiedWorkerPool đã hoàn tất, đang khởi chạy 16 goroutine worker (có khả năng xử lý nhiều topic).
+2026-07-12 14:23:45.295[36m [info] [event_handle.go:65] [0mUnifiedWorkerPool: đăng ký bộ xử lý topic [session_end]
+2026-07-12 14:23:45.293[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Utilities (URL: http://mcp-utilities:8080/mcp)
+2026-07-12 14:23:45.297[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Utilities, streamablehttp URL: http://mcp-utilities:8080/mcp
+2026-07-12 14:23:45.297[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Utilities
+2026-07-12 14:23:45.296[36m [info] [event_handle.go:65] [0mUnifiedWorkerPool: đăng ký bộ xử lý topic [exit_chat]
+2026-07-12 14:23:45.299[36m [info] [event_handle.go:283] [0mQuá trình khởi tạo EventHandle đã hoàn tất (nhiều chủ đề được xử lý bằng một nhóm worker thống nhất; quá trình xử lý Redis đã được chuyển sang MessageWorker).
+2026-07-12 14:23:45.298[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Utilities
+2026-07-12 14:23:45.300[36m [info] [message_handle.go:81] [0mQuá trình khởi tạo MessageWorker hoàn tất, bắt đầu 16 goroutine worker (để xử lý Redis+MemoryProvider+History một cách đồng nhất).
+2026-07-12 14:23:45.301[36m [info] [app.go:114] [0mĐã khởi tạo trình xử lý tin nhắn
+2026-07-12 14:23:45.302[36m [info] [manager.go:319] [0mGiám sát thống kê nhóm tài nguyên đã được bắt đầu và số liệu thống kê được xuất ra nhật ký mỗi 5m0s
+2026-07-12 14:23:45.303[36m [info] [reporter.go:54] [0mTrình báo cáo thống kê nhóm tài nguyên đã được khởi tạo，backend_url=http://backend:8080, enabled=true
+2026-07-12 14:23:45.306[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Utilities, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:<nil> Prompts:0xc000154d2a Resources:0xc000154d2c Tools:0xc000154d2e} ServerInfo:{Name:Utilities Version:1.28.1} Instructions:}
+2026-07-12 14:23:45.310[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-12 14:23:45.311[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Utilities
+2026-07-12 14:23:45.312[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Utilities
+2026-07-12 14:23:45.313[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Wikipedia (URL: http://mcp-wikipedia:8080/mcp)
+2026-07-12 14:23:45.313[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Wikipedia, streamablehttp URL: http://mcp-wikipedia:8080/mcp
+2026-07-12 14:23:45.314[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Wikipedia
+2026-07-12 14:23:45.315[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Wikipedia
+2026-07-12 14:23:45.321[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Wikipedia, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:0x1db4a00 Prompts:0xc0005176da Resources:0xc0005176dc Tools:0xc0005176de} ServerInfo:{Name:Wikipedia Version:3.4.4} Instructions:}
+2026-07-12 14:23:45.357[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-12 14:23:45.359[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Wikipedia
+2026-07-12 14:23:45.360[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Wikipedia
+2026-07-12 14:23:45.361[36m [info] [global_manage.go:151] [0mĐã kết nối thành công với máy chủ 2 MCP
+2026-07-12 14:23:45.365[36m [info] [global_manage.go:156] [0mTrình quản lý MCP toàn cục đã bắt đầu
+2026-07-12 14:23:45.367[36m [info] [manager.go:64] [0mTrình quản lý MCP của thiết bị sẽ tự động tạo thiết bị dựa trên kết nối.
+2026-07-12 14:23:45.370[36m [info] [manager.go:67] [0m=== Quá trình khởi động cụm MCP Manager hoàn tất ===
+2026-07-12 14:23:45.371[36m [info] [manager.go:130] [0mThống kê khởi động trình quản lý MCP:
+2026-07-12 14:23:45.373[36m [info] [manager.go:131] [0m  - Số lượng công cụ cục bộ: 6
+2026-07-12 14:23:45.374[36m [info] [manager.go:132] [0m  - Số lượng công cụ toàn cục: 26
+2026-07-12 14:23:45.377[36m [info] [manager.go:133] [0m  - Quản lý thiết bị: Quản lý động
+2026-07-12 14:23:45.379[36m [info] [manager.go:134] [0m  - Tổng số lượng công cụ: 32
+2026-07-12 14:23:45.380[36m [info] [websocket_server.go:119] [0mMáy chủ WebSocket khởi động trong ws://0.0.0.0:8989/milestones/v1/
+2026-07-12 14:23:45.381[36m [info] [websocket_server.go:120] [0mĐiểm cuối WebSocket MCP: ws://0.0.0.0:8989/mcp?token=xxx
+2026-07-12 14:23:45.383[36m [info] [websocket_server.go:121] [0mĐiểm cuối WebSocket OpenClaw: ws://0.0.0.0:8989/ws/openclaw?token=xxx
+2026-07-12 14:23:45.384[36m [info] [websocket_server.go:122] [0mĐiểm cuối MCP API: http://0.0.0.0:8989/milestones/api/mcp/tools/{deviceId}
+2026-07-12 14:24:15.240[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:24:15.240[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:24:45.237[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:24:45.238[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:25:15.234[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:25:15.235[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:25:45.232[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:25:45.232[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:25:45.376[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-12 14:25:45.389[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-12 14:26:15.230[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:26:15.231[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:26:20.289[37m [debug] [config.go:164] [0m[SystemConfigEqual] kết quả: false (ha=10950857420985777311 hb=1071374337744860697), a: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp] map[allowed_tools:[get_legacy_province_mapping get_province_info get_provinces_merged_into list_provinces list_wards_in_province search_ward] enabled:true name:VietNam_Provinces type:streamablehttp url:http://mcp-provinces:8080/mcp]]]], b: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp]]]]
+2026-07-12 14:26:20.291[37m [debug] [config.go:164] [0m[SystemConfigEqual] kết quả: false (ha=4313815283053356076 hb=2968934686330076501), a: map[clear_conversation_history:true exit_conversation:true play_music:false], b: map[clear_conversation_history:true exit_conversation:true]
+2026-07-12 14:26:20.296[36m [info] [config.go:144] [0mCấu hình hệ thống đã hợp nhất được đẩy từ WebSocket sang viper
+2026-07-12 14:26:20.299[36m [info] [manager.go:182] [0mKhởi động lại trình quản lý MCP toàn cục...
+2026-07-12 14:26:20.309[36m [info] [global_manage.go:185] [0mTrình quản lý MCP toàn cục đã dừng
+2026-07-12 14:26:20.314[36m [info] [config_checker.go:15] [0m=== Kiểm tra cấu hình MCP ===
+2026-07-12 14:26:20.317[36m [info] [config_checker.go:19] [0mTrạng thái kích hoạt MCP toàn cục: true
+2026-07-12 14:26:20.322[36m [info] [config_checker.go:29] [0mCấu hình kết nối lại: Khoảng thời gian = 300 giây, Số lần thử tối đa = 10
+2026-07-12 14:26:20.329[36m [info] [config_checker.go:43] [0mTổng cộng có 3 máy chủ MCP đã được cấu hình:
+2026-07-12 14:26:20.332[36m [info] [config_checker.go:87] [0m  [1] ✅ Utilities (URL: http://mcp-utilities:8080/mcp, cho phép: true)
+2026-07-12 14:26:20.334[36m [info] [config_checker.go:87] [0m  [2] ✅ Wikipedia (URL: http://mcp-wikipedia:8080/mcp, cho phép: true)
+2026-07-12 14:26:20.337[36m [info] [config_checker.go:87] [0m  [3] ✅ VietNam_Provinces (URL: http://mcp-provinces:8080/mcp, cho phép: true)
+2026-07-12 14:26:20.339[36m [info] [config_checker.go:92] [0mKiểm tra cấu hình hoàn tất: 3 máy chủ đã được kích hoạt, 0 máy chủ gặp sự cố.
+2026-07-12 14:26:20.342[36m [info] [config_checker.go:98] [0m=== Kiểm tra cấu hình MCP đã hoàn tất ===
+2026-07-12 14:26:20.346[36m [info] [global_manage.go:129] [0m3 cấu hình máy chủ MCP đã được đọc từ cấu hình
+2026-07-12 14:26:20.348[36m [info] [global_manage.go:133] [0mMáy chủ MCP[1]: Type=streamablehttp, Name=Utilities, Url=http://mcp-utilities:8080/mcp, SSEUrl=, Enabled=true
+2026-07-12 14:26:20.351[36m [info] [global_manage.go:133] [0mMáy chủ MCP[2]: Type=streamablehttp, Name=Wikipedia, Url=http://mcp-wikipedia:8080/mcp, SSEUrl=, Enabled=true
+2026-07-12 14:26:20.353[36m [info] [global_manage.go:133] [0mMáy chủ MCP[3]: Type=streamablehttp, Name=VietNam_Provinces, Url=http://mcp-provinces:8080/mcp, SSEUrl=, Enabled=true
+2026-07-12 14:26:20.355[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Utilities (URL: http://mcp-utilities:8080/mcp)
+2026-07-12 14:26:20.357[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Utilities, streamablehttp URL: http://mcp-utilities:8080/mcp
+2026-07-12 14:26:20.359[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Utilities
+2026-07-12 14:26:20.363[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Utilities
+2026-07-12 14:26:20.371[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Utilities, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:<nil> Prompts:0xc00041435a Resources:0xc00041435c Tools:0xc00041435e} ServerInfo:{Name:Utilities Version:1.28.1} Instructions:}
+2026-07-12 14:26:20.374[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-12 14:26:20.375[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Utilities
+2026-07-12 14:26:20.376[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Utilities
+2026-07-12 14:26:20.380[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Wikipedia (URL: http://mcp-wikipedia:8080/mcp)
+2026-07-12 14:26:20.382[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Wikipedia, streamablehttp URL: http://mcp-wikipedia:8080/mcp
+2026-07-12 14:26:20.383[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Wikipedia
+2026-07-12 14:26:20.384[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Wikipedia
+2026-07-12 14:26:20.389[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Wikipedia, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:0x1db4a00 Prompts:0xc00073229a Resources:0xc00073229c Tools:0xc00073229e} ServerInfo:{Name:Wikipedia Version:3.4.4} Instructions:}
+2026-07-12 14:26:20.399[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-12 14:26:20.401[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Wikipedia
+2026-07-12 14:26:20.402[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Wikipedia
+2026-07-12 14:26:20.402[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: VietNam_Provinces (URL: http://mcp-provinces:8080/mcp)
+2026-07-12 14:26:20.403[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: VietNam_Provinces, streamablehttp URL: http://mcp-provinces:8080/mcp
+2026-07-12 14:26:20.404[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: VietNam_Provinces
+2026-07-12 14:26:20.405[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: VietNam_Provinces
+2026-07-12 14:26:20.414[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: VietNam_Provinces, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:<nil> Prompts:0xc000489058 Resources:0xc00048905a Tools:0xc00048905c} ServerInfo:{Name:VietnamProvinces Version:1.28.1} Instructions:}
+2026-07-12 14:26:20.423[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-12 14:26:20.426[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: VietNam_Provinces
+2026-07-12 14:26:20.427[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: VietNam_Provinces
+2026-07-12 14:26:20.428[36m [info] [global_manage.go:151] [0mĐã kết nối thành công với máy chủ 3 MCP
+2026-07-12 14:26:20.431[36m [info] [global_manage.go:156] [0mTrình quản lý MCP toàn cục đã bắt đầu
+2026-07-12 14:26:20.433[36m [info] [manager.go:189] [0mQuá trình khởi động lại Trình quản lý MCP toàn cục đã hoàn tất.
+2026-07-12 14:26:45.226[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:26:45.227[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:27:15.226[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:27:15.227[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:27:45.222[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:27:45.223[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:28:15.220[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:28:15.220[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:28:20.441[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-12 14:28:20.449[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-12 14:28:20.457[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-12 14:28:45.217[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:28:45.218[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:28:45.232[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-12 14:28:45.279[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-12 14:28:45.282[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-12 14:28:45
+2026-07-12 14:28:45.284[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-12 14:28:45.289[36m [info] [manager.go:314] [0m========================================
+2026-07-12 14:29:15.215[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:29:15.215[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:29:45.212[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:29:45.213[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:30:15.211[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:30:15.211[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:30:20.426[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-12 14:30:20.434[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-12 14:30:20.441[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-12 14:30:45.208[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:30:45.208[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:31:15.205[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:31:15.205[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:31:45.202[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:31:45.202[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-12 14:32:15.199[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-12 14:32:15.200[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong

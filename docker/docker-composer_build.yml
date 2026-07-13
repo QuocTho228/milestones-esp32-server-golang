@@ -125,6 +125,39 @@ services:
       - milestones-network
     restart: unless-stopped
 
+  # MCP: tra cứu tỉnh thành, phường xã Việt Nam (tự build, xem docker/provinces/)
+  mcp-provinces:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+      target: provinces
+    container_name: mcp-provinces
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # MCP: wiki-deep + di tích quốc gia đặc biệt VN (tự build, xem docker/landmarks/)
+  mcp-landmarks:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+      target: landmarks
+    container_name: mcp-landmarks
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
+  # MCP: ca dao, tục ngữ Việt Nam (tự build, xem docker/proverbs/)
+  mcp-proverbs:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+      target: proverbs
+    container_name: mcp-proverbs
+    networks:
+      - milestones-network
+    restart: unless-stopped
+
 volumes:
   mysql_data:
 

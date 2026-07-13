@@ -30,6 +30,37 @@ COPY utilities/server.py .
 EXPOSE 8080
 CMD ["python", "server.py"]
 
+# ---------- Stage: provinces (tra cứu tỉnh thành, phường xã VN) ----------
+# Dữ liệu từ thư viện vietnam-provinces (PyPI), nguồn Tổng cục Thống kê VN,
+# cập nhật theo cơ cấu 34 tỉnh/thành sau sáp nhập 01/07/2025.
+FROM python:3.12-slim AS provinces
+WORKDIR /app
+COPY provinces/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY provinces/server.py .
+EXPOSE 8080
+CMD ["python", "server.py"]
+
+# ---------- Stage: landmarks (wiki-deep + di tích quốc gia đặc biệt VN) ----------
+FROM python:3.12-slim AS landmarks
+WORKDIR /app
+COPY landmarks/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY landmarks/heritage_sites.py .
+COPY landmarks/server.py .
+EXPOSE 8080
+CMD ["python", "server.py"]
+
+# ---------- Stage: proverbs (ca dao, tục ngữ Việt Nam) ----------
+FROM python:3.12-slim AS proverbs
+WORKDIR /app
+COPY proverbs/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY proverbs/proverbs_data.py .
+COPY proverbs/server.py .
+EXPOSE 8080
+CMD ["python", "server.py"]
+
 # ---------- Stage: vietnam-news (tin tức mới nhất VN) ----------
 # TODO: sẽ điền code nếu sau này bạn cần.
 # FROM python:3.12-slim AS vietnam-news
