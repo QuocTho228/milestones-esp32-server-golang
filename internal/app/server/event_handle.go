@@ -9,32 +9,32 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// EventWrapper 事件包装器，用于统一处理不同类型的事件
+// EventWrapper bộ bọc (wrapper) sự kiện, dùng để xử lý thống nhất các loại sự kiện khác nhau
 type EventWrapper struct {
-	Topic string      // topic名称
-	Data  interface{} // 事件数据
+	Topic string      // tên topic
+	Data  interface{} // dữ liệu sự kiện
 }
 
-// TopicHandler 通用topic处理器接口
+// TopicHandler interface xử lý topic dùng chung
 type TopicHandler interface {
-	// Process 处理事件
+	// Process xử lý sự kiện
 	Process(ctx context.Context, data interface{}) error
-	// GetRoutingKey 获取用于hash路由的key（通常是DeviceID或SessionID）
+	// GetRoutingKey lấy key dùng để định tuyến (routing) theo hash (thường là DeviceID hoặc SessionID)
 	GetRoutingKey(data interface{}) string
 }
 
-// UnifiedWorkerPool 统一的worker池，可以处理多个topic
+// UnifiedWorkerPool worker pool thống nhất, có thể xử lý nhiều topic
 type UnifiedWorkerPool struct {
 	workers   []chan *EventWrapper
 	ctx       context.Context
 	cancel    context.CancelFunc
 	wg        sync.WaitGroup
-	handlers  map[string]TopicHandler // topic -> handler 映射
+	handlers  map[string]TopicHandler // ánh xạ topic -> handler
 	workerNum int
-	mu        sync.RWMutex // 保护 handlers map
+	mu        sync.RWMutex // bảo vệ map handlers
 }
 
-// NewUnifiedWorkerPool 创建统一的worker池
+// NewUnifiedWorkerPool tạo worker pool thống nhất
 func NewUnifiedWorkerPool(workerNum int) *UnifiedWorkerPool {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -46,9 +46,9 @@ func NewUnifiedWorkerPool(workerNum int) *UnifiedWorkerPool {
 		workerNum: workerNum,
 	}
 
-	// 初始化每个worker的channel并启动goroutine
+	// Khởi tạo channel cho từng worker và khởi động goroutine
 	for i := 0; i < workerNum; i++ {
-		pool.workers[i] = make(chan *EventWrapper, 100) // 缓冲100个消息
+		pool.workers[i] = make(chan *EventWrapper, 100) // đệm (buffer) 100 tin nhắn
 		pool.wg.Add(1)
 		go pool.workerLoop(i)
 	}
@@ -57,7 +57,7 @@ func NewUnifiedWorkerPool(workerNum int) *UnifiedWorkerPool {
 	return pool
 }
 
-// RegisterHandler 注册topic处理器
+// RegisterHandler đăng ký trình xử lý cho topic
 func (p *UnifiedWorkerPool) RegisterHandler(topic string, handler TopicHandler) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -65,7 +65,7 @@ func (p *UnifiedWorkerPool) RegisterHandler(topic string, handler TopicHandler) 
 	log.Infof("UnifiedWorkerPool: đăng ký bộ xử lý topic [%s]", topic)
 }
 
-// workerLoop 每个worker的处理循环（保证顺序处理）
+// workerLoop vòng lặp xử lý của từng worker (đảm bảo xử lý tuần tự)
 func (p *UnifiedWorkerPool) workerLoop(index int) {
 	defer p.wg.Done()
 	defer log.Infof("UnifiedWorkerPool worker %d từ bỏ", index)
@@ -74,7 +74,7 @@ func (p *UnifiedWorkerPool) workerLoop(index int) {
 	for {
 		select {
 		case <-p.ctx.Done():
-			// 清理channel中的剩余消息
+			// Dọn dẹp các tin nhắn còn lại trong channel
 			for {
 				select {
 				case event := <-ch:
@@ -87,7 +87,7 @@ func (p *UnifiedWorkerPool) workerLoop(index int) {
 			}
 		case event, ok := <-ch:
 			if !ok {
-				// channel已关闭
+				// channel đã đóng
 				return
 			}
 			if event != nil {
@@ -97,7 +97,7 @@ func (p *UnifiedWorkerPool) workerLoop(index int) {
 	}
 }
 
-// processEvent 处理事件（根据topic分发到对应的handler）
+// processEvent xử lý sự kiện (phân phối đến handler tương ứng dựa theo topic)
 func (p *UnifiedWorkerPool) processEvent(event *EventWrapper) {
 	p.mu.RLock()
 	handler, exists := p.handlers[event.Topic]
@@ -113,7 +113,7 @@ func (p *UnifiedWorkerPool) processEvent(event *EventWrapper) {
 	}
 }
 
-// Route 路由事件到对应的worker（使用hash分布）
+// Route định tuyến sự kiện đến worker tương ứng (sử dụng phân phối theo hash)
 func (p *UnifiedWorkerPool) Route(topic string, data interface{}) bool {
 	p.mu.RLock()
 	handler, exists := p.handlers[topic]
@@ -124,23 +124,23 @@ func (p *UnifiedWorkerPool) Route(topic string, data interface{}) bool {
 		return false
 	}
 
-	// 获取路由key
+	// Lấy key định tuyến
 	key := handler.GetRoutingKey(data)
 	if key == "" {
 		log.Warnf("UnifiedWorkerPool: topic [%s] lộ trình key trống, không thể định tuyến tin nhắn", topic)
 		return false
 	}
 
-	// 计算hash值，路由到对应的worker
+	// Tính giá trị hash, định tuyến đến worker tương ứng
 	workerIndex := p.hashKey(key)
 
-	// 创建事件包装器
+	// Tạo bộ bọc (wrapper) sự kiện
 	event := &EventWrapper{
 		Topic: topic,
 		Data:  data,
 	}
 
-	// 非阻塞发送到对应的worker channel
+	// Gửi không chặn (non-blocking) đến channel của worker tương ứng
 	select {
 	case p.workers[workerIndex] <- event:
 		return true
@@ -151,7 +151,7 @@ func (p *UnifiedWorkerPool) Route(topic string, data interface{}) bool {
 	}
 }
 
-// hashKey 计算key的hash值，返回worker索引
+// hashKey tính giá trị hash của key, trả về chỉ số (index) của worker
 func (p *UnifiedWorkerPool) hashKey(key string) int {
 	if key == "" {
 		return 0
@@ -162,12 +162,12 @@ func (p *UnifiedWorkerPool) hashKey(key string) int {
 	return int(hash) % p.workerNum
 }
 
-// Close 关闭worker池
+// Close đóng worker pool
 func (p *UnifiedWorkerPool) Close() {
 	p.cancel()
 	p.wg.Wait()
 
-	// 关闭所有worker channels
+	// Đóng tất cả channel của các worker
 	for i := 0; i < p.workerNum; i++ {
 		close(p.workers[i])
 	}
@@ -176,13 +176,13 @@ func (p *UnifiedWorkerPool) Close() {
 }
 
 type EventHandle struct {
-	// 统一的worker池，可以处理多个topic
+	// worker pool thống nhất, có thể xử lý nhiều topic
 	workerPool *UnifiedWorkerPool
-	// App 引用，用于获取 ChatManager
+	// Tham chiếu đến App, dùng để lấy ChatManager
 	app *App
 }
 
-// SessionEndHandler SessionEnd事件处理器
+// SessionEndHandler trình xử lý sự kiện SessionEnd
 type SessionEndHandler struct{}
 
 func (h *SessionEndHandler) Process(ctx context.Context, data interface{}) error {
@@ -200,7 +200,7 @@ func (h *SessionEndHandler) Process(ctx context.Context, data interface{}) error
 
 	log.Debugf("HandleSessionEnd: deviceId: %s", clientState.DeviceID)
 
-	// 将消息加到长期记忆体中
+	// Thêm tin nhắn vào bộ nhớ dài hạn (long-term memory)
 	err := clientState.MemoryProvider.Flush(
 		clientState.Ctx,
 		clientState.GetDeviceIDOrAgentID())
@@ -219,9 +219,9 @@ func (h *SessionEndHandler) GetRoutingKey(data interface{}) string {
 	return clientState.DeviceID
 }
 
-// ExitChatHandler ExitChat事件处理器
+// ExitChatHandler trình xử lý sự kiện ExitChat
 type ExitChatHandler struct {
-	eventHandle *EventHandle // 持有 EventHandle 引用，用于访问 App
+	eventHandle *EventHandle // Giữ tham chiếu đến EventHandle, dùng để truy cập App
 }
 
 func (h *ExitChatHandler) Process(ctx context.Context, data interface{}) error {
@@ -238,7 +238,7 @@ func (h *ExitChatHandler) Process(ctx context.Context, data interface{}) error {
 	log.Debugf("Xử lý sự kiện thoát khỏi cuộc trò chuyện: device_id: %s, reason: %s, trigger: %s, user_text: %s",
 		clientState.DeviceID, event.Reason, event.TriggerType, event.UserText)
 
-	// 根据 deviceId 获取 ChatManager
+	// Lấy ChatManager theo deviceId
 	if h.eventHandle == nil || h.eventHandle.app == nil {
 		log.Warnf("Đối tượng EventHandle hoặc App chưa được khởi tạo, do đó không thể lấy được ChatManager.")
 		return nil
@@ -262,10 +262,10 @@ func (h *ExitChatHandler) GetRoutingKey(data interface{}) string {
 }
 
 func NewEventHandle(app *App) (*EventHandle, error) {
-	// 创建统一的worker池
+	// Tạo worker pool thống nhất
 	workerPool := NewUnifiedWorkerPool(MessageWorkerNum)
 
-	// 注册SessionEnd处理器
+	// Đăng ký trình xử lý SessionEnd
 	sessionEndHandler := &SessionEndHandler{}
 	workerPool.RegisterHandler(eventbus.TopicSessionEnd, sessionEndHandler)
 
@@ -274,7 +274,7 @@ func NewEventHandle(app *App) (*EventHandle, error) {
 		app:        app,
 	}
 
-	// 注册ExitChat处理器
+	// Đăng ký trình xử lý ExitChat
 	exitChatHandler := &ExitChatHandler{
 		eventHandle: handle,
 	}
@@ -285,19 +285,19 @@ func NewEventHandle(app *App) (*EventHandle, error) {
 }
 
 func (s *EventHandle) Start() error {
-	// 订阅SessionEnd事件
+	// Đăng ký (subscribe) sự kiện SessionEnd
 	go s.HandleSessionEnd()
 
-	// 订阅ExitChat事件
+	// Đăng ký sự kiện ExitChat
 	go s.HandleExitChat()
 
-	// 在这里可以添加其他topic的订阅
+	// Có thể thêm đăng ký cho các topic khác tại đây
 	// go s.HandleDeviceOnline()
 
 	return nil
 }
 
-// HandleSessionEnd 订阅并处理SessionEnd事件
+// HandleSessionEnd đăng ký và xử lý sự kiện SessionEnd
 func (s *EventHandle) HandleSessionEnd() error {
 	eventbus.Get().Subscribe(eventbus.TopicSessionEnd, func(clientState *ClientState) {
 		if clientState == nil {
@@ -305,13 +305,13 @@ func (s *EventHandle) HandleSessionEnd() error {
 			return
 		}
 
-		// 路由到统一的worker池
+		// Định tuyến đến worker pool thống nhất
 		s.workerPool.Route(eventbus.TopicSessionEnd, clientState)
 	})
 	return nil
 }
 
-// HandleExitChat 订阅并处理ExitChat事件
+// HandleExitChat đăng ký và xử lý sự kiện ExitChat
 func (s *EventHandle) HandleExitChat() error {
 	eventbus.Get().Subscribe(eventbus.TopicExitChat, func(event *eventbus.ExitChatEvent) {
 		if event == nil {
@@ -319,18 +319,18 @@ func (s *EventHandle) HandleExitChat() error {
 			return
 		}
 
-		// 路由到统一的worker池
+		// Định tuyến đến worker pool thống nhất
 		s.workerPool.Route(eventbus.TopicExitChat, event)
 	})
 	return nil
 }
 
-// RegisterTopic 注册新topic的处理器（便捷方法）
+// RegisterTopic đăng ký trình xử lý cho topic mới (phương thức tiện lợi)
 func (s *EventHandle) RegisterTopic(topic string, handler TopicHandler) {
 	s.workerPool.RegisterHandler(topic, handler)
 }
 
-// Close 关闭EventHandle，优雅关闭worker池
+// Close đóng EventHandle, tắt worker pool một cách an toàn (graceful shutdown)
 func (s *EventHandle) Close() {
 	if s.workerPool != nil {
 		s.workerPool.Close()

@@ -14,10 +14,10 @@ import (
 	mcp_protocol "github.com/ThinkInAIXYZ/go-mcp/protocol"
 )
 
-// LocalMCPManager 本地MCP工具管理器
+// LocalMCPManager Trình quản lý công cụ MCP cục bộ
 type LocalMCPManager struct {
-	tools map[string]*McpTool // 工具名称 -> 工具定义
-	mu    sync.RWMutex        // 读写锁保护并发访问
+	tools map[string]*McpTool // Tên công cụ -> Định nghĩa công cụ
+	mu    sync.RWMutex        // Khóa đọc-ghi bảo vệ quyền truy cập đồng thời.
 }
 
 var (
@@ -25,25 +25,25 @@ var (
 	localOnce    sync.Once
 )
 
-// GetLocalMCPManager 获取本地MCP管理器单例
+// GetLocalMCPManager Tìm người quản lý MCP địa phương duy nhất
 func GetLocalMCPManager() *LocalMCPManager {
 	localOnce.Do(func() {
 		localManager = &LocalMCPManager{
 			tools: make(map[string]*McpTool),
 		}
-		// 初始化默认的本地工具
+		// Khởi tạo các công cụ cục bộ mặc định
 		localManager.initDefaultTools()
 	})
 	return localManager
 }
 
-// initDefaultTools 初始化默认的本地工具
+// initDefaultTools Khởi tạo các công cụ cục bộ mặc định
 func (l *LocalMCPManager) initDefaultTools() {
 
 	log.Info("Quá trình khởi tạo công cụ mặc định của trình quản lý MCP cục bộ đã hoàn tất.")
 }
 
-// RegisterTool 注册本地工具
+// RegisterTool Đăng ký các công cụ địa phương
 func (l *LocalMCPManager) RegisterTool(tool *McpTool) error {
 	if tool == nil {
 		return fmt.Errorf("Tên công cụ không được để trống.")
@@ -60,7 +60,7 @@ func (l *LocalMCPManager) RegisterTool(tool *McpTool) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	// 检查工具是否已存在
+	// Kiểm tra xem công cụ đó đã tồn tại chưa.
 	if _, exists := l.tools[tool.info.Name]; exists {
 		log.Warnf("Công cụ cục bộ %s đã tồn tại và sẽ bị ghi đè", tool.info.Name)
 	}
@@ -71,7 +71,7 @@ func (l *LocalMCPManager) RegisterTool(tool *McpTool) error {
 }
 
 func (l *LocalMCPManager) convertStructToOpenaipi3Schema(inputParams any) (*openapi3.Schema, error) {
-	//使用github.com/ThinkInAIXYZ/go-mcp 通过struct生成 tool, 然后转换成openapi3.Schema
+	//Công cụ này được tạo ra bằng cách sử dụng github.com/ThinkInAIXYZ/go-mcp thông qua struct, sau đó được chuyển đổi thành openapi3.Schema.
 	toolInstance, err := mcp_protocol.NewTool("get_system_info", "Nhận thông tin hệ thống cơ bản", inputParams)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (l *LocalMCPManager) convertStructToOpenaipi3Schema(inputParams any) (*open
 	return inputSchema, nil
 }
 
-// RegisterToolFunc 注册工具函数（简化版本）
+// RegisterToolFunc Chức năng tiện ích đăng ký (phiên bản đơn giản)
 func (l *LocalMCPManager) RegisterToolFunc(name, description string, inputParams any, handler LocalToolHandler) error {
 	inputSchema, err := l.convertStructToOpenaipi3Schema(inputParams)
 	if err != nil {
@@ -109,7 +109,7 @@ func (l *LocalMCPManager) RegisterToolFunc(name, description string, inputParams
 	return l.RegisterTool(tool)
 }
 
-// UnregisterTool 注销工具
+// UnregisterTool Hủy đăng ký công cụ
 func (l *LocalMCPManager) UnregisterTool(name string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -123,7 +123,7 @@ func (l *LocalMCPManager) UnregisterTool(name string) error {
 	return nil
 }
 
-// GetAllTools 获取所有本地工具，返回Eino工具接口格式
+// GetAllTools Truy xuất tất cả các công cụ cục bộ và trả về định dạng giao diện công cụ Eino.
 func (l *LocalMCPManager) GetAllTools() map[string]tool.InvokableTool {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -135,7 +135,7 @@ func (l *LocalMCPManager) GetAllTools() map[string]tool.InvokableTool {
 	return result
 }
 
-// GetToolByName 根据名称获取工具
+// GetToolByName Tìm công cụ theo tên
 func (l *LocalMCPManager) GetToolByName(name string) (tool.InvokableTool, bool) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -148,7 +148,7 @@ func (l *LocalMCPManager) GetToolByName(name string) (tool.InvokableTool, bool) 
 	return mcpTool, true
 }
 
-// GetToolNames 获取所有工具名称列表
+// GetToolNames Lấy danh sách tất cả tên công cụ
 func (l *LocalMCPManager) GetToolNames() []string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -160,23 +160,23 @@ func (l *LocalMCPManager) GetToolNames() []string {
 	return names
 }
 
-// GetToolCount 获取工具数量
+// GetToolCount Lấy số lượng công cụ
 func (l *LocalMCPManager) GetToolCount() int {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return len(l.tools)
 }
 
-// Start 启动本地管理器（预留接口）
+// Start Khởi chạy trình quản lý cục bộ (giao diện dành riêng).
 func (l *LocalMCPManager) Start() error {
 	log.Info("Người quản lý MCP cục bộ đã bắt đầu")
 	return nil
 }
 
-// Stop 停止本地管理器（预留接口）
+// Stop Dừng trình quản lý cục bộ (giao diện dành riêng)
 func (l *LocalMCPManager) Stop() error {
-	// 注意：我们不清空工具，因为本地管理器的工具应该在整个应用程序生命周期内保持可用
-	// 如果需要清空工具，应该显式调用UnregisterTool方法
+	// Lưu ý: Chúng tôi không xóa các công cụ vì các công cụ của người quản lý cục bộ cần phải luôn khả dụng trong suốt vòng đời của ứng dụng.
+	// Nếu cần xóa công cụ, bạn nên gọi phương thức UnregisterTool một cách rõ ràng.
 	log.Info("Trình quản lý MCP cục bộ đã dừng")
 	return nil
 }

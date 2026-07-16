@@ -26,12 +26,12 @@ const (
 	globalMCPPeriodicToolsRefreshInterval = 2 * time.Minute
 )
 
-// MCPServerConfig MCP服务器配置
+// Cấu hình máy chủ MCP (MCPServerConfig)
 type MCPServerConfig struct {
 	Name         string            `json:"name" mapstructure:"name"`
 	Type         string            `json:"type" mapstructure:"type"`
 	Url          string            `json:"url" mapstructure:"url"`
-	SSEUrl       string            `json:"sse_url" mapstructure:"sse_url"` // 向后兼容 sse_url 字段
+	SSEUrl       string            `json:"sse_url" mapstructure:"sse_url"` // Khả năng tương thích ngược với trường sse_url
 	Enabled      bool              `json:"enabled" mapstructure:"enabled"`
 	Provider     string            `json:"provider,omitempty" mapstructure:"provider"`
 	ServiceID    string            `json:"service_id,omitempty" mapstructure:"service_id"`
@@ -40,7 +40,7 @@ type MCPServerConfig struct {
 	AllowedTools []string          `json:"allowed_tools,omitempty" mapstructure:"allowed_tools"`
 }
 
-// GlobalMCPManager 全局MCP管理器
+// GlobalMCPManager quản lý các kết nối MCP toàn cục
 type GlobalMCPManager struct {
 	servers       map[string]*MCPServerConnection
 	tools         map[string]tool.InvokableTool
@@ -51,13 +51,13 @@ type GlobalMCPManager struct {
 	httpClient    *http.Client
 }
 
-// ReconnectConfig 重连配置
+// ReconnectConfig cấu hình kết nối lại
 type ReconnectConfig struct {
 	Interval    time.Duration
 	MaxAttempts int
 }
 
-// MCPServerConnection MCP服务器连接
+// MCPServerConnection kết nối máy chủ MCP
 type MCPServerConnection struct {
 	config        MCPServerConfig
 	client        *client.Client
@@ -80,7 +80,7 @@ var (
 
 var buildGlobalMCPTransport = buildMCPTransport
 
-// GetGlobalMCPManager 获取全局MCP管理器单例
+// GetGlobalMCPManager Nhận đối tượng quản lý MCP toàn cầu (singleton)
 func GetGlobalMCPManager() *GlobalMCPManager {
 	once.Do(func() {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -101,9 +101,9 @@ func GetGlobalMCPManager() *GlobalMCPManager {
 	return globalManager
 }
 
-// Start 启动全局MCP管理器
+// Start Khởi động trình quản lý MCP toàn cầu
 func (g *GlobalMCPManager) Start() error {
-	// 热更场景：Stop 后 ctx 已取消，需重建以便重启后监控与重连正常
+	// Trường hợp hot-update: Sau khi Stop, ctx đã bị hủy, cần xây dựng lại để restart thì theo dõi và kết nối lại hoạt động bình thường
 	if g.ctx != nil && g.ctx.Err() != nil {
 		g.ctx, g.cancel = context.WithCancel(context.Background())
 		g.reconnectConf = ReconnectConfig{
@@ -112,7 +112,7 @@ func (g *GlobalMCPManager) Start() error {
 		}
 	}
 
-	// 首先检查配置
+	// Trước tiên, hãy kiểm tra cấu hình.
 	CheckMCPConfig()
 
 	if !viper.GetBool("mcp.global.enabled") {
@@ -128,13 +128,13 @@ func (g *GlobalMCPManager) Start() error {
 
 	log.Infof("%d cấu hình máy chủ MCP đã được đọc từ cấu hình", len(serverConfigs))
 
-	// 详细记录每个服务器配置
+	// Hồ sơ cấu hình chi tiết cho từng máy chủ
 	for i, config := range serverConfigs {
 		log.Infof("Máy chủ MCP[%d]: Type=%s, Name=%s, Url=%s, SSEUrl=%s, Enabled=%v",
 			i+1, config.Type, config.Name, config.Url, config.SSEUrl, config.Enabled)
 	}
 
-	// 连接启用的服务器
+	// Máy chủ đã được kích hoạt kết nối
 	connectedCount := 0
 	for _, config := range serverConfigs {
 		if config.Enabled {
@@ -150,14 +150,14 @@ func (g *GlobalMCPManager) Start() error {
 
 	log.Infof("Đã kết nối thành công với máy chủ %d MCP", connectedCount)
 
-	// 启动监控goroutine
+	// Bắt đầu theo dõi goroutine
 	go g.monitorConnections()
 
 	log.Info("Trình quản lý MCP toàn cục đã bắt đầu")
 	return nil
 }
 
-// Stop 停止全局MCP管理器
+// Stop Dừng trình quản lý MCP toàn cầu
 func (g *GlobalMCPManager) Stop() error {
 	g.cancel()
 
@@ -186,7 +186,7 @@ func (g *GlobalMCPManager) Stop() error {
 	return nil
 }
 
-// createFailedConnection 创建失败的连接对象用于后续重连
+// createFailedConnection tạo đối tượng kết nối thất bại để sử dụng cho kết nối lại sau này
 func (g *GlobalMCPManager) createFailedConnection(config MCPServerConfig) {
 	conn := &MCPServerConnection{
 		config:     config,
@@ -203,9 +203,9 @@ func (g *GlobalMCPManager) createFailedConnection(config MCPServerConfig) {
 	log.Infof("Đối tượng kết nối được tạo cho máy chủ MCP bị lỗi: %s", config.Name)
 }
 
-// connectToServer 连接到MCP服务器
+// connectToServer kết nối đến máy chủ MCP
 func (g *GlobalMCPManager) connectToServer(config MCPServerConfig) error {
-	// 验证配置
+	// Kiểm tra cấu hình
 	if config.Name == "" {
 		return fmt.Errorf("Tên máy chủ MCP không được để trống")
 	}
@@ -230,7 +230,7 @@ func (g *GlobalMCPManager) connectToServer(config MCPServerConfig) error {
 	g.servers[config.Name] = conn
 	g.mu.Unlock()
 
-	// 连接到服务器
+	// Kết nối đến máy chủ
 	if err := conn.connect(); err != nil {
 		return fmt.Errorf("Không thể kết nối với máy chủ MCP: %v", err)
 	}
@@ -239,9 +239,9 @@ func (g *GlobalMCPManager) connectToServer(config MCPServerConfig) error {
 	return nil
 }
 
-// connect 连接到MCP服务器
+// connect kết nối đến máy chủ MCP
 func (conn *MCPServerConnection) connect() (retErr error) {
-	// 使用背景上下文，不设置超时，让SSE连接长期保持
+	// Hãy sử dụng ngữ cảnh nền và không đặt thời gian chờ để duy trì kết nối SSE hoạt động trong thời gian dài.
 	ctx := context.Background()
 
 	transportInstance, endpoint, err := buildGlobalMCPTransport(conn.config)
@@ -249,7 +249,7 @@ func (conn *MCPServerConnection) connect() (retErr error) {
 		return err
 	}
 
-	// 使用 client.NewClient 创建 MCP 客户端
+	// Sử dụng client.NewClient để tạo một máy khách MCP.
 	mcpClient := client.NewClient(transportInstance)
 	serverName := conn.config.Name
 	defer func() {
@@ -282,7 +282,7 @@ func (conn *MCPServerConnection) connect() (retErr error) {
 
 	log.Infof("Bắt đầu kết nối với máy chủ MCP: %s, %s URL: %s", conn.config.Name, conn.config.Type, endpoint)
 
-	// 启动客户端
+	// Khởi động máy khách
 	if err := mcpClient.Start(ctx); err != nil {
 		log.Errorf("Không khởi động được máy khách MCP, máy chủ: %s, lỗi: %v", conn.config.Name, err)
 		retErr = fmt.Errorf("Không khởi động được máy khách: %v", err)
@@ -291,7 +291,7 @@ func (conn *MCPServerConnection) connect() (retErr error) {
 
 	log.Infof("Máy khách MCP đã khởi động thành công: %s", conn.config.Name)
 
-	// 初始化客户端
+	// Khởi tạo máy khách
 	initRequest := mcp.InitializeRequest{
 		Params: mcp.InitializeParams{
 			ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
@@ -315,7 +315,7 @@ func (conn *MCPServerConnection) connect() (retErr error) {
 
 	log.Infof("Khởi tạo máy chủ MCP thành công: %s, kết quả: %+v", conn.config.Name, initResult)
 
-	// 获取工具列表
+	// Lấy danh sách công cụ
 	if refreshErr := conn.refreshTools(ctx); refreshErr != nil {
 		log.Errorf("Khởi tạo công cụ thất bại: %v", refreshErr)
 		retErr = fmt.Errorf("Khởi tạo công cụ thất bại: %v", refreshErr)
@@ -506,7 +506,7 @@ func filterMCPToolsByAllowList(tools []mcp.Tool, allowedTools []string) []mcp.To
 	return filtered
 }
 
-// refreshTools 刷新工具列表
+// refreshTools Làm mới danh sách công cụ
 func (conn *MCPServerConnection) refreshTools(ctx context.Context) error {
 	conn.mu.RLock()
 	serverName := conn.config.Name
@@ -517,7 +517,7 @@ func (conn *MCPServerConnection) refreshTools(ctx context.Context) error {
 		return fmt.Errorf("Máy khách MCP chưa được khởi tạo")
 	}
 
-	// 获取工具列表
+	// Lấy danh sách công cụ
 	listRequest := mcp.ListToolsRequest{}
 	toolsResult, err := mcpClient.ListTools(ctx, listRequest)
 	if err != nil {
@@ -531,7 +531,7 @@ func (conn *MCPServerConnection) refreshTools(ctx context.Context) error {
 	conn.tools = convertedTools
 	conn.mu.Unlock()
 
-	// 全局工具表的更新放在 conn.mu 外，避免与 g.mu 形成锁顺序反转。
+	// Các bản cập nhật cho bảng tiện ích toàn cục được đặt bên ngoài conn.mu để tránh đảo ngược khóa với g.mu.
 	globalManager.updateGlobalTools(serverName, convertedTools)
 
 	log.Infof("Danh sách công cụ %s của máy chủ MCP đã được cập nhật với tổng %d công cụ", serverName, len(convertedTools))
@@ -579,7 +579,7 @@ func ConvertMcpToolListToInvokableToolList(tools []mcp.Tool, serverName string, 
 	return invokeTools
 }
 
-// disconnect 断开连接
+// disconnect Ngắt kết nối
 func (conn *MCPServerConnection) disconnect() error {
 	conn.mu.Lock()
 	serverName := conn.config.Name
@@ -594,7 +594,7 @@ func (conn *MCPServerConnection) disconnect() error {
 	}
 
 	if mcpClient != nil {
-		// 关闭客户端放在锁外，避免锁住快路径。
+		// Đóng ứng dụng khách bên ngoài vùng khóa để tránh làm khóa đường dẫn nhanh.
 		if err := mcpClient.Close(); err != nil {
 			log.Errorf("Không thể đóng ứng dụng khách MCP: %v", err)
 		}
@@ -614,25 +614,25 @@ func (g *GlobalMCPManager) removeGlobalTools(serverName string) {
 	}
 }
 
-// updateGlobalTools 更新全局工具列表
+// updateGlobalTools Cập nhật danh sách công cụ toàn cầu
 func (g *GlobalMCPManager) updateGlobalTools(serverName string, tools map[string]tool.InvokableTool) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	// 移除该服务器的旧工具
+	// Gỡ bỏ các công cụ cũ khỏi máy chủ.
 	for name, mcpToolInterface := range g.tools {
 		if mt, ok := mcpToolInterface.(*McpTool); ok && mt.serverName == serverName {
 			delete(g.tools, name)
 		}
 	}
 
-	// 添加新工具
+	// Thêm công cụ mới
 	for name, mcpToolInterface := range tools {
 		g.tools[fmt.Sprintf("%s_%s", serverName, name)] = mcpToolInterface
 	}
 }
 
-// GetAllTools 获取所有可用工具
+// GetAllTools Tải xuống tất cả các công cụ có sẵn
 func (g *GlobalMCPManager) GetAllTools() map[string]tool.InvokableTool {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -644,7 +644,7 @@ func (g *GlobalMCPManager) GetAllTools() map[string]tool.InvokableTool {
 	return result
 }
 
-// GetToolByName 根据名称获取工具
+// GetToolByName Lấy công cụ theo tên
 func (g *GlobalMCPManager) GetToolByName(name string) (tool.InvokableTool, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -718,7 +718,7 @@ func ReconnectServerByName(serverName string) (*client.Client, error) {
 	return GetGlobalMCPManager().reconnectServer(serverName)
 }
 
-// isSessionClosedError 判断是否为session closed错误
+// isSessionClosedError Xác định xem đó có phải là lỗi đóng phiên làm việc hay không.
 func isSessionClosedError(err error) bool {
 	if err == nil {
 		return false
@@ -777,9 +777,9 @@ func (g *GlobalMCPManager) schedulePeriodicToolsRefresh() {
 	}
 }
 
-// monitorConnections 监控连接状态
+// monitorConnections theo dõi trạng thái kết nối
 func (g *GlobalMCPManager) monitorConnections() {
-	pingTicker := time.NewTicker(globalMCPPingInterval) // 每60秒ping一次
+	pingTicker := time.NewTicker(globalMCPPingInterval) // mỗi 60 giây ping một lần
 	defer pingTicker.Stop()
 	toolsRefreshTicker := time.NewTicker(globalMCPPeriodicToolsRefreshInterval)
 	defer toolsRefreshTicker.Stop()
@@ -789,7 +789,7 @@ func (g *GlobalMCPManager) monitorConnections() {
 		case <-g.ctx.Done():
 			return
 		case <-pingTicker.C:
-			// 执行ping检测
+			// Thực hiện kiểm tra ping
 			g.mu.RLock()
 			for name, conn := range g.servers {
 				go func(name string, conn *MCPServerConnection) {
@@ -798,16 +798,16 @@ func (g *GlobalMCPManager) monitorConnections() {
 
 					if err := conn.ping(ctx); err != nil {
 						log.Warnf("Máy chủ MCP %s không ping được và bắt đầu kết nối lại: %v", name, err)
-						// ping失败时直接标记为断开并触发重连
+						// Nếu ping thất bại, hãy đánh dấu kết nối là bị ngắt và kích hoạt quá trình kết nối lại.
 						conn.mu.Lock()
 						conn.connected = false
 						conn.lastError = err
 						conn.mu.Unlock()
 
-						// 直接触发重连
+						// Kích hoạt kết nối lại trực tiếp
 						go g.reconnectServer(name)
 					} else {
-						//log.Debugf("MCP服务器 %s ping成功", name)
+						//log.Debugf("MCP server ping successful %s", name)
 					}
 				}(name, conn)
 			}
@@ -818,7 +818,7 @@ func (g *GlobalMCPManager) monitorConnections() {
 	}
 }
 
-// reconnectServer 重连服务器并返回新的client
+// reconnectServer Kết nối lại với máy chủ và tạo một máy khách mới.
 func (g *GlobalMCPManager) reconnectServer(serverName string) (*client.Client, error) {
 	g.mu.RLock()
 	var conn *MCPServerConnection
@@ -870,15 +870,15 @@ func (g *GlobalMCPManager) reconnectServer(serverName string) (*client.Client, e
 		conn.mu.Unlock()
 	}()
 
-	// 断开连接
+	// Ngắt kết nối
 	if err := conn.disconnect(); err != nil {
 		log.Errorf("Ngắt kết nối không thành công: %v", err)
 	}
 
-	// 等待一小段时间确保资源释放
+	// Chờ một lát để đảm bảo tài nguyên được giải phóng.
 	time.Sleep(time.Second)
 
-	// 重新连接
+	// Kết nối lại
 	if err := conn.connect(); err != nil {
 		conn.mu.Lock()
 		conn.lastError = err
@@ -892,7 +892,7 @@ func (g *GlobalMCPManager) reconnectServer(serverName string) (*client.Client, e
 	return mcpClient, nil
 }
 
-// ping 发送ping请求检测连接状态
+// Lệnh ping gửi yêu cầu ping để kiểm tra trạng thái kết nối.
 func (conn *MCPServerConnection) ping(ctx context.Context) error {
 	conn.mu.RLock()
 	mcpClient := conn.client
@@ -901,7 +901,7 @@ func (conn *MCPServerConnection) ping(ctx context.Context) error {
 		return fmt.Errorf("client chưa được khởi tạo")
 	}
 
-	// 使用空的Ping请求作为ping
+	// Sử dụng yêu cầu Ping trống làm yêu cầu ping
 	err := mcpClient.Ping(ctx)
 	if err != nil {
 		return fmt.Errorf("ping không thành công: %v", err)

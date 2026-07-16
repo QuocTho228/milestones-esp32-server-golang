@@ -21,17 +21,17 @@ import (
 )
 
 var (
-	// MessageWorkerNum 消息处理worker数量（基于CPU核心数，统一配置，用于Redis+History处理）
-	// 必须是2的幂次以便hash分布
+	// MessageWorkerNum số lượng worker xử lý tin nhắn (dựa trên số nhân CPU, cấu hình thống nhất, dùng cho xử lý Redis+History)
+	// Phải là lũy thừa của 2 để thuận tiện cho việc phân phối theo hash
 	MessageWorkerNum = getMessageWorkerNum()
 )
 
-// getMessageWorkerNum 根据CPU核心数计算worker数量，向上取到最近的2的幂次
-// 最小值为4，最大值为64
+// getMessageWorkerNum tính số lượng worker dựa trên số nhân CPU, làm tròn lên lũy thừa gần nhất của 2
+// Giá trị nhỏ nhất là 4, giá trị lớn nhất là 64
 func getMessageWorkerNum() int {
 	cpuNum := runtime.NumCPU()
 
-	// 最小值为4，最大值为64
+	// Giá trị nhỏ nhất là 4, giá trị lớn nhất là 64
 	if cpuNum < 4 {
 		return 4
 	}
@@ -39,7 +39,7 @@ func getMessageWorkerNum() int {
 		return 64
 	}
 
-	// 向上取到最近的2的幂次
+	// Làm tròn lên lũy thừa gần nhất của 2
 	power := 1
 	for power < cpuNum {
 		power <<= 1
@@ -47,18 +47,18 @@ func getMessageWorkerNum() int {
 	return power
 }
 
-// MessageWorker 消息处理器
-// 使用固定数量的goroutine池，按SessionID的hash值路由，保证同一会话的消息顺序处理
-// 统一处理Redis、MemoryProvider和History消息
+// MessageWorker trình xử lý tin nhắn
+// Sử dụng một pool goroutine với số lượng cố định, định tuyến theo giá trị hash của SessionID, đảm bảo tin nhắn trong cùng một phiên được xử lý theo đúng thứ tự
+// Xử lý thống nhất tin nhắn cho Redis, MemoryProvider và History
 type MessageWorker struct {
 	client  *history.HistoryClient
-	workers []chan *eventbus.AddMessageEvent // 每个worker的channel
+	workers []chan *eventbus.AddMessageEvent // channel của từng worker
 	ctx     context.Context
 	cancel  context.CancelFunc
 	wg      sync.WaitGroup
 }
 
-// NewMessageWorker 创建消息处理器
+// NewMessageWorker tạo trình xử lý tin nhắn
 func NewMessageWorker(cfg history.HistoryClientConfig) *MessageWorker {
 	client := history.NewHistoryClient(cfg)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -70,9 +70,9 @@ func NewMessageWorker(cfg history.HistoryClientConfig) *MessageWorker {
 		cancel:  cancel,
 	}
 
-	// 初始化每个worker的channel并启动goroutine
+	// Khởi tạo channel cho từng worker và khởi động goroutine
 	for i := 0; i < MessageWorkerNum; i++ {
-		worker.workers[i] = make(chan *eventbus.AddMessageEvent, 100) // 缓冲100个消息
+		worker.workers[i] = make(chan *eventbus.AddMessageEvent, 100) // đệm (buffer) 100 tin nhắn
 		worker.wg.Add(1)
 		go worker.workerLoop(i)
 	}
@@ -82,7 +82,7 @@ func NewMessageWorker(cfg history.HistoryClientConfig) *MessageWorker {
 	return worker
 }
 
-// workerLoop 每个worker的处理循环（保证顺序处理）
+// workerLoop vòng lặp xử lý của từng worker (đảm bảo xử lý tuần tự)
 func (w *MessageWorker) workerLoop(index int) {
 	defer w.wg.Done()
 	defer log.Infof("MessageWorker worker %d kết thúc", index)
@@ -91,7 +91,7 @@ func (w *MessageWorker) workerLoop(index int) {
 	for {
 		select {
 		case <-w.ctx.Done():
-			// 清理channel中的剩余消息
+			// Dọn dẹp các tin nhắn còn lại trong channel
 			for {
 				select {
 				case event := <-ch:
@@ -104,7 +104,7 @@ func (w *MessageWorker) workerLoop(index int) {
 			}
 		case event, ok := <-ch:
 			if !ok {
-				// channel已关闭
+				// channel đã đóng
 				return
 			}
 			if event != nil {
@@ -114,32 +114,32 @@ func (w *MessageWorker) workerLoop(index int) {
 	}
 }
 
-// processMessage 处理消息（在worker goroutine中顺序执行）
-// 统一处理Redis、MemoryProvider和History，保证同一设备/会话的消息顺序处理
+// processMessage xử lý tin nhắn (thực thi tuần tự trong worker goroutine)
+// Xử lý thống nhất Redis, MemoryProvider và History, đảm bảo tin nhắn của cùng một thiết bị/phiên được xử lý theo đúng thứ tự
 func (w *MessageWorker) processMessage(event *eventbus.AddMessageEvent) {
-	// 1. 处理 History（所有消息）
-	// 使用独立的 context，不受 event.ClientState.Ctx 影响，确保历史消息保存不受对话取消影响
+	// 1. Xử lý History (tất cả tin nhắn)
+	// Sử dụng context độc lập, không bị ảnh hưởng bởi event.ClientState.Ctx, đảm bảo việc lưu tin nhắn lịch sử không bị ảnh hưởng khi cuộc hội thoại bị hủy
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// 判断是新增还是更新
+	// Xác định là thêm mới hay cập nhật
 	if event.IsUpdate {
-		// 第二阶段：更新音频
+		// Giai đoạn 2: cập nhật âm thanh
 		w.updateMessageAudio(ctx, event)
 	} else {
-		// 第一阶段：保存文本消息（包含Redis处理）
+		// Giai đoạn 1: lưu tin nhắn văn bản (bao gồm cả xử lý Redis)
 		w.saveMessageText(ctx, event)
 	}
 
-	// 2. 处理 MemoryProvider（仅!IsUpdate时，独立于redis和manager）
-	// 长期记忆体（memobase/mem0）处理，不管是redis还是manager场景都需要
+	// 2. Xử lý MemoryProvider (chỉ khi !IsUpdate, độc lập với redis và manager)
+	// Xử lý bộ nhớ dài hạn (memobase/mem0), cần thiết cho cả trường hợp redis lẫn manager
 	if !event.IsUpdate {
 		w.processMemoryProvider(event)
 	}
 }
 
-// processMemoryProvider 处理长期记忆体（memobase/mem0）
-// 独立于redis和manager，不管是redis还是manager场景都需要处理
+// processMemoryProvider xử lý bộ nhớ dài hạn (memobase/mem0)
+// Độc lập với redis và manager, cần thiết cho cả trường hợp redis lẫn manager
 func (w *MessageWorker) processMemoryProvider(event *eventbus.AddMessageEvent) {
 	clientState := event.ClientState
 	if clientState.MemoryProvider == nil {
@@ -158,33 +158,33 @@ func (w *MessageWorker) processMemoryProvider(event *eventbus.AddMessageEvent) {
 	}
 }
 
-// hashSessionID 计算SessionID的hash值，返回worker索引
+// hashSessionID tính giá trị hash của SessionID, trả về chỉ số (index) của worker
 func (w *MessageWorker) hashSessionID(sessionID string) int {
 	if sessionID == "" {
-		return 0 // 如果SessionID为空，使用第一个worker
+		return 0 // Nếu SessionID rỗng, sử dụng worker đầu tiên
 	}
 
-	// 使用FNV-1a哈希函数
+	// Sử dụng hàm hash FNV-1a
 	h := fnv.New32a()
 	h.Write([]byte(sessionID))
 	hash := h.Sum32()
 	return int(hash) % MessageWorkerNum
 }
 
-// subscribeEvents 订阅EventBus事件
+// subscribeEvents đăng ký (subscribe) sự kiện từ EventBus
 func (w *MessageWorker) subscribeEvents() {
 	bus := eventbus.Get()
-	// 订阅统一的消息添加事件（与 EventHandle 监听同一个 Topic）
+	// Đăng ký sự kiện thêm tin nhắn thống nhất (lắng nghe cùng Topic với EventHandle)
 	bus.Subscribe(eventbus.TopicAddMessage, w.handleAddMessage)
 }
 
-// handleAddMessage 统一处理消息添加事件（路由到对应的worker）
+// handleAddMessage xử lý thống nhất sự kiện thêm tin nhắn (định tuyến đến worker tương ứng)
 func (w *MessageWorker) handleAddMessage(event *eventbus.AddMessageEvent) {
 	if event == nil || event.ClientState == nil {
 		return
 	}
 
-	// 确定用于路由的key：优先使用SessionID，如果为空则使用DeviceID
+	// Xác định key dùng để định tuyến: ưu tiên dùng SessionID, nếu rỗng thì dùng DeviceID
 	key := event.ClientState.SessionID
 	if key == "" {
 		key = event.ClientState.DeviceID
@@ -194,25 +194,25 @@ func (w *MessageWorker) handleAddMessage(event *eventbus.AddMessageEvent) {
 		return
 	}
 
-	// 计算hash值，路由到对应的worker
+	// Tính giá trị hash, định tuyến đến worker tương ứng
 	workerIndex := w.hashSessionID(key)
 
-	// 非阻塞发送到对应的worker channel
+	// Gửi không chặn (non-blocking) đến channel của worker tương ứng
 	select {
 	case w.workers[workerIndex] <- event:
-		// 成功发送
+		// Gửi thành công
 	default:
-		// channel已满，记录警告（通常不会发生，因为channel有缓冲）
+		// channel đã đầy, ghi lại cảnh báo (thường không xảy ra vì channel có bộ đệm)
 		log.Warnf("worker %d của channel đã đầy, tin nhắn bị loại bỏ, session_id: %s, device_id: %s",
 			workerIndex, event.ClientState.SessionID, event.ClientState.DeviceID)
 	}
 }
 
-// saveMessageText 保存文本消息（第一阶段，或一次性保存文本+音频）
-// 包含Redis处理（当config_provider.type为redis时）
+// saveMessageText lưu tin nhắn văn bản (giai đoạn 1, hoặc lưu một lần cả văn bản+âm thanh)
+// Bao gồm xử lý Redis (khi config_provider.type là redis)
 func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.AddMessageEvent) {
-	// 处理 Redis（仅当config_provider.type为redis时）
-	// 添加到 Redis 消息列表（用于 LLM 上下文）
+	// Xử lý Redis (chỉ khi config_provider.type là redis)
+	// Thêm vào danh sách tin nhắn Redis (dùng cho ngữ cảnh LLM)
 	providerType := viper.GetString("config_provider.type")
 	if providerType == "redis" {
 		clientState := event.ClientState
@@ -224,7 +224,7 @@ func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.Add
 		return
 	}
 
-	// 确定消息角色
+	// Xác định vai trò (role) của tin nhắn
 	var role history.MessageType
 	switch event.Msg.Role {
 	case schema.User:
@@ -240,27 +240,27 @@ func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.Add
 		return
 	}
 
-	// 转换音频格式（如果存在）
+	// Chuyển đổi định dạng âm thanh (nếu có)
 	var audioBase64 string
 	var audioFormat string
 	var audioSize int
 
 	if len(event.AudioData) > 0 {
-		// ASR 消息：文本和音频同时获取，一次性保存
+		// Tin nhắn ASR: văn bản và âm thanh được lấy đồng thời, lưu một lần
 		var wavData []byte
 		var err error
 
-		// 根据消息角色选择不同的音频转换方法
+		// Chọn phương thức chuyển đổi âm thanh khác nhau tùy theo vai trò của tin nhắn
 		if event.Msg.Role == schema.User {
-			// User 消息（ASR）：PCM float32 格式
+			// Tin nhắn User (ASR): định dạng PCM float32
 			if len(event.AudioData) > 0 {
 				wavData, err = util.PCMFloat32BytesToWav(
-					event.AudioData[0], // User 消息只有一个元素
+					event.AudioData[0], // Tin nhắn User chỉ có một phần tử
 					event.SampleRate,
 					event.Channels)
 			}
 		} else {
-			// Assistant 消息（TTS）：Opus 格式（理论上不应该在这里，因为 Assistant 是两阶段保存）
+			// Tin nhắn Assistant (TTS): định dạng Opus (về lý thuyết không nên xảy ra ở đây vì Assistant được lưu qua 2 giai đoạn)
 			wavData, err = util.OpusFramesToWav(
 				event.AudioData,
 				event.SampleRate,
@@ -270,14 +270,14 @@ func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.Add
 		if err != nil {
 			log.Errorf("Chuyển đổi âm thanh không thành công, device_id: %s, message_id: %s, role: %s, error: %v",
 				event.ClientState.DeviceID, event.MessageID, event.Msg.Role, err)
-			// 降级处理：直接拼接所有帧
+			// Xử lý dự phòng (fallback): ghép trực tiếp tất cả các frame
 			var fallbackData []byte
 			for _, frame := range event.AudioData {
 				fallbackData = append(fallbackData, frame...)
 			}
 			audioBase64 = base64.StdEncoding.EncodeToString(fallbackData)
 			audioSize = event.AudioSize
-			audioFormat = "raw" // 降级处理使用原始格式
+			audioFormat = "raw" // Xử lý dự phòng dùng định dạng gốc (raw)
 		} else {
 			audioBase64 = base64.StdEncoding.EncodeToString(wavData)
 			audioSize = len(wavData)
@@ -285,23 +285,23 @@ func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.Add
 		}
 	}
 
-	// 构建 Metadata（只保存时间戳）
+	// Xây dựng Metadata (chỉ lưu timestamp)
 	metadata := map[string]interface{}{
 		"timestamp": event.Timestamp.Format(time.RFC3339),
 	}
 
-	// 准备工具调用相关字段
+	// Chuẩn bị các trường liên quan đến tool call
 	var toolCallID string
 	var toolCallsJSON *string
 
-	// Tool 角色：保存 tool_call_id
+	// Vai trò Tool: lưu tool_call_id
 	if event.Msg.Role == schema.Tool && event.Msg.ToolCallID != "" {
 		toolCallID = event.Msg.ToolCallID
 	}
 
-	// Assistant 角色：保存 ToolCalls（如果有）
+	// Vai trò Assistant: lưu ToolCalls (nếu có)
 	if event.Msg.Role == schema.Assistant && len(event.Msg.ToolCalls) > 0 {
-		// 序列化 ToolCalls 为 JSON 字符串
+		// Serialize ToolCalls thành chuỗi JSON
 		toolCallsBytes, err := json.Marshal(event.Msg.ToolCalls)
 		if err != nil {
 			log.Warnf("Công cụ tuần tự ToolCalls thất bại, device_id: %s, message_id: %s, error: %v",
@@ -333,9 +333,9 @@ func (w *MessageWorker) saveMessageText(ctx context.Context, event *eventbus.Add
 	}
 }
 
-// updateMessageAudio 更新消息音频（第二阶段）
+// updateMessageAudio cập nhật âm thanh của tin nhắn (giai đoạn 2)
 func (w *MessageWorker) updateMessageAudio(ctx context.Context, event *eventbus.AddMessageEvent) {
-	// 转换音频格式
+	// Chuyển đổi định dạng âm thanh
 	var audioBase64 string
 	var audioSize int
 
@@ -343,20 +343,20 @@ func (w *MessageWorker) updateMessageAudio(ctx context.Context, event *eventbus.
 		var wavData []byte
 		var err error
 
-		// 根据消息角色选择不同的音频转换方法
-		// User 消息（ASR）：PCM float32 格式，使用 PCMFloat32BytesToWav
-		// Assistant 消息（TTS）：Opus 格式，使用 OpusFramesToWav
+		// Chọn phương thức chuyển đổi âm thanh khác nhau tùy theo vai trò của tin nhắn
+		// Tin nhắn User (ASR): định dạng PCM float32, dùng PCMFloat32BytesToWav
+		// Tin nhắn Assistant (TTS): định dạng Opus, dùng OpusFramesToWav
 		if event.Msg.Role == schema.User {
-			// User 消息：PCM float32 格式
-			// event.AudioData 是 [][]byte，但 User 消息只有一个元素（完整的 PCM float32 字节数组）
+			// Tin nhắn User: định dạng PCM float32
+			// event.AudioData là [][]byte, nhưng tin nhắn User chỉ có một phần tử (mảng byte PCM float32 đầy đủ)
 			if len(event.AudioData) > 0 {
 				wavData, err = util.PCMFloat32BytesToWav(
-					event.AudioData[0], // User 消息只有一个元素
+					event.AudioData[0], // Tin nhắn User chỉ có một phần tử
 					event.SampleRate,
 					event.Channels)
 			}
 		} else {
-			// Assistant 消息：Opus 格式
+			// Tin nhắn Assistant: định dạng Opus
 			wavData, err = util.OpusFramesToWav(
 				event.AudioData,
 				event.SampleRate,
@@ -366,7 +366,7 @@ func (w *MessageWorker) updateMessageAudio(ctx context.Context, event *eventbus.
 		if err != nil {
 			log.Errorf("Chuyển đổi âm thanh không thành công, device_id: %s, message_id: %s, role: %s, error: %v",
 				event.ClientState.DeviceID, event.MessageID, event.Msg.Role, err)
-			// 降级处理：直接拼接所有帧
+			// Xử lý dự phòng (fallback): ghép trực tiếp tất cả các frame
 			var fallbackData []byte
 			for _, frame := range event.AudioData {
 				fallbackData = append(fallbackData, frame...)
@@ -379,7 +379,7 @@ func (w *MessageWorker) updateMessageAudio(ctx context.Context, event *eventbus.
 		}
 	}
 
-	// 构建更新请求
+	// Xây dựng yêu cầu cập nhật
 	req := &history.UpdateMessageAudioRequest{
 		MessageID:   event.MessageID,
 		AudioData:   audioBase64,
@@ -390,7 +390,7 @@ func (w *MessageWorker) updateMessageAudio(ctx context.Context, event *eventbus.
 		},
 	}
 
-	// 调用更新接口
+	// Gọi API cập nhật
 	if err := w.client.UpdateMessageAudio(ctx, req); err != nil {
 		log.Errorf("Cập nhật âm thanh tin nhắn không thành công, device_id: %s, message_id: %s, error: %v",
 			event.ClientState.DeviceID, event.MessageID, err)

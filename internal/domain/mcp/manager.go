@@ -7,11 +7,11 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// MCPManager 统一的MCP管理器，负责协调所有子管理器
+// MCPManager là người quản lý MCP thống nhất, chịu trách nhiệm điều phối tất cả các người quản lý chương trình con.
 type MCPManager struct {
 	localManager  *LocalMCPManager
 	globalManager *GlobalMCPManager
-	// deviceManager 将来可以在这里管理设备管理器池
+	// Trong tương lai, deviceManager sẽ có khả năng quản lý các nhóm trình quản lý thiết bị tại đây.
 
 	mu      sync.RWMutex
 	started bool
@@ -22,7 +22,7 @@ var (
 	mcpOnce    sync.Once
 )
 
-// GetMCPManager 获取统一MCP管理器单例
+// GetMCPManager Tải xuống Unified MCP Manager Singleton
 func GetMCPManager() *MCPManager {
 	mcpOnce.Do(func() {
 		mcpManager = &MCPManager{
@@ -34,7 +34,7 @@ func GetMCPManager() *MCPManager {
 	return mcpManager
 }
 
-// Start 启动所有MCP管理器
+// Start Khởi động tất cả các trình quản lý MCP
 func (m *MCPManager) Start() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -46,33 +46,33 @@ func (m *MCPManager) Start() error {
 
 	log.Info("=== Khởi động cụm MCP Manager ===")
 
-	// 1. 首先启动本地管理器
+	// 1. Trước tiên, hãy khởi động Trình quản lý cục bộ.
 	log.Info("Khởi chạy trình quản lý MCP cục bộ...")
 	if err := m.localManager.Start(); err != nil {
 		log.Errorf("Không thể khởi động trình quản lý MCP cục bộ.: %v", err)
 		return fmt.Errorf("Khởi động trình quản lý MCP cục bộ thất bại: %v", err)
 	}
 
-	// 2. 然后启动全局管理器
+	// 2. Sau đó khởi chạy trình quản lý toàn cầu.
 	log.Info("Khởi chạy trình quản lý MCP toàn cục...")
 	if err := m.globalManager.Start(); err != nil {
 		log.Errorf("Không thể khởi động trình quản lý MCP toàn cục: %v", err)
 		return fmt.Errorf("Không thể khởi động trình quản lý MCP toàn cục: %v", err)
 	}
 
-	// 3. 设备管理器通过连接时动态创建，这里不需要启动
+	// 3. Trình quản lý thiết bị được tạo động khi kết nối; không cần phải khởi động nó ở đây.
 	log.Info("Trình quản lý MCP của thiết bị sẽ tự động tạo thiết bị dựa trên kết nối.")
 
 	m.started = true
 	log.Info("=== Quá trình khởi động cụm MCP Manager hoàn tất ===")
 
-	// 输出启动状态统计
+	// Thống kê trạng thái khởi động đầu ra
 	m.printStartupStats()
 
 	return nil
 }
 
-// Stop 停止所有MCP管理器
+// Stop Dừng tất cả các trình quản lý MCP
 func (m *MCPManager) Stop() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -84,20 +84,20 @@ func (m *MCPManager) Stop() error {
 
 	log.Info("=== Dừng cụm quản lý MCP ===")
 
-	// 按相反顺序停止管理器
-	// 1. 停止全局管理器
+	// Dừng người quản lý theo thứ tự ngược lại.
+	// 1. Dừng quản lý toàn cầu
 	log.Info("Dừng trình quản lý MCP toàn cục...")
 	if err := m.globalManager.Stop(); err != nil {
 		log.Errorf("Không thể dừng trình quản lý MCP toàn cục: %v", err)
 	}
 
-	// 2. 停止本地管理器
+	// 2. Dừng quản lý cục bộ
 	log.Info("Dừng việc quản lý MCP cục bộ...")
 	if err := m.localManager.Stop(); err != nil {
 		log.Errorf("Dừng trình quản lý MCP cục bộ thất bại: %v", err)
 	}
 
-	// 3. 设备管理器通过连接断开自动清理
+	// 3. Trình quản lý thiết bị tự động dọn dẹp khi mất kết nối.
 	log.Info("Kết nối MCP của thiết bị sẽ được tự động làm sạch.")
 
 	m.started = false
@@ -105,24 +105,24 @@ func (m *MCPManager) Stop() error {
 	return nil
 }
 
-// IsStarted 检查管理器是否已启动
+// IsStarted kiểm tra xem quản lý có đang chạy không
 func (m *MCPManager) IsStarted() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.started
 }
 
-// GetLocalManager 获取本地管理器
+// GetLocalManager Tìm người quản lý cục bộ
 func (m *MCPManager) GetLocalManager() *LocalMCPManager {
 	return m.localManager
 }
 
-// GetGlobalManager 获取全局管理器
+// GetGlobalManager Lấy Quản lý Toàn cầu
 func (m *MCPManager) GetGlobalManager() *GlobalMCPManager {
 	return m.globalManager
 }
 
-// printStartupStats 输出启动状态统计
+// printStartupStats Thống kê trạng thái khởi động đầu ra
 func (m *MCPManager) printStartupStats() {
 	localToolCount := m.localManager.GetToolCount()
 	globalToolCount := len(m.globalManager.GetAllTools())
@@ -134,7 +134,7 @@ func (m *MCPManager) printStartupStats() {
 	log.Infof("  - Tổng số lượng công cụ: %d", localToolCount+globalToolCount)
 }
 
-// GetAllManagersStatus 获取所有管理器的状态信息
+// GetAllManagersStatus Lấy thông tin trạng thái của tất cả các quản lý.
 func (m *MCPManager) GetAllManagersStatus() map[string]interface{} {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -158,7 +158,7 @@ func (m *MCPManager) GetAllManagersStatus() map[string]interface{} {
 	return status
 }
 
-// RestartManager 重启指定的管理器
+// RestartManager Khởi động lại trình quản lý được chỉ định
 func (m *MCPManager) RestartManager(managerType string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -195,19 +195,19 @@ func (m *MCPManager) RestartManager(managerType string) error {
 	return nil
 }
 
-// 为了向后兼容，提供便捷函数
+// Để đảm bảo khả năng tương thích ngược, các chức năng tiện lợi được cung cấp.
 
-// StartMCPManagers 启动所有MCP管理器（便捷函数）
+// StartMCPManagers Khởi chạy tất cả các trình quản lý MCP (chức năng tiện ích)
 func StartMCPManagers() error {
 	return GetMCPManager().Start()
 }
 
-// StopMCPManagers 停止所有MCP管理器（便捷函数）
+// StopMCPManagers Dừng tất cả các trình quản lý MCP (chức năng tiện ích)
 func StopMCPManagers() error {
 	return GetMCPManager().Stop()
 }
 
-// GetMCPManagerStatus 获取MCP管理器状态（便捷函数）
+// GetMCPManagerStatus Lấy trạng thái của trình quản lý MCP (chức năng tiện ích)
 func GetMCPManagerStatus() map[string]interface{} {
 	return GetMCPManager().GetAllManagersStatus()
 }

@@ -25,14 +25,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-// App 统一管理所有协议服务和 ChatManager
+// App quản lý thống nhất tất cả các dịch vụ giao thức và ChatManager
 
 type App struct {
 	wsServer       *websocket.WebSocketServer
 	mqttUdpAdapter *mqtt_udp.MqttUdpAdapter
 	mqttUdpMu      sync.RWMutex
 
-	// ChatManager管理 - 使用concurrent map
+	// Quản lý ChatManager - sử dụng concurrent map
 	chatManagers cmap.ConcurrentMap[string, *chat.ChatManager]
 }
 
@@ -72,24 +72,24 @@ func (a *App) Run() {
 	adapter := a.mqttUdpAdapter
 	a.mqttUdpMu.RUnlock()
 	if adapter != nil {
-		go adapter.Start() // 非阻塞，连接与重试在 adapter 内部后台执行
+		go adapter.Start() // Không chặn luồng chính (non-blocking), việc kết nối và thử lại được thực hiện ở background bên trong adapter
 	}
 
-	// 注册聊天相关的本地MCP工具
+	// Đăng ký các công cụ MCP cục bộ liên quan đến chat
 	a.registerChatMCPTools()
 
 	a.registerHandler()
 
 	a.initEventHandle()
 
-	// 启动资源池统计监控（每5分钟输出一次到日志）
+	// Khởi động giám sát thống kê resource pool (xuất log mỗi 5 phút một lần)
 	ctx := context.Background()
 	pool.StartStatsMonitor(ctx, 5*time.Minute)
 
-	// 启动资源池统计上报（每5秒上报一次到 manager backend）
+	// Khởi động báo cáo thống kê resource pool (báo cáo lên manager backend mỗi 5 giây một lần)
 	pool.StartStatsReporter(ctx)
 
-	select {} // 阻塞主线程
+	select {} // Chặn (block) luồng chính
 }
 
 func (app *App) initEventHandle() {
@@ -103,12 +103,12 @@ func (app *App) initEventHandle() {
 		return
 	}
 
-	// 初始化消息处理器（总是启用，统一处理Redis+MemoryProvider+History）
+	// Khởi tạo trình xử lý tin nhắn (luôn được bật, xử lý thống nhất Redis+MemoryProvider+History)
 	historyCfg := history.HistoryClientConfig{
 		BaseURL:   util.GetBackendURL(),
 		AuthToken: util.GetManagerAuthToken(),
 		Timeout:   viper.GetDuration("manager.history_timeout"),
-		Enabled:   true, // 总是启用
+		Enabled:   true, // Luôn được bật
 	}
 	NewMessageWorker(historyCfg)
 	log.Info("Đã khởi tạo trình xử lý tin nhắn")
@@ -194,7 +194,7 @@ func (app *App) startMqttServer() error {
 	return mqtt_server.StartMqttServer()
 }
 
-// ReloadMqttServer 热更 MQTT Server：先停，再根据 mqtt_server.enable 决定是否启动（未启用则仅停止不启动）
+// ReloadMqttServer Cập nhật nóng (hot reload) MQTT Server: dừng trước, sau đó dựa vào mqtt_server.enable để quyết định có khởi động lại hay không (nếu chưa bật thì chỉ dừng mà không khởi động)
 func (app *App) ReloadMqttServer() {
 	_ = mqtt_server.StopMqttServer()
 	if !viper.GetBool("mqtt_server.enable") {
@@ -205,7 +205,7 @@ func (app *App) ReloadMqttServer() {
 	}
 }
 
-// ReloadMqttUdp 热更 MQTT+UDP：先停旧适配器，再根据 mqtt.enable 决定是否新建并启动（未启用则仅停止不启动）
+// ReloadMqttUdp Cập nhật nóng MQTT+UDP: dừng adapter cũ trước, sau đó dựa vào mqtt.enable để quyết định có tạo mới và khởi động hay không (nếu chưa bật thì chỉ dừng mà không khởi động)
 func (app *App) ReloadMqttUdp() {
 	app.mqttUdpMu.Lock()
 	old := app.mqttUdpAdapter
@@ -229,7 +229,7 @@ func (app *App) ReloadMqttUdp() {
 	go adapter.Start()
 }
 
-// ReloadMqttUdpWithFlags 根据变更标记决定是否热更 MQTT+UDP
+// ReloadMqttUdpWithFlags Dựa vào các cờ thay đổi để quyết định có cập nhật nóng MQTT+UDP hay không
 func (app *App) ReloadMqttUdpWithFlags(doMqttReload, doUdpReload bool) {
 	if !doMqttReload && !doUdpReload {
 		return
@@ -288,10 +288,10 @@ func (app *App) ReloadMqttUdpWithFlags(doMqttReload, doUdpReload bool) {
 	}
 }
 
-// ReloadMCP 热更 MCP：禁用时仅停止全局 MCP；启用时已启动则重启全局 MCP，未启动则启动 MCP 集群
+// ReloadMCP Cập nhật nóng MCP: nếu bị vô hiệu hóa thì chỉ dừng MCP toàn cục; nếu bật và đã khởi động rồi thì khởi động lại MCP toàn cục, nếu chưa khởi động thì khởi động cụm MCP
 func (app *App) ReloadMCP() error {
 	if !viper.GetBool("mcp.global.enabled") {
-		// 禁用：只停不启，避免依赖 Start() 内判断或合并时序
+		// Vô hiệu hóa: chỉ dừng chứ không khởi động, để tránh phụ thuộc vào logic bên trong Start() hoặc vấn đề thứ tự khi hợp nhất
 		if err := mcp.GetGlobalMCPManager().Stop(); err != nil {
 			return err
 		}
@@ -310,28 +310,28 @@ func (app *App) ReloadMCP() error {
 	return nil
 }
 
-// 所有协议新连接都走这里
+// Tất cả các kết nối mới của mọi giao thức đều đi qua đây
 func (a *App) OnNewConnection(transport types.IConn) {
 	deviceID := transport.GetDeviceID()
 	transportType := transport.GetTransportType()
 	notifyLifecycleOnManager := transportType != types.TransportTypeMqttUdp
 
-	// 检查是否已存在该设备的ChatManager
+	// Kiểm tra xem ChatManager của thiết bị này đã tồn tại hay chưa
 	if existingManager, exists := a.chatManagers.Get(deviceID); exists {
 		log.Infof("Thiết bị %s đã tồn tại trong chatManager, hãy đóng kết nối cũ trước.", deviceID)
-		// 关闭旧的ChatManager
+		// Đóng ChatManager cũ
 		existingManager.Close()
 		a.chatManagers.Remove(deviceID)
 	}
 
-	// 创建新的ChatManager
+	// Tạo ChatManager mới
 	chatManager, err := chat.NewChatManager(deviceID, transport)
 	if err != nil {
 		log.Errorf("Tạo chatManager thất bại: %v", err)
 		return
 	}
 
-	// 存储ChatManager
+	// Lưu trữ ChatManager
 	a.chatManagers.Set(deviceID, chatManager)
 
 	if notifyLifecycleOnManager {
@@ -340,13 +340,13 @@ func (a *App) OnNewConnection(transport types.IConn) {
 
 	log.Infof("Ứng dụng chatManager cho thiết bị %s đã được tạo và lưu trữ.", deviceID)
 
-	// OpenClaw离线消息补发（延迟重试，避免连接刚建立时会话尚未初始化）
+	// Gửi lại tin nhắn ngoại tuyến OpenClaw (thử lại có độ trễ, để tránh trường hợp phiên chưa được khởi tạo ngay khi kết nối vừa thiết lập)
 	go a.replayOpenClawOfflineMessages(deviceID)
 
-	// 启动ChatManager
+	// Khởi động ChatManager
 	go func() {
 		defer func() {
-			// ChatManager结束时，从映射中移除
+			// Khi ChatManager kết thúc, gỡ khỏi bảng ánh xạ
 			if storedManager, exists := a.chatManagers.Get(deviceID); exists && storedManager == chatManager {
 				a.chatManagers.Remove(deviceID)
 				log.Infof("chatManager dành cho thiết bị %s đã bị xóa khỏi danh sách ánh xạ.", deviceID)
@@ -371,7 +371,7 @@ func (a *App) onMqttTransportReady(deviceID string) {
 	chatManager.WarmupMcp()
 }
 
-// OnOpenClawResponse OpenClaw实时响应下发回调
+// OnOpenClawResponse Callback gửi phản hồi thời gian thực (real-time) của OpenClaw
 func (a *App) OnOpenClawResponse(event openclaw.ResponseDelivery) bool {
 	deviceID := strings.TrimSpace(event.DeviceID)
 	if deviceID == "" {
@@ -419,12 +419,12 @@ func (a *App) replayOpenClawOfflineMessages(deviceID string) {
 	}
 }
 
-// GetChatManager 获取指定设备的ChatManager
+// GetChatManager lấy ChatManager của thiết bị được chỉ định
 func (a *App) GetChatManager(deviceID string) (*chat.ChatManager, bool) {
 	return a.chatManagers.Get(deviceID)
 }
 
-// CloseChatManager 关闭指定设备的ChatManager
+// CloseChatManager đóng ChatManager của thiết bị được chỉ định
 func (a *App) CloseChatManager(deviceID string) bool {
 	if manager, exists := a.chatManagers.Get(deviceID); exists {
 		manager.Close()
@@ -435,9 +435,9 @@ func (a *App) CloseChatManager(deviceID string) bool {
 	return false
 }
 
-// GetAllChatManagers 获取所有ChatManager的副本
+// GetAllChatManagers lấy bản sao của tất cả ChatManager
 func (a *App) GetAllChatManagers() map[string]*chat.ChatManager {
-	// 返回副本以避免并发访问问题
+	// Trả về bản sao để tránh vấn đề truy cập đồng thời (concurrency)
 	managers := make(map[string]*chat.ChatManager)
 	for tuple := range a.chatManagers.IterBuffered() {
 		managers[tuple.Key] = tuple.Val
@@ -445,26 +445,26 @@ func (a *App) GetAllChatManagers() map[string]*chat.ChatManager {
 	return managers
 }
 
-// GetChatManagerCount 获取当前活跃的ChatManager数量
+// GetChatManagerCount lấy số lượng ChatManager đang hoạt động hiện tại
 func (a *App) GetChatManagerCount() int {
 	return a.chatManagers.Count()
 }
 
-// CloseAllChatManagers 关闭所有ChatManager
+// CloseAllChatManagers đóng tất cả ChatManager
 func (a *App) CloseAllChatManagers() {
 	for tuple := range a.chatManagers.IterBuffered() {
 		tuple.Val.Close()
 		log.Infof("Ứng dụng chatManager trên thiết bị %s đã đóng.", tuple.Key)
 	}
 
-	// 清空映射
+	// Xóa toàn bộ bảng ánh xạ
 	a.chatManagers.Clear()
 	log.Info("Tất cả các ChatManager đã đóng")
 }
 
-// registerChatMCPTools 注册聊天相关的本地MCP工具
+// registerChatMCPTools đăng ký các công cụ MCP cục bộ liên quan đến chat
 func (s *App) registerChatMCPTools() {
-	// 调用chat包的注册函数
+	// Gọi hàm đăng ký của gói chat
 	chat.RegisterChatMCPTools()
 
 	log.Info("Các công cụ MCP cục bộ liên quan đến trò chuyện đã được đăng ký.")
@@ -508,7 +508,7 @@ func (a *App) registerHandler() {
 	log.Infof("registerHandler: registered paths=[%s]", config_types.EventHandleMessageInject)
 }
 
-// 向客户端注入消息
+// HandleInjectMsg tiêm (inject) tin nhắn vào phía client
 func (a *App) HandleInjectMsg(ctx context.Context, eventType string, eventData map[string]interface{}) (string, error) {
 	type InjectMsg struct {
 		SkipLlm    bool   `json:"skip_llm"`
@@ -524,7 +524,7 @@ func (a *App) HandleInjectMsg(ctx context.Context, eventType string, eventData m
 		return "", fmt.Errorf("HandleInjectMsg error")
 	}
 
-	// 验证必要参数
+	// Kiểm tra các tham số bắt buộc
 	if msg.DeviceId == "" {
 		log.Errorf("HandleInjectMsg: device_id is required")
 		return "", fmt.Errorf("device_id is required")
@@ -534,7 +534,7 @@ func (a *App) HandleInjectMsg(ctx context.Context, eventType string, eventData m
 		return "", fmt.Errorf("message is required")
 	}
 
-	// 获取指定设备的ChatManager
+	// Lấy ChatManager của thiết bị được chỉ định
 	chatManager, exists := a.GetChatManager(msg.DeviceId)
 	if !exists {
 		log.Errorf("HandleInjectMsg: device %s not found or offline", msg.DeviceId)
@@ -549,7 +549,7 @@ func (a *App) HandleInjectMsg(ctx context.Context, eventType string, eventData m
 	log.Debugf("HandleInjectMsg: injecting message to device %s, skip_llm: %v, auto_listen: %v, message: %s",
 		msg.DeviceId, msg.SkipLlm, autoListen, msg.Message)
 
-	// 使用ChatManager的公开方法注入消息
+	// Sử dụng phương thức công khai (public method) của ChatManager để tiêm tin nhắn
 	err = chatManager.InjectMessage(msg.Message, msg.SkipLlm, autoListen)
 	if err != nil {
 		log.Errorf("HandleInjectMsg: failed to inject message to device %s: %v", msg.DeviceId, err)

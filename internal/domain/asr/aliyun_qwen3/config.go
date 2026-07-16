@@ -19,7 +19,7 @@ const (
 	defaultTimeoutSeconds = 30
 )
 
-// Config 阿里云 Qwen3 ASR 配置
+// Cấu hình Alibaba Cloud Qwen3 ASR
 type Config struct {
 	APIKey        string
 	WsURL         string
@@ -33,7 +33,7 @@ type Config struct {
 	Timeout       time.Duration
 }
 
-// DefaultConfig 返回默认配置
+// DefaultConfig trả về cấu hình mặc định.
 func DefaultConfig() Config {
 	return Config{
 		WsURL:        defaultWsURL,
@@ -48,21 +48,21 @@ func DefaultConfig() Config {
 	}
 }
 
-// ConfigFromMap 从配置 map 合并生成配置（支持配置文件 + 内控系统）
+// ConfigFromMap tạo ra các cấu hình bằng cách hợp nhất các bản đồ cấu hình (hỗ trợ các tệp cấu hình + hệ thống điều khiển nội bộ).
 func ConfigFromMap(cfg map[string]interface{}) Config {
 	conf := DefaultConfig()
 
-	// 先合并配置文件中的默认值
+	// Trước tiên, hãy hợp nhất các giá trị mặc định trong tệp cấu hình.
 	applyViperDefaults(&conf)
 
-	// 兼容老格式：若传入 { aliyun_qwen3: { ... } }，则优先取内部 map
+	// Để duy trì khả năng tương thích với các định dạng cũ hơn: Nếu `{ aliyun_qwen3: { ... } }` được truyền vào, map nội bộ sẽ được sử dụng trước.
 	if nested, ok := cfg["aliyun_qwen3"].(map[string]interface{}); ok {
 		cfg = nested
 	}
 
 	applyMapOverrides(&conf, cfg)
 
-	// api_key 允许为空时回退环境变量
+	// Nếu api_key trống, nó có thể được khôi phục về biến môi trường.
 	if conf.APIKey == "" {
 		conf.APIKey = os.Getenv("DASHSCOPE_API_KEY")
 	}

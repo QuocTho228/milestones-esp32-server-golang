@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-// CheckMCPConfig 检查MCP配置并报告潜在问题
+// CheckMCPConfig kiểm tra cấu hình MCP và báo cáo các sự cố tiềm ẩn.
 func CheckMCPConfig() {
 	log.Info("=== Kiểm tra cấu hình MCP ===")
 
-	// 检查全局启用状态
+	// Kiểm tra trạng thái kích hoạt toàn cục
 	globalEnabled := viper.GetBool("mcp.global.enabled")
 	log.Infof("Trạng thái kích hoạt MCP toàn cục: %v", globalEnabled)
 
@@ -23,12 +23,12 @@ func CheckMCPConfig() {
 		return
 	}
 
-	// 检查重连配置
+	// Kiểm tra cấu hình kết nối lại
 	reconnectInterval := viper.GetInt("mcp.global.reconnect_interval")
 	maxAttempts := viper.GetInt("mcp.global.max_reconnect_attempts")
 	log.Infof("Cấu hình kết nối lại: Khoảng thời gian = %d giây, Số lần thử tối đa = %d", reconnectInterval, maxAttempts)
 
-	// 检查服务器配置
+	// Kiểm tra cấu hình máy chủ
 	var serverConfigs []MCPServerConfig
 	if err := viper.UnmarshalKey("mcp.global.servers", &serverConfigs); err != nil {
 		log.Errorf("❌ Cấu hình máy chủ MCP không thành công: %v", err)
@@ -49,7 +49,7 @@ func CheckMCPConfig() {
 		status := "✅"
 		issues := []string{}
 
-		// 检查名称
+		// Kiểm tra tên
 		if config.Name == "" {
 			status = "❌"
 			issues = append(issues, "Tên trống")
@@ -73,12 +73,12 @@ func CheckMCPConfig() {
 			}
 		}
 
-		// 检查启用状态
+		// Kiểm tra trạng thái kích hoạt
 		if config.Enabled {
 			enabledCount++
 		}
 
-		// 输出检查结果
+		// Kết quả kiểm tra đầu ra
 		issueStr := ""
 		if len(issues) > 0 {
 			issueStr = fmt.Sprintf(" - Câu hỏi: %s", strings.Join(issues, ", "))
@@ -88,7 +88,7 @@ func CheckMCPConfig() {
 			i+1, status, config.Name, endpointForLog(config), config.Enabled, issueStr)
 	}
 
-	// 总结
+	// Tóm tắt
 	log.Infof("Kiểm tra cấu hình hoàn tất: %d máy chủ đã được kích hoạt, %d máy chủ gặp sự cố.", enabledCount, problemCount)
 
 	if problemCount > 0 {

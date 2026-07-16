@@ -1,28 +1,28 @@
 package domain
 
-// 消息类型常量
+// Hằng số kiểu thông báo
 const (
-	MessageTypeHello  = "hello"  // 握手消息
-	MessageTypeAbort  = "abort"  // 中止消息
-	MessageTypeListen = "listen" // 监听消息
-	MessageTypeIot    = "iot"    // 物联网消息
+	MessageTypeHello  = "hello"  // Thông báo handshake
+	MessageTypeAbort  = "abort"  // Thông báo tạm ngừng hoạt động
+	MessageTypeListen = "listen" // Thông báo lắng nghe
+	MessageTypeIot    = "iot"    // Thông báo IoT
 )
 
-// 服务器消息类型常量
+// Hằng số kiểu thông báo máy chủ
 const (
-	ServerMessageTypeHello = "hello" // 握手消息
-	ServerMessageTypeStt   = "stt"   // 语音转文本
-	ServerMessageTypeTts   = "tts"   // 文本转语音
-	ServerMessageTypeIot   = "iot"   // 物联网消息
-	ServerMessageTypeLlm   = "llm"   // 大语言模型
-	ServerMessageTypeText  = "text"  // 文本消息
+	ServerMessageTypeHello = "hello" // Thông báo handshake
+	ServerMessageTypeStt   = "stt"   // Thông báo chuyển đổi giọng nói thành văn bản
+	ServerMessageTypeTts   = "tts"   // Thông báo chuyển đổi văn bản thành giọng nói
+	ServerMessageTypeIot   = "iot"   // Thông báo IoT
+	ServerMessageTypeLlm   = "llm"   // Thông báo mô hình ngôn ngữ lớn
+	ServerMessageTypeText  = "text"  // Thông báo văn bản
 )
 
-// 消息状态常量
+// Hằng số trạng thái tin nhắn
 const (
-	MessageStateStart   = "start"   // 开始状态
-	MessageStateStop    = "stop"    // 停止状态
-	MessageStateDetect  = "detect"  // 检测状态
-	MessageStateAbort   = "abort"   // 中止状态
-	MessageStateSuccess = "success" // 成功状态
+	MessageStateStart   = "start"   // Trạng thái bắt đầu
+	MessageStateStop    = "stop"    // Trạng thái dừng
+	MessageStateDetect  = "detect"  // Trạng thái phát hiện
+	MessageStateAbort   = "abort"   // Trạng thái tạm ngừng
+	MessageStateSuccess = "success" // Trạng thái thành công
 )

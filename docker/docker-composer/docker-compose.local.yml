@@ -1,15 +1,15 @@
-version: "3.8"
+version: '3.8'
 
 services:
   # Dịch vụ cơ sở dữ liệu MySQL
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.39
     container_name: milestones-mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: milestones_admin
     ports:
-      - "23306:3306" # Không cần ánh xạ cũng được
+      - '23306:3306' # Không cần ánh xạ cũng được
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --skip-ssl
@@ -17,20 +17,7 @@ services:
       - milestones-network
     restart: unless-stopped
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mysql",
-          "-h",
-          "localhost",
-          "-P",
-          "3306",
-          "-u",
-          "root",
-          "-ppassword",
-          "-e",
-          "SELECT 1",
-        ]
+      test: ['CMD', 'mysql', '-h', 'localhost', '-P', '3306', '-u', 'root', '-ppassword', '-e', 'SELECT 1']
       timeout: 5s
       retries: 3
       interval: 10s
@@ -41,7 +28,7 @@ services:
     image: redis:7-alpine
     container_name: milestones-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     networks:
       - milestones-network
     restart: unless-stopped
@@ -55,16 +42,11 @@ services:
       args:
         TARGETARCH: amd64
     container_name: milestones-main-server
-    command:
-      [
-        "/workspace/bin/milestones_server",
-        "-c",
-        "/workspace/config/config.personal.yaml",
-      ]
+    command: ['/workspace/bin/milestones_server', '-c', '/workspace/config/config.personal.yaml']
     ports:
-      - "8989:8989" # Cổng WebSocket
-      - "2883:2883" # Cổng MQTT server
-      - "8888:8888/udp" # Cổng UDP server
+      - '8989:8989' # Cổng WebSocket
+      - '2883:2883' # Cổng MQTT server
+      - '8888:8888/udp' # Cổng UDP server
     depends_on:
       mysql:
         condition: service_healthy
@@ -95,7 +77,7 @@ services:
       dockerfile: Dockerfile
     container_name: milestones-backend
     ports:
-      - "8081:8080" # Cổng backend quản lý
+      - '8081:8080' # Cổng backend quản lý
     depends_on:
       mysql:
         condition: service_healthy
@@ -118,7 +100,7 @@ services:
       dockerfile: Dockerfile
     container_name: milestones-frontend
     ports:
-      - "8080:80" # Cổng frontend quản lý
+      - '8080:80' # Cổng frontend quản lý
     depends_on:
       - backend
     networks:

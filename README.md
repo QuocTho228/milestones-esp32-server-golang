@@ -21,7 +21,7 @@ milestones-esp32-server-golang là một dịch vụ backend AI hiệu năng cao
 - 🤖 **Tích hợp năng lực AI đa engine**: Dựa trên framework Eino, hỗ trợ nhiều engine như FunASR, tương thích OpenAI, Ollama, Doubao, EdgeTTS, CosyVoice...
 - 🧩 **Kiến trúc module hóa, dễ mở rộng**: Các module lõi VAD/ASR/LLM/TTS/MCP/thị giác... độc lập và có thể cắm-rút (pluggable)
 - 🎵 **MCP Audio Server**: Lấy tài nguyên âm thanh theo trang (pagination) và xử lý streaming, phát nhạc và điều khiển âm lượng
-- 🦞 **Tích hợp agent OpenClaw**: Sinh endpoint OpenClaw riêng theo từng agent, hỗ trợ xem trạng thái kết nối, kiểm thử phiên (session), định tuyến theo từ khóa vào/ra (mặc định là "打开龙虾/进入龙虾" để bật và "关闭龙虾/退出龙虾" để tắt)
+- 🦞 **Tích hợp agent OpenClaw**: Sinh endpoint OpenClaw riêng theo từng agent, hỗ trợ xem trạng thái kết nối, kiểm thử phiên (session), định tuyến theo từ khóa
 - 🖥️ **Bảng điều khiển quản trị Web đầy đủ tính năng**: Trình hướng dẫn cấu hình trực quan, kiểm thử khả dụng toàn chuỗi VAD/ASR/LLM/TTS, quản lý thiết bị và tiêm tin nhắn, giám sát độ trễ thời gian thực và xác thực OTA
 - 🧠 **Tính năng nghiệp vụ nâng cao**: Tổng hợp và nhập MCP Marketplace, nhân bản giọng nói (voice clone), knowledge base (Dify/RAGFlow/WeKnora), debug gọi MCP từ xa theo chiều thiết bị/agent
 - 📦 **Giải pháp triển khai một-cú-nhấp dễ dùng**: Gói aio đã biên dịch sẵn, dùng ngay (chương trình chính + control panel + dịch vụ vân giọng), triển khai Docker một-cú-nhấp, hỗ trợ biên dịch cục bộ trên Linux/Windows/macOS
