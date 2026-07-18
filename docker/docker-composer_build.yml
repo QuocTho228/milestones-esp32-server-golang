@@ -62,6 +62,7 @@ services:
       - ../logs:/workspace/logs
     networks:
       - milestones-network
+      - shared-rag-network
     restart: unless-stopped
 
   # Dịch vụ quản lý backend
@@ -85,6 +86,7 @@ services:
       - ../manager/backend/config:/root/config
     networks:
       - milestones-network
+      - shared-rag-network
     restart: unless-stopped
 
   # Dịch vụ quản lý frontend
@@ -164,3 +166,5 @@ volumes:
 networks:
   milestones-network:
     driver: bridge
+  shared-rag-network:
+    external: true

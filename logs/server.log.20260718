@@ -1,0 +1,486 @@
+[36mINFO[0m[0000] Initializing config system with provider: manager  [36mcaller[0m="config_init.go:35"
+[36mINFO[0m[0000] Initializing Manager config provider with WebSocket client  [36mcaller[0m="websocket_client.go:1219"
+[37mDEBU[0m[0000] Máy khách WebSocket được kết nối với: ws://backend:8080/ws  [37mcaller[0m="websocket_client.go:165"
+[36mINFO[0m[0000] Manager config provider initialized successfully  [36mcaller[0m="websocket_client.go:1230"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 2 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 0 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[37mDEBU[0m[0000] Đã nhận được cấu hình thành công              [37mcaller[0m="config.go:230"
+[37mDEBU[0m[0000] Luồng xử lý WebSocket của trình quản lý 1 đã được khởi tạo.  [37mcaller[0m="websocket_client.go:348"
+[36mINFO[0m[0000] Cập nhật cấu hình định kỳ đã được bắt đầu, khoảng thời gian cập nhật: 5m0s  [36mcaller[0m="config.go:115"
+[36mINFO[0m[0000] Đang bắt đầu khởi tạo mô-đun VAD...           [36mcaller[0m="config.go:288"
+[36mINFO[0m[0000] Nhà cung cấp VAD: ten_vad                     [36mcaller[0m="config.go:290"
+[36mINFO[0m[0000] Mô-đun VAD sẽ sử dụng chế độ tải chậm và tự động khởi tạo trong lần sử dụng đầu tiên  [36mcaller[0m="config.go:293"
+2026-07-18 08:54:47.727[36m [info] [once.go:78] [0mKhởi tạo máy khách Redis thành công.
+2026-07-18 08:54:47.728[36m [info] [main.go:57] [0mDịch vụ pprof bị vô hiệu hóa
+2026-07-18 08:54:47.729[36m [info] [udp_server.go:64] [0mMáy chủ UDP đã khởi động trong 0.0.0.0:8990
+2026-07-18 08:54:47.730[36m [info] [app.go:62] [0menter Run, mqtt_server.enable: true
+2026-07-18 08:54:47.732[36m [info] [local_mcp_tool.go:31] [0mKhởi tạo các công cụ MCP cục bộ liên quan đến trò chuyện...
+2026-07-18 08:54:47.731[36m [info] [manager.go:47] [0m=== Khởi động cụm MCP Manager ===
+2026-07-18 08:54:47.734[36m [info] [manager.go:50] [0mKhởi chạy trình quản lý MCP cục bộ...
+2026-07-18 08:54:47.734[36m [info] [mqtt_server.go:84] [0mMáy chủ MQTT khởi động và lắng nghe trên địa chỉ 0.0.0.0:2883...
+2026-07-18 08:54:47.733[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: search_knowledge - 当用户问题需要事实依据、流程规则、参数细节、文档条款时，检索当前智能体关联知识库并返回相关片段；可选传 knowledge_base_ids 仅查指定知识库；闲聊或纯创作场景不要调用
+2026-07-18 08:54:47.732[36m [info] [mqtt_udp_adapter.go:184] [0mMqttUdpAdapter khởi động và kết nối với máy chủ MQTT trong nền. Broker=127.0.0.1:2883 ClientID=milestones_server
+2026-07-18 08:54:47.735[36m [info] [local_manager.go:172] [0mNgười quản lý MCP cục bộ đã bắt đầu
+2026-07-18 08:54:47.739[36m [info] [manager.go:57] [0mKhởi chạy trình quản lý MCP toàn cục...
+2026-07-18 08:54:47.738[36m [info] [mqtt_udp_adapter.go:211] [0mĐã kết nối MQTT
+2026-07-18 08:54:47.740[36m [info] [config_checker.go:15] [0m=== Kiểm tra cấu hình MCP ===
+2026-07-18 08:54:47.741[36m [info] [device_hook.go:136] [0m=== Đã nhận được gói đăng ký ===
+2026-07-18 08:54:47.743[36m [info] [device_hook.go:137] [0mID khách hàng: milestones_server
+2026-07-18 08:54:47.737[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: exit_conversation - 当用户明确表示要结束对话、退出系统或告别时使用，用于优雅地关闭当前聊天会话
+2026-07-18 08:54:47.744[36m [info] [device_hook.go:138] [0mLoại gói: 8
+2026-07-18 08:54:47.747[36m [info] [device_hook.go:139] [0mID gói: 1
+2026-07-18 08:54:47.746[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: clear_conversation_history - 当用户要求清空、清除或重置历史对话记录时使用，用于清空当前会话的所有历史对话内容
+2026-07-18 08:54:47.742[36m [info] [config_checker.go:19] [0mTrạng thái kích hoạt MCP toàn cục: true
+2026-07-18 08:54:47.756[36m [info] [config_checker.go:29] [0mCấu hình kết nối lại: Khoảng thời gian = 300 giây, Số lần thử tối đa = 10
+2026-07-18 08:54:47.755[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: switch_device_role - 当用户要求把当前设备切换到某个角色时使用，参数 role_name 支持模糊匹配（会在全局角色和该设备所属用户角色中匹配）
+2026-07-18 08:54:47.758[36m [info] [local_manager.go:69] [0mĐã đăng ký thành công các công cụ cục bộ: restore_device_default_role - 当用户要求恢复设备默认角色、取消当前设备角色覆盖时使用
+2026-07-18 08:54:47.757[36m [info] [config_checker.go:43] [0mTổng cộng có 5 máy chủ MCP đã được cấu hình:
+2026-07-18 08:54:47.760[36m [info] [config_checker.go:87] [0m  [1] ✅ Utilities (URL: http://mcp-utilities:8080/mcp, cho phép: true)
+2026-07-18 08:54:47.750[36m [info] [device_hook.go:142] [0mThông tin đăng ký:
+2026-07-18 08:54:47.762[36m [info] [device_hook.go:144] [0m  1. chủ đề: /p2p/device_public/#, QoS: 0
+2026-07-18 08:54:47.763[36m [info] [device_hook.go:148] [0m==================
+2026-07-18 08:54:47.759[36m [info] [local_mcp_tool.go:94] [0mCác công cụ MCP cục bộ liên quan đến trò chuyện đã được khởi tạo.
+2026-07-18 08:54:47.764[36m [info] [app.go:470] [0mCác công cụ MCP cục bộ liên quan đến trò chuyện đã được đăng ký.
+2026-07-18 08:54:47.765[36m [info] [app.go:501] [0mregisterHandler: config_provider.type=manager
+2026-07-18 08:54:47.761[36m [info] [config_checker.go:87] [0m  [2] ✅ Wikipedia (URL: http://mcp-wikipedia:8080/mcp, cho phép: true)
+2026-07-18 08:54:47.766[36m [info] [config_checker.go:87] [0m  [3] ✅ VietNam_Provinces (URL: http://mcp-provinces:8080/mcp, cho phép: true)
+2026-07-18 08:54:47.767[36m [info] [config_checker.go:87] [0m  [4] ✅ Landmarks (URL: http://mcp-landmarks:8080/mcp, cho phép: false)
+2026-07-18 08:54:47.766[36m [info] [app.go:508] [0mregisterHandler: registered paths=[/api/device/inject_msg]
+2026-07-18 08:54:47.769[36m [info] [event_handle.go:56] [0mQuá trình khởi tạo UnifiedWorkerPool đã hoàn tất, đang khởi chạy 16 goroutine worker (có khả năng xử lý nhiều topic).
+2026-07-18 08:54:47.770[36m [info] [event_handle.go:65] [0mUnifiedWorkerPool: đăng ký bộ xử lý topic [session_end]
+2026-07-18 08:54:47.768[36m [info] [config_checker.go:87] [0m  [5] ✅ Proverbs (URL: http://mcp-proverbs:8080/mcp, cho phép: false)
+2026-07-18 08:54:47.772[36m [info] [config_checker.go:92] [0mKiểm tra cấu hình hoàn tất: 3 máy chủ đã được kích hoạt, 0 máy chủ gặp sự cố.
+2026-07-18 08:54:47.773[36m [info] [config_checker.go:98] [0m=== Kiểm tra cấu hình MCP đã hoàn tất ===
+2026-07-18 08:54:47.771[36m [info] [event_handle.go:65] [0mUnifiedWorkerPool: đăng ký bộ xử lý topic [exit_chat]
+2026-07-18 08:54:47.775[36m [info] [event_handle.go:283] [0mQuá trình khởi tạo EventHandle đã hoàn tất (nhiều chủ đề được xử lý bằng một nhóm worker thống nhất; quá trình xử lý Redis đã được chuyển sang MessageWorker).
+2026-07-18 08:54:47.775[36m [info] [message_handle.go:81] [0mQuá trình khởi tạo MessageWorker hoàn tất, bắt đầu 16 goroutine worker (để xử lý Redis+MemoryProvider+History một cách đồng nhất).
+2026-07-18 08:54:47.776[36m [info] [app.go:114] [0mĐã khởi tạo trình xử lý tin nhắn
+2026-07-18 08:54:47.777[36m [info] [manager.go:319] [0mGiám sát thống kê nhóm tài nguyên đã được bắt đầu và số liệu thống kê được xuất ra nhật ký mỗi 5m0s
+2026-07-18 08:54:47.774[36m [info] [global_manage.go:129] [0m5 cấu hình máy chủ MCP đã được đọc từ cấu hình
+2026-07-18 08:54:47.779[36m [info] [global_manage.go:133] [0mMáy chủ MCP[1]: Type=streamablehttp, Name=Utilities, Url=http://mcp-utilities:8080/mcp, SSEUrl=, Enabled=true
+2026-07-18 08:54:47.778[36m [info] [reporter.go:54] [0mTrình báo cáo thống kê nhóm tài nguyên đã được khởi tạo，backend_url=http://backend:8080, enabled=true
+2026-07-18 08:54:47.781[36m [info] [global_manage.go:133] [0mMáy chủ MCP[2]: Type=streamablehttp, Name=Wikipedia, Url=http://mcp-wikipedia:8080/mcp, SSEUrl=, Enabled=true
+2026-07-18 08:54:47.783[36m [info] [global_manage.go:133] [0mMáy chủ MCP[3]: Type=streamablehttp, Name=VietNam_Provinces, Url=http://mcp-provinces:8080/mcp, SSEUrl=, Enabled=true
+2026-07-18 08:54:47.784[36m [info] [global_manage.go:133] [0mMáy chủ MCP[4]: Type=streamablehttp, Name=Landmarks, Url=http://mcp-landmarks:8080/mcp, SSEUrl=, Enabled=false
+2026-07-18 08:54:47.784[36m [info] [global_manage.go:133] [0mMáy chủ MCP[5]: Type=streamablehttp, Name=Proverbs, Url=http://mcp-proverbs:8080/mcp, SSEUrl=, Enabled=false
+2026-07-18 08:54:47.785[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Utilities (URL: http://mcp-utilities:8080/mcp)
+2026-07-18 08:54:47.786[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Utilities, streamablehttp URL: http://mcp-utilities:8080/mcp
+2026-07-18 08:54:47.787[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Utilities
+2026-07-18 08:54:47.787[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Utilities
+2026-07-18 08:54:47.794[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Utilities, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:<nil> Prompts:0xc00001337a Resources:0xc00001337c Tools:0xc00001337e} ServerInfo:{Name:Utilities Version:1.28.1} Instructions:}
+2026-07-18 08:54:47.798[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 08:54:47.800[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Utilities
+2026-07-18 08:54:47.801[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Utilities
+2026-07-18 08:54:47.802[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: Wikipedia (URL: http://mcp-wikipedia:8080/mcp)
+2026-07-18 08:54:47.803[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: Wikipedia, streamablehttp URL: http://mcp-wikipedia:8080/mcp
+2026-07-18 08:54:47.803[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: Wikipedia
+2026-07-18 08:54:47.804[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: Wikipedia
+2026-07-18 08:54:47.812[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: Wikipedia, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:0x1db4a00 Prompts:0xc0008022a8 Resources:0xc0008022aa Tools:0xc0008022ac} ServerInfo:{Name:Wikipedia Version:3.4.4} Instructions:}
+2026-07-18 08:54:47.854[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 08:54:47.855[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: Wikipedia
+2026-07-18 08:54:47.856[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: Wikipedia
+2026-07-18 08:54:47.857[36m [info] [global_manage.go:222] [0mĐang kết nối với máy chủ MCP: VietNam_Provinces (URL: http://mcp-provinces:8080/mcp)
+2026-07-18 08:54:47.858[36m [info] [global_manage.go:283] [0mBắt đầu kết nối với máy chủ MCP: VietNam_Provinces, streamablehttp URL: http://mcp-provinces:8080/mcp
+2026-07-18 08:54:47.860[36m [info] [global_manage.go:292] [0mMáy khách MCP đã khởi động thành công: VietNam_Provinces
+2026-07-18 08:54:47.860[36m [info] [global_manage.go:308] [0mĐang khởi tạo máy chủ MCP: VietNam_Provinces
+2026-07-18 08:54:47.869[36m [info] [global_manage.go:316] [0mKhởi tạo máy chủ MCP thành công: VietNam_Provinces, kết quả: &{Result:{Meta:map[]} ProtocolVersion:2025-06-18 Capabilities:{Experimental:map[] Logging:<nil> Prompts:0xc00080239a Resources:0xc00080239c Tools:0xc00080239e} ServerInfo:{Name:VietnamProvinces Version:1.28.1} Instructions:}
+2026-07-18 08:54:47.874[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 08:54:47.875[36m [info] [global_manage.go:331] [0mĐã thiết lập kết nối máy chủ MCP: VietNam_Provinces
+2026-07-18 08:54:47.876[36m [info] [global_manage.go:238] [0mĐã kết nối với máy chủ MCP: VietNam_Provinces
+2026-07-18 08:54:47.877[36m [info] [global_manage.go:147] [0mMáy chủ MCP Landmarks bị tắt, bỏ qua kết nối
+2026-07-18 08:54:47.878[36m [info] [global_manage.go:147] [0mMáy chủ MCP Proverbs bị tắt, bỏ qua kết nối
+2026-07-18 08:54:47.879[36m [info] [global_manage.go:151] [0mĐã kết nối thành công với máy chủ 3 MCP
+2026-07-18 08:54:47.879[36m [info] [global_manage.go:156] [0mTrình quản lý MCP toàn cục đã bắt đầu
+2026-07-18 08:54:47.880[36m [info] [manager.go:64] [0mTrình quản lý MCP của thiết bị sẽ tự động tạo thiết bị dựa trên kết nối.
+2026-07-18 08:54:47.881[36m [info] [manager.go:67] [0m=== Quá trình khởi động cụm MCP Manager hoàn tất ===
+2026-07-18 08:54:47.882[36m [info] [manager.go:130] [0mThống kê khởi động trình quản lý MCP:
+2026-07-18 08:54:47.883[36m [info] [manager.go:131] [0m  - Số lượng công cụ cục bộ: 6
+2026-07-18 08:54:47.884[36m [info] [manager.go:132] [0m  - Số lượng công cụ toàn cục: 32
+2026-07-18 08:54:47.885[36m [info] [manager.go:133] [0m  - Quản lý thiết bị: Quản lý động
+2026-07-18 08:54:47.886[36m [info] [manager.go:134] [0m  - Tổng số lượng công cụ: 38
+2026-07-18 08:54:47.888[36m [info] [websocket_server.go:119] [0mMáy chủ WebSocket khởi động trong ws://0.0.0.0:8989/milestones/v1/
+2026-07-18 08:54:47.888[36m [info] [websocket_server.go:120] [0mĐiểm cuối WebSocket MCP: ws://0.0.0.0:8989/mcp?token=xxx
+2026-07-18 08:54:47.889[36m [info] [websocket_server.go:121] [0mĐiểm cuối WebSocket OpenClaw: ws://0.0.0.0:8989/ws/openclaw?token=xxx
+2026-07-18 08:54:47.890[36m [info] [websocket_server.go:122] [0mĐiểm cuối MCP API: http://0.0.0.0:8989/milestones/api/mcp/tools/{deviceId}
+2026-07-18 08:55:17.693[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:55:17.693[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:55:47.691[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:55:47.691[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:56:17.690[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:56:17.691[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:56:47.689[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:56:47.689[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:56:47.881[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 08:56:47.882[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 08:56:47.892[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 08:57:10.417[37m [debug] [config.go:164] [0m[SystemConfigEqual] kết quả: true (ha=3920514005298457187 hb=3920514005298457187), a: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp] map[allowed_tools:[get_legacy_province_mapping get_province_info get_provinces_merged_into list_provinces list_wards_in_province search_ward] enabled:true name:VietNam_Provinces type:streamablehttp url:http://mcp-provinces:8080/mcp] map[allowed_tools:[get_landmark_info get_wiki_summary list_heritage_sites_by_province search_heritage_sites search_wikipedia] enabled:false name:Landmarks type:streamablehttp url:http://mcp-landmarks:8080/mcp] map[allowed_tools:[explain_proverb list_themes random_proverb search_by_keyword search_by_theme] enabled:false name:Proverbs type:streamablehttp url:http://mcp-proverbs:8080/mcp]]]], b: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp] map[allowed_tools:[get_legacy_province_mapping get_province_info get_provinces_merged_into list_provinces list_wards_in_province search_ward] enabled:true name:VietNam_Provinces type:streamablehttp url:http://mcp-provinces:8080/mcp] map[allowed_tools:[get_landmark_info get_wiki_summary list_heritage_sites_by_province search_heritage_sites search_wikipedia] enabled:false name:Landmarks type:streamablehttp url:http://mcp-landmarks:8080/mcp] map[allowed_tools:[explain_proverb list_themes random_proverb search_by_keyword search_by_theme] enabled:false name:Proverbs type:streamablehttp url:http://mcp-proverbs:8080/mcp]]]]
+2026-07-18 08:57:10.419[36m [info] [config.go:144] [0mCấu hình hệ thống đã hợp nhất được đẩy từ WebSocket sang viper
+2026-07-18 08:57:17.687[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:57:17.688[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:57:47.686[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:57:47.687[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:58:17.684[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:58:17.685[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:58:47.682[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:58:47.683[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:58:47.882[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 08:58:47.882[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 08:58:47.896[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 08:59:17.680[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:59:17.681[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:59:47.679[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 08:59:47.679[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 08:59:47.705[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 08:59:47.763[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 08:59:47.766[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 08:59:47
+2026-07-18 08:59:47.769[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 08:59:47.773[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:00:17.677[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:00:17.677[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:00:47.673[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:00:47.674[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:00:47.871[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:00:47.872[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:00:47.874[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:01:17.671[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:01:17.671[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:01:47.669[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:01:47.670[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:02:17.667[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:02:17.667[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:02:47.664[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:02:47.664[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:02:47.862[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:02:47.862[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:02:47.873[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:03:17.662[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:03:17.662[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:03:47.659[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:03:47.660[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:04:17.657[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:04:17.657[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:04:47.655[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:04:47.655[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:04:47.677[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:04:47.739[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:04:47.740[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:04:47
+2026-07-18 09:04:47.743[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:04:47.747[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:04:47.867[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:04:47.871[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:04:47.883[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:05:17.652[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:05:17.653[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:05:47.650[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:05:47.650[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:06:09.135[37m [debug] [config.go:164] [0m[SystemConfigEqual] kết quả: true (ha=3920514005298457187 hb=3920514005298457187), a: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp] map[allowed_tools:[get_legacy_province_mapping get_province_info get_provinces_merged_into list_provinces list_wards_in_province search_ward] enabled:true name:VietNam_Provinces type:streamablehttp url:http://mcp-provinces:8080/mcp] map[allowed_tools:[get_landmark_info get_wiki_summary list_heritage_sites_by_province search_heritage_sites search_wikipedia] enabled:false name:Landmarks type:streamablehttp url:http://mcp-landmarks:8080/mcp] map[allowed_tools:[explain_proverb list_themes random_proverb search_by_keyword search_by_theme] enabled:false name:Proverbs type:streamablehttp url:http://mcp-proverbs:8080/mcp]]]], b: map[global:map[enabled:true max_reconnect_attempts:10 reconnect_interval:300 servers:[map[allowed_tools:[calculate convert_time convert_unit get_air_quality get_air_quality_details get_current_datetime get_current_time get_current_weather get_timezone_info get_weather get_weather_byDateTimeRange get_weather_details] enabled:true name:Utilities type:streamablehttp url:http://mcp-utilities:8080/mcp] map[allowed_tools:[extract_key_facts get_article get_coordinates get_links get_related_topics get_sections get_summary search_wikipedia summarize_article_for_query summarize_article_section wikipedia_test_wikipedia_connectivity wikipedia_summarize_article_section wikipedia_summarize_article_for_query wikipedia_search_wikipedia wikipedia_get_summary wikipedia_get_sections wikipedia_get_related_topics wikipedia_get_links wikipedia_get_coordinates wikipedia_get_article wikipedia_extract_key_facts test_wikipedia_connectivity] enabled:true name:Wikipedia type:streamablehttp url:http://mcp-wikipedia:8080/mcp] map[allowed_tools:[get_legacy_province_mapping get_province_info get_provinces_merged_into list_provinces list_wards_in_province search_ward] enabled:true name:VietNam_Provinces type:streamablehttp url:http://mcp-provinces:8080/mcp] map[allowed_tools:[get_landmark_info get_wiki_summary list_heritage_sites_by_province search_heritage_sites search_wikipedia] enabled:false name:Landmarks type:streamablehttp url:http://mcp-landmarks:8080/mcp] map[allowed_tools:[explain_proverb list_themes random_proverb search_by_keyword search_by_theme] enabled:false name:Proverbs type:streamablehttp url:http://mcp-proverbs:8080/mcp]]]]
+2026-07-18 09:06:09.137[36m [info] [config.go:144] [0mCấu hình hệ thống đã hợp nhất được đẩy từ WebSocket sang viper
+2026-07-18 09:06:17.646[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:06:17.646[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:06:47.645[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:06:47.646[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:06:47.848[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:06:47.853[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:06:47.870[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:07:17.641[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:07:17.642[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:07:47.641[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:07:47.641[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:08:17.639[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:08:17.639[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:08:47.638[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:08:47.639[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:08:47.853[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:08:47.853[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:08:47.865[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:09:17.637[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:09:17.637[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:09:47.635[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:09:47.635[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:09:47.654[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:09:47.719[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:09:47.721[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:09:47
+2026-07-18 09:09:47.723[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:09:47.725[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:10:17.634[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:10:17.635[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:10:47.631[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:10:47.632[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:10:47.824[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:10:47.824[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:10:47.828[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:11:17.628[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:11:17.628[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:11:47.628[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:11:47.628[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:12:17.625[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:12:17.626[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:12:47.623[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:12:47.624[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:12:47.818[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:12:47.819[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:12:47.827[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:13:17.620[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:13:17.620[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:13:47.616[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:13:47.619[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:14:17.614[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:14:17.615[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:14:47.610[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:14:47.610[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:14:47.630[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:14:47.694[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:14:47.698[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:14:47
+2026-07-18 09:14:47.700[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:14:47.704[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:14:47.801[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:14:47.801[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:14:47.804[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:15:17.607[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:15:17.608[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:15:47.605[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:15:47.605[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:16:17.603[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:16:17.603[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:16:47.599[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:16:47.600[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:16:47.794[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:16:47.798[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:16:47.804[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:17:17.597[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:17:17.597[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:17:47.593[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:17:47.594[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:18:17.590[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:18:17.591[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:18:47.587[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:18:47.587[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:18:47.781[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:18:47.781[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:18:47.788[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:19:17.585[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:19:17.586[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:19:47.582[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:19:47.582[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:19:47.602[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:19:47.666[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:19:47.668[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:19:47
+2026-07-18 09:19:47.670[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:19:47.672[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:20:17.579[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:20:17.580[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:20:47.577[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:20:47.577[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:20:47.775[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:20:47.778[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:20:47.784[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:21:17.575[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:21:17.575[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:21:47.571[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:21:47.572[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:22:17.568[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:22:17.569[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:22:47.565[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:22:47.566[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:22:47.774[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:22:47.776[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:22:47.789[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:23:17.563[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:23:17.563[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:23:47.560[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:23:47.561[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:24:17.558[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:24:17.558[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:24:47.554[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:24:47.555[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:24:47.579[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:24:47.639[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:24:47.641[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:24:47
+2026-07-18 09:24:47.643[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:24:47.644[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:24:47.753[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:24:47.754[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:24:47.764[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:25:17.551[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:25:17.552[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:25:47.547[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:25:47.547[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:26:17.545[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:26:17.547[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:26:47.542[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:26:47.542[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:26:47.750[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:26:47.750[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:26:47.767[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:27:17.538[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:27:17.539[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:27:47.536[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:27:47.536[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:28:17.532[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:28:17.532[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:28:47.530[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:28:47.530[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:28:47.728[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:28:47.732[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:28:47.735[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:29:17.526[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:29:17.526[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:29:47.523[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:29:47.523[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:29:47.543[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:29:47.607[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:29:47.612[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:29:47
+2026-07-18 09:29:47.613[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:29:47.615[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:30:17.520[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:30:17.520[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:30:47.517[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:30:47.517[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:30:47.716[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:30:47.719[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:30:47.730[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:31:17.514[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:31:17.514[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:31:47.511[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:31:47.512[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:32:17.509[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:32:17.509[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:32:47.506[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:32:47.506[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:32:47.704[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:32:47.704[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:32:47.716[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:33:17.502[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:33:17.503[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:33:47.500[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:33:47.500[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:34:17.496[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:34:17.496[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:34:47.494[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:34:47.494[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:34:47.518[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:34:47.578[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:34:47.582[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:34:47
+2026-07-18 09:34:47.585[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:34:47.587[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:34:47.705[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:34:47.708[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:34:47.720[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:35:17.490[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:35:17.490[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:35:47.487[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:35:47.487[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:36:17.484[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:36:17.485[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:36:47.482[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:36:47.489[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:36:47.671[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:36:47.674[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:36:47.679[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:37:17.479[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:37:17.479[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:37:47.473[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:37:47.474[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:38:17.472[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:38:17.472[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:38:47.469[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:38:47.470[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:38:47.673[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:38:47.673[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:38:47.678[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:39:17.465[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:39:17.465[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:39:47.463[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:39:47.463[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:39:47.491[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:39:47.547[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:39:47.549[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:39:47
+2026-07-18 09:39:47.551[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:39:47.555[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:40:17.460[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:40:17.460[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:40:47.457[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:40:47.457[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:40:47.654[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:40:47.657[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:40:47.664[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:41:17.456[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:41:17.457[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:41:47.450[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:41:47.451[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:42:17.447[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:42:17.448[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:42:47.444[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:42:47.444[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:42:47.647[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:42:47.648[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:42:47.657[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:43:17.441[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:43:17.442[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:43:47.438[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:43:47.438[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:44:17.435[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:44:17.435[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:44:47.432[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:44:47.432[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:44:47.459[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:44:47.517[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:44:47.520[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:44:47
+2026-07-18 09:44:47.523[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:44:47.527[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:44:47.645[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:44:47.645[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:44:47.657[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:45:17.428[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:45:17.428[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:45:47.427[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:45:47.427[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:46:17.423[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:46:17.423[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:46:36.257[37m [debug] [websocket_client.go:725] [0mĐã nhận được yêu cầu: ID=1f6ffcc3-a289-4912-9db4-f62571226b76, Method=GET, Path=/api/mcp/status
+2026-07-18 09:46:36.258[37m [debug] [websocket_client.go:959] [0mĐã gửi phản hồi: ID=1f6ffcc3-a289-4912-9db4-f62571226b76, Status=200
+2026-07-18 09:46:47.418[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:46:47.419[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:46:47.610[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:46:47.611[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:46:47.614[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:47:17.416[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:47:17.417[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:47:47.412[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:47:47.412[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:48:17.410[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:48:17.411[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:48:47.407[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:48:47.407[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:48:47.606[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:48:47.606[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:48:47.613[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:49:17.403[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:49:17.403[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:49:47.399[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:49:47.399[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:49:47.420[37m [debug] [config.go:230] [0mĐã nhận được cấu hình thành công
+2026-07-18 09:49:47.483[36m [info] [manager.go:311] [0m========== Thống kê nhóm tài nguyên toàn cục ==========
+2026-07-18 09:49:47.489[36m [info] [manager.go:312] [0mThời gian thống kê: 2026-07-18 09:49:47
+2026-07-18 09:49:47.493[36m [info] [manager.go:313] [0mHiện tại không có nhóm tài nguyên hoạt động
+2026-07-18 09:49:47.495[36m [info] [manager.go:314] [0m========================================
+2026-07-18 09:50:17.397[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:50:17.397[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:50:47.394[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:50:47.394[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:50:47.591[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:50:47.593[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:50:47.597[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:51:17.390[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:51:17.390[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:51:47.387[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:51:47.388[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:52:17.384[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:52:17.385[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:52:47.381[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:52:47.382[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong
+2026-07-18 09:52:47.580[36m [info] [global_manage.go:537] [0mDanh sách công cụ VietNam_Provinces của máy chủ MCP đã được cập nhật với tổng 6 công cụ
+2026-07-18 09:52:47.585[36m [info] [global_manage.go:537] [0mDanh sách công cụ Utilities của máy chủ MCP đã được cập nhật với tổng 4 công cụ
+2026-07-18 09:52:47.589[36m [info] [global_manage.go:537] [0mDanh sách công cụ Wikipedia của máy chủ MCP đã được cập nhật với tổng 22 công cụ
+2026-07-18 09:53:17.378[37m [debug] [websocket_client.go:409] [0mĐã gửi tin nhắn ping thành công
+2026-07-18 09:53:17.378[37m [debug] [websocket_client.go:152] [0mMáy khách WebSocket nhận được thông tin pong

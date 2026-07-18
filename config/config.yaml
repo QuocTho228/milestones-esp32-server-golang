@@ -402,7 +402,7 @@ local_mcp:
   exit_conversation: true # Cho phép thoát cuộc trò chuyện
   clear_conversation_history: true # Cho phép xóa lịch sử trò chuyện
 
-# Memory 长记忆配置
+# Memory
 memory:
   provider: 'nomemo' # Nhà cung cấp bộ nhớ: nomemo (không có bộ nhớ dài) llm (bộ nhớ đàm thoại ngắn hạn, dựa trên Redis) hoặc memobase (bộ nhớ dài hạn)
   # Cấu hình LLM Memory (bộ nhớ hội thoại ngắn hạn)
