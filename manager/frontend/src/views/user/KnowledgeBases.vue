@@ -7,14 +7,14 @@
     <el-table :data="items" v-loading="loading" stripe table-layout="fixed" style="width: 100%">
       <el-table-column prop="id" label="ID" width="56" />
       <el-table-column prop="name" label="Tên" width="124" show-overflow-tooltip />
-      <el-table-column label="Mô tả" min-width="180" show-overflow-tooltip>
+      <el-table-column label="Mô tả" min-width="150" show-overflow-tooltip>
         <template #default="scope">
           <span class="kb-desc-text" :class="{ 'is-empty': !(scope.row.description || '').trim() }">
             {{ (scope.row.description || '').trim() || '-' }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="Nhà cung cấp" width="88" show-overflow-tooltip>
+      <el-table-column label="Nhà cung cấp" width="110" show-overflow-tooltip>
         <template #default="scope">
           <el-tag size="small" effect="plain">{{ formatProviderText(scope.row.sync_provider) }}</el-tag>
         </template>
@@ -44,7 +44,7 @@
           <span>{{ formatDateTimeCell(scope.row.last_synced_at) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Trạng thái" width="92" align="center">
+      <el-table-column label="Trạng thái" width="100" align="center">
         <template #default="scope">
           <el-switch
             :model-value="String(scope.row.status || '').trim() === 'active'"
