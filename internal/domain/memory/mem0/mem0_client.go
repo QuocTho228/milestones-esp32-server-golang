@@ -13,7 +13,7 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// Mem0Client 实现 MemoryProvider 和 EnhancedMemoryProvider 接口
+// Mem0Client Triển khai interface MemoryProvider và EnhancedMemoryProvider
 type Mem0Client struct {
 	client          *client.MemoryClient
 	config          Mem0Config
@@ -23,7 +23,7 @@ type Mem0Client struct {
 	SearchTopk      int     `mapstructure:"search_topk"`
 }
 
-// Mem0Config 配置结构
+// Mem0Config Cấu trúc cấu hình
 type Mem0Config struct {
 	APIKey           string `mapstructure:"api_key"`
 	BaseUrl          string `mapstructure:"base_url"`
@@ -39,14 +39,14 @@ var (
 	configOnce   sync.Once
 )
 
-// GetMem0ClientWithConfig 使用配置获取 Mem0 客户端单例
+// GetMem0ClientWithConfig Sử dụng cấu hình để lấy singleton của Mem0 client
 func GetMem0ClientWithConfig(config map[string]interface{}) (*Mem0Client, error) {
 	var err error
 	configOnce.Do(func() {
 		var enableSearch bool = true
 		var searchThreshold float64 = 0.5
 		var searchTopk int = 3
-		// 解析配置到结构体
+		// Phân tích cấu hình vào struct
 		var mem0Cfg Mem0Config
 
 		if enableSearchInterface, exists := config["enable_search"]; exists {
@@ -67,38 +67,38 @@ func GetMem0ClientWithConfig(config map[string]interface{}) (*Mem0Client, error)
 			}
 		}
 
-		// 读取 API Key
+		// Đọc API Key
 		if apiKeyInterface, exists := config["api_key"]; exists {
 			if apiKey, ok := apiKeyInterface.(string); ok {
 				mem0Cfg.APIKey = apiKey
 			} else {
-				err = fmt.Errorf("mem0.api_key 必须是字符串")
+				err = fmt.Errorf("mem0.api_key phải là chuỗi (string)")
 				return
 			}
 		}
 
-		// 读取 Host
+		// Đọc Host
 		if hostInterface, exists := config["base_url"]; exists {
 			if host, ok := hostInterface.(string); ok {
 				mem0Cfg.BaseUrl = host
 			} else {
-				err = fmt.Errorf("mem0.host 必须是字符串")
+				err = fmt.Errorf("mem0.host phải là chuỗi (string)")
 				return
 			}
 		}
 
-		// 验证必要配置
+		// Xác thực cấu hình bắt buộc
 		if mem0Cfg.APIKey == "" {
-			err = fmt.Errorf("mem0.api_key 配置缺失或为空")
+			err = fmt.Errorf("thiếu cấu hình mem0.api_key hoặc để trống")
 			return
 		}
 
-		// 设置默认值
+		// Thiết lập giá trị mặc định
 		if mem0Cfg.BaseUrl == "" {
 			mem0Cfg.BaseUrl = "https://api.mem0.ai"
 		}
 
-		// 创建 mem0 客户端
+		// Tạo mem0 client
 		clientOptions := client.ClientOptions{
 			APIKey: mem0Cfg.APIKey,
 			/*Host:             mem0Cfg.Host,
@@ -122,27 +122,27 @@ func GetMem0ClientWithConfig(config map[string]interface{}) (*Mem0Client, error)
 			SearchTopk:      searchTopk,
 		}
 
-		log.Log().Infof("Mem0 客户端初始化成功, base_url: %s", mem0Cfg.BaseUrl)
+		log.Log().Infof("Khởi tạo Mem0 client thành công, base_url: %s", mem0Cfg.BaseUrl)
 	})
 
 	return mem0Instance, err
 }
 
-// Init 初始化客户端
+// Init Khởi tạo client
 func (m *Mem0Client) Init() error {
-	// 客户端已在创建时初始化
+	// Client đã được khởi tạo khi tạo mới
 	log.Log().Info("Mem0 client initialized successfully")
 	return nil
 }
 
-// Get 获取记忆（内部方法）
+// Get Lấy bộ nhớ (memory) (hàm nội bộ)
 func (m *Mem0Client) Get(userID string) (interface{}, error) {
-	// 搜索用户的所有记忆
+	// Tìm kiếm toàn bộ bộ nhớ của người dùng
 	results, err := m.client.Search("", &types.SearchOptions{
 		MemoryOptions: types.MemoryOptions{
 			UserID: userID,
 		},
-		Limit: 100, // 获取更多记忆
+		Limit: 100, // Lấy nhiều bộ nhớ hơn
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to search memories for user %s: %w", userID, err)
@@ -151,13 +151,13 @@ func (m *Mem0Client) Get(userID string) (interface{}, error) {
 	return results, nil
 }
 
-// AddMessage 添加消息到记忆
+// AddMessage Thêm tin nhắn vào bộ nhớ
 func (m *Mem0Client) AddMessage(ctx context.Context, agentID string, msg schema.Message) error {
 	message := types.Message{
 		Role:    string(msg.Role),
 		Content: msg.Content,
 	}
-	// 添加记忆
+	// Thêm bộ nhớ (memory)
 	_, err := m.client.Add([]types.Message{message}, types.MemoryOptions{
 		AgentID:   agentID,
 		AsyncMode: true,
@@ -170,7 +170,7 @@ func (m *Mem0Client) AddMessage(ctx context.Context, agentID string, msg schema.
 	return nil
 }
 
-// GetMessages 获取用户的消息历史
+// GetMessages Lấy lịch sử tin nhắn của người dùng
 func (m *Mem0Client) GetMessages(ctx context.Context, agentID string, count int) ([]*schema.Message, error) {
 	var memoryOptions = types.MemoryOptions{
 		AgentID: agentID,
@@ -184,11 +184,11 @@ func (m *Mem0Client) GetMessages(ctx context.Context, agentID string, count int)
 		return nil, fmt.Errorf("failed to get messages for user %s: %w", agentID, err)
 	}
 
-	// 转换为 schema.Message 格式
+	// Chuyển sang định dạng schema.Message
 	var messages []*schema.Message
 	for _, result := range results {
-		// 从 metadata 中提取 role 和 content
-		role := schema.Assistant // 默认角色
+		// Trích xuất role và content từ metadata
+		role := schema.Assistant // Vai trò mặc định
 		content := result.Memory
 
 		if result.Metadata != nil {
@@ -216,10 +216,10 @@ func (m *Mem0Client) GetMessages(ctx context.Context, agentID string, count int)
 	return messages, nil
 }
 
-// ResetMemory 重置用户记忆
+// ResetMemory Đặt lại (reset) bộ nhớ của người dùng
 func (m *Mem0Client) ResetMemory(ctx context.Context, userID string) error {
 
-	// 删除用户的所有记忆
+	// Xóa toàn bộ bộ nhớ của người dùng
 	err := m.client.DeleteUser(userID)
 	if err != nil {
 		return fmt.Errorf("failed to reset memory for user %s: %w", userID, err)
@@ -229,7 +229,7 @@ func (m *Mem0Client) ResetMemory(ctx context.Context, userID string) error {
 	return nil
 }
 
-// GetContext 获取上下文（实现 EnhancedMemoryProvider 接口）
+// GetContext Lấy context (triển khai interface EnhancedMemoryProvider)
 func (m *Mem0Client) GetContext(ctx context.Context, agentID string, maxToken int) (string, error) {
 	return "", nil
 }
@@ -248,7 +248,7 @@ func (m *Mem0Client) Search(ctx context.Context, agentId string, query string, t
 		return "", err
 	}
 
-	// 构建上下文字符串
+	// Xây dựng chuỗi context
 	var msgList []string
 	for _, result := range results {
 		msgList = append(msgList, fmt.Sprintf("- %s [%s]", result.Memory, result.CreatedAt))
@@ -262,33 +262,33 @@ func (m *Mem0Client) Flush(ctx context.Context, agentID string) error {
 }
 
 func (m *Mem0Client) actionSearch(ctx context.Context, agentID string, query string, topK int, threshold float64) ([]types.Memory, error) {
-	// 搜索相关记忆
+	// Tìm kiếm bộ nhớ liên quan
 	results, err := m.client.Search(query, &types.SearchOptions{
 		MemoryOptions: types.MemoryOptions{
 			AgentID: agentID,
 		},
-		Limit:     topK,      // 获取topK条记忆
-		Threshold: threshold, // 设置相似度阈值
+		Limit:     topK,      // Lấy topK bộ nhớ
+		Threshold: threshold, // Thiết lập ngưỡng độ tương đồng (similarity threshold)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get context for user %s: %w", agentID, err)
 	}
 
-	log.Log().Debugf("成功从mem0获取上下文, agentID: %s, results长度: %d", agentID, len(results))
+	log.Log().Debugf("Lấy context từ mem0 thành công, agentID: %s, độ dài results: %d", agentID, len(results))
 	return results, nil
 }
 
-// AddBatchMessages 批量添加消息
+// AddBatchMessages Thêm hàng loạt tin nhắn
 func (m *Mem0Client) AddBatchMessages(ctx context.Context, agentID string, messages []schema.Message) error {
 
-	// 准备批量消息
+	// Chuẩn bị các tin nhắn hàng loạt (batch)
 	var batchMessages []string
 	for _, msg := range messages {
 		message := fmt.Sprintf("%s: %s", msg.Role, msg.Content)
 		batchMessages = append(batchMessages, message)
 	}
 
-	// 逐个添加记忆（mem0-go 可能不支持批量添加）
+	// Thêm từng bộ nhớ một (mem0-go có thể không hỗ trợ thêm hàng loạt)
 	for _, message := range batchMessages {
 		_, err := m.client.Add(message, types.MemoryOptions{
 			AgentID: agentID,
@@ -306,13 +306,13 @@ func (m *Mem0Client) AddBatchMessages(ctx context.Context, agentID string, messa
 	return nil
 }
 
-// Close 关闭客户端
+// Close Đóng client
 func (m *Mem0Client) Close() error {
-	// mem0-go 客户端不需要显式关闭
+	// mem0-go client không cần đóng tường minh
 	log.Log().Info("Mem0 client closed")
 	return nil
 }
 
-// 确保 Mem0Client 实现了所需的接口
-// 注意：这里不能直接引用 memory 包，因为会造成循环导入
-// 接口实现会在编译时自动检查
+// Đảm bảo Mem0Client đã triển khai đầy đủ các interface cần thiết
+// Lưu ý: không thể import trực tiếp package memory ở đây, vì sẽ gây ra import vòng (circular import)
+// Việc triển khai interface sẽ được kiểm tra tự động khi biên dịch

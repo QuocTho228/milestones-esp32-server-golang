@@ -7,26 +7,26 @@ const (
 	doubaoStreamingPath       = "bigmodel_async"
 )
 
-// DoubaoV2Config 豆包ASR配置结构体
+// DoubaoV2Config struct cấu hình ASR Doubao
 type DoubaoV2Config struct {
-	AppID             string // 应用ID
-	AccessToken       string // 访问令牌
+	AppID             string // ID ứng dụng
+	AccessToken       string // Token truy cập
 	WsURL             string // WebSocket URL
-	ResourceID        string // 资源ID
-	ModelName         string // 模型名称
-	EndWindowSize     int    // 结束窗口大小
-	EnablePunc        bool   // 是否启用标点符号
-	EnableITN         bool   // 是否启用ITN
-	EnableDDC         bool   // 是否启用DDC
-	ResultType        string // 结果返回模式
-	ShowUtterances    bool   // 是否返回分句信息
-	ForceToSpeechTime int    // 强制转语音前的最短时长
-	EnableNonstream   bool   // 是否启用双向流式优化版
-	ChunkDuration     int    // 分块时长(毫秒)
-	Timeout           int    // 超时时间(秒)
+	ResourceID        string // ID tài nguyên
+	ModelName         string // Tên mô hình
+	EndWindowSize     int    // Kích thước cửa sổ kết thúc
+	EnablePunc        bool   // Có bật dấu câu (punctuation) hay không
+	EnableITN         bool   // Có bật ITN hay không
+	EnableDDC         bool   // Có bật DDC hay không
+	ResultType        string // Chế độ trả kết quả
+	ShowUtterances    bool   // Có trả về thông tin phân câu (utterance) hay không
+	ForceToSpeechTime int    // Thời lượng tối thiểu trước khi bắt buộc chuyển sang nhận dạng giọng nói
+	EnableNonstream   bool   // Có bật phiên bản tối ưu streaming hai chiều hay không
+	ChunkDuration     int    // Thời lượng mỗi chunk (mili giây)
+	Timeout           int    // Thời gian timeout (giây)
 }
 
-// DefaultConfig 默认配置
+// DefaultConfig cấu hình mặc định
 var DefaultConfig = DoubaoV2Config{
 	WsURL:             "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async",
 	ResourceID:        "volc.bigasr.sauc.duration",
@@ -50,7 +50,7 @@ func normalizeDoubaoWsURL(wsURL string) string {
 	return strings.ReplaceAll(wsURL, legacyDoubaoNonstreamPath, doubaoStreamingPath)
 }
 
-// DoubaoV2Request 豆包ASR请求结构体
+// DoubaoV2Request struct request ASR Doubao
 type DoubaoV2Request struct {
 	User struct {
 		UID string `json:"uid"`
@@ -75,7 +75,7 @@ type DoubaoV2Request struct {
 	} `json:"request"`
 }
 
-// DoubaoV2Response 豆包ASR响应结构体
+// DoubaoV2Response struct response ASR Doubao
 type DoubaoV2Response struct {
 	Code   int `json:"code"`
 	Result struct {

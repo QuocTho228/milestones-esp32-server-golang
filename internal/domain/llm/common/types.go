@@ -4,10 +4,10 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-// 请求与响应结构体
-// Message 表示对话消息
+// Các cấu trúc yêu cầu và phản hồi.
+// Message: Đại diện cho một tin nhắn trong cuộc hội thoại.
 
-// 响应类型常量
+// Các hằng số loại phản hồi.
 const (
 	ResponseTypeContent   = "content"
 	ResponseTypeToolCalls = "tool_calls"

@@ -24,7 +24,7 @@ const (
 	defaultKnowledgeSearchMaxParallel   = 8
 )
 
-// Search 按知识库 provider 分组检索并聚合排序。
+// Search nhóm các knowledge base theo provider, thực hiện truy vấn rồi tổng hợp và sắp xếp kết quả.
 func Search(
 	ctx context.Context,
 	query string,
@@ -34,7 +34,7 @@ func Search(
 ) ([]config_types.KnowledgeSearchHit, error) {
 	q := strings.TrimSpace(query)
 	if q == "" {
-		return nil, fmt.Errorf("query 不能为空")
+		return nil, fmt.Errorf("query không được để trống")
 	}
 	if topK <= 0 {
 		topK = defaultKnowledgeTopK
@@ -92,18 +92,18 @@ func Search(
 	for provider, providerKBs := range grouped {
 		searcher := getSearcher(provider)
 		if searcher == nil {
-			errs = append(errs, fmt.Sprintf("provider %s 暂不支持", provider))
+			errs = append(errs, fmt.Sprintf("provider %s hiện chưa được hỗ trợ", provider))
 			continue
 		}
 		providerConfig, ok := getProviderConfig(provider)
 		if !ok {
-			errs = append(errs, fmt.Sprintf("provider %s 缺少全局配置", provider))
+			errs = append(errs, fmt.Sprintf("provider %s thiếu cấu hình toàn cục", provider))
 			continue
 		}
 
 		providerHits, err := searcher.Search(totalCtx, q, topK, providerKBs, providerConfig)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("provider %s 检索失败: %v", provider, err))
+			errs = append(errs, fmt.Sprintf("provider %s truy vấn thất bại: %v", provider, err))
 			continue
 		}
 		successProviderCount++
@@ -125,7 +125,7 @@ func Search(
 	}
 
 	if len(errs) > 0 {
-		log.Warnf("知识库检索部分 provider 失败: %s", strings.Join(errs, "; "))
+		log.Warnf("Một số provider truy vấn cơ sở tri thức thất bại: %s", strings.Join(errs, "; "))
 	}
 	return hits, nil
 }

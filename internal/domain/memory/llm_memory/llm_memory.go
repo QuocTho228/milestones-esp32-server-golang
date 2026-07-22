@@ -22,14 +22,14 @@ var (
 	configOnce     sync.Once
 )
 
-// Memory 表示对话记忆体
+// Memory Đại diện cho bộ nhớ hội thoại (conversation memory)
 type Memory struct {
 	redisClient *redis.Client
 	keyPrefix   string
 	sync.RWMutex
 }
 
-// Get 获取记忆体实例
+// Get Lấy instance của bộ nhớ (memory)
 func Get() *Memory {
 	if memoryInstance == nil {
 		once.Do(func() {
@@ -44,51 +44,51 @@ func Get() *Memory {
 	return memoryInstance
 }
 
-// GetWithConfig 使用配置获取记忆体实例（单例模式）
+// GetWithConfig Sử dụng cấu hình để lấy instance của bộ nhớ (theo mô hình singleton)
 func GetWithConfig(config map[string]interface{}) (*Memory, error) {
 	var initErr error
 	configOnce.Do(func() {
-		// 从配置中读取 redis 相关配置
+		// Đọc cấu hình liên quan đến redis từ config
 		redisConfig, ok := config["redis"]
 		if !ok {
-			initErr = fmt.Errorf("redis 配置不存在")
+			initErr = fmt.Errorf("cấu hình redis không tồn tại")
 			return
 		}
 
 		redisConfigMap, ok := redisConfig.(map[string]interface{})
 		if !ok {
-			initErr = fmt.Errorf("redis 配置格式错误")
+			initErr = fmt.Errorf("định dạng cấu hình redis sai")
 			return
 		}
 
-		// 读取 key_prefix 配置
+		// Đọc cấu hình key_prefix
 		var keyPrefix string
 		if keyPrefixInterface, exists := redisConfigMap["key_prefix"]; exists {
 			if kp, ok := keyPrefixInterface.(string); ok {
 				keyPrefix = kp
 			} else {
-				initErr = fmt.Errorf("redis.key_prefix 必须是字符串")
+				initErr = fmt.Errorf("redis.key_prefix phải là chuỗi (string)")
 				return
 			}
 		} else {
-			keyPrefix = "milestones:" // 默认值
+			keyPrefix = "milestones:" // Giá trị mặc định
 		}
 
-		// 获取 Redis 客户端（这里仍然使用现有的 Redis 客户端获取方式）
-		// 因为 Redis 客户端的初始化比较复杂，暂时保持现有方式
+		// Lấy Redis client (ở đây vẫn dùng cách lấy Redis client hiện có)
+		// Vì việc khởi tạo Redis client khá phức tạp, nên tạm thời giữ nguyên cách làm hiện tại
 		redisClient := i_redis.GetClient()
 		if redisClient == nil {
-			initErr = fmt.Errorf("无法获取 Redis 客户端")
+			initErr = fmt.Errorf("không thể lấy được Redis client")
 			return
 		}
 
-		// 创建 LLM 记忆实例
+		// Tạo instance bộ nhớ LLM
 		memoryInstance = &Memory{
 			redisClient: redisClient,
 			keyPrefix:   keyPrefix,
 		}
 
-		log.Log().Infof("LLM 记忆初始化成功, key_prefix: %s", keyPrefix)
+		log.Log().Infof("Khởi tạo bộ nhớ LLM thành công, key_prefix: %s", keyPrefix)
 	})
 
 	if initErr != nil {
@@ -97,66 +97,66 @@ func GetWithConfig(config map[string]interface{}) (*Memory, error) {
 	return memoryInstance, nil
 }
 
-// NewWithConfig 使用配置创建新的LLM记忆实例
+// NewWithConfig Sử dụng cấu hình để tạo mới instance bộ nhớ LLM
 func NewWithConfig(config map[string]interface{}) (*Memory, error) {
-	// 从配置中读取 redis 相关配置
+	// Đọc cấu hình liên quan đến redis từ config
 	redisConfig, ok := config["redis"]
 	if !ok {
-		return nil, fmt.Errorf("redis 配置不存在")
+		return nil, fmt.Errorf("cấu hình redis không tồn tại")
 	}
 
 	redisConfigMap, ok := redisConfig.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("redis 配置格式错误")
+		return nil, fmt.Errorf("định dạng cấu hình redis sai")
 	}
 
-	// 读取 key_prefix 配置
+	// Đọc cấu hình key_prefix
 	var keyPrefix string
 	if keyPrefixInterface, exists := redisConfigMap["key_prefix"]; exists {
 		if kp, ok := keyPrefixInterface.(string); ok {
 			keyPrefix = kp
 		} else {
-			return nil, fmt.Errorf("redis.key_prefix 必须是字符串")
+			return nil, fmt.Errorf("redis.key_prefix phải là chuỗi (string)")
 		}
 	} else {
-		keyPrefix = "milestones:" // 默认值
+		keyPrefix = "milestones:" // Giá trị mặc định
 	}
 
-	// 获取 Redis 客户端（这里仍然使用现有的 Redis 客户端获取方式）
-	// 因为 Redis 客户端的初始化比较复杂，暂时保持现有方式
+	// Lấy Redis client (ở đây vẫn dùng cách lấy Redis client hiện có)
+	// Vì việc khởi tạo Redis client khá phức tạp, nên tạm thời giữ nguyên cách làm hiện tại
 	redisClient := i_redis.GetClient()
 	if redisClient == nil {
-		return nil, fmt.Errorf("无法获取 Redis 客户端")
+		return nil, fmt.Errorf("không thể lấy được Redis client")
 	}
 
-	// 创建 LLM 记忆实例
+	// Tạo instance bộ nhớ LLM
 	llmMemory := &Memory{
 		redisClient: redisClient,
 		keyPrefix:   keyPrefix,
 	}
 
-	log.Log().Infof("LLM 记忆初始化成功, key_prefix: %s", keyPrefix)
+	log.Log().Infof("Khởi tạo bộ nhớ LLM thành công, key_prefix: %s", keyPrefix)
 	return llmMemory, nil
 }
 
-// NewMemory 创建新的记忆体实例（仅用于测试）
+// NewMemory Tạo mới instance bộ nhớ (chỉ dùng cho việc kiểm thử)
 func NewMemory(redisClient *redis.Client) *Memory {
 	return &Memory{
 		redisClient: redisClient,
 	}
 }
 
-// getMemoryKey 生成设备对应的 Redis key
+// getMemoryKey Sinh Redis key tương ứng với thiết bị
 func (m *Memory) getMemoryKey(deviceID string) string {
 	return fmt.Sprintf("%s:llm:%s", m.keyPrefix, deviceID)
 }
 
-// getSystemPromptKey 生成设备对应的系统 prompt 的 Redis key
+// getSystemPromptKey Sinh Redis key tương ứng với system prompt của thiết bị
 func (m *Memory) getSystemPromptKey(deviceID string) string {
 	return fmt.Sprintf("%s:llm:system:%s", m.keyPrefix, deviceID)
 }
 
-// AddMessage 添加一条新的对话消息到记忆体
+// AddMessage Thêm một tin nhắn hội thoại mới vào bộ nhớ
 func (m *Memory) AddMessage(ctx context.Context, deviceID string, agentID string, msg schema.Message) error {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -169,11 +169,11 @@ func (m *Memory) AddMessage(ctx context.Context, deviceID string, agentID string
 	}
 
 	key := m.getMemoryKey(deviceID)
-	// 使用纳秒时间戳作为分数
-	// ZREVRANGE 会返回分数从大到小的结果
+	// Sử dụng timestamp theo nano giây làm điểm số (score)
+	// ZREVRANGE sẽ trả về kết quả có điểm số từ lớn đến nhỏ
 	score := float64(time.Now().UnixNano())
 
-	log.Debugf("添加消息到记忆体: %s, %s", key, string(msgBytes))
+	log.Debugf("Thêm tin nhắn vào bộ nhớ: %s, %s", key, string(msgBytes))
 
 	return m.redisClient.ZAdd(ctx, key, redis.Z{
 		Score:  score,
@@ -181,7 +181,7 @@ func (m *Memory) AddMessage(ctx context.Context, deviceID string, agentID string
 	}).Err()
 }
 
-// GetMessages 获取设备的所有对话记忆
+// GetMessages Lấy toàn bộ bộ nhớ hội thoại của thiết bị
 func (m *Memory) GetMessages(ctx context.Context, deviceID string, agentID string, count int) ([]*schema.Message, error) {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -194,15 +194,15 @@ func (m *Memory) GetMessages(ctx context.Context, deviceID string, agentID strin
 		count = 10
 	}
 
-	// 使用 ZREVRANGE 获取最新的 N 条消息
-	// 分数（时间戳）大的在前，所以需要反转顺序以保证旧消息在前
+	// Sử dụng ZREVRANGE để lấy N tin nhắn mới nhất
+	// Điểm số (timestamp) lớn nằm trước, nên cần đảo ngược thứ tự để đảm bảo tin nhắn cũ nằm trước
 	startIndex := int64(-(count))
 	results, err := m.redisClient.ZRange(ctx, key, startIndex, -1).Result()
 	if err != nil {
 		return nil, fmt.Errorf("get messages failed: %w", err)
 	}
 
-	// 预分配切片
+	// Cấp phát trước slice
 	messages := make([]*schema.Message, 0)
 
 	for i := 0; i < len(results); i++ {
@@ -217,14 +217,14 @@ func (m *Memory) GetMessages(ctx context.Context, deviceID string, agentID strin
 	return messages, nil
 }
 
-// GetMessagesForLLM 获取适用于 LLM 的消息格式
+// GetMessagesForLLM Lấy định dạng tin nhắn phù hợp để dùng cho LLM
 func (m *Memory) GetMessagesForLLM(ctx context.Context, deviceID string, count int) ([]*schema.Message, error) {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
 		return []*schema.Message{}, nil
 	}
 
-	// 获取历史消息（已经是按时间顺序：旧->新）
+	// Lấy tin nhắn lịch sử (đã theo thứ tự thời gian: cũ -> mới)
 	memoryMessages, err := m.GetMessages(ctx, deviceID, "", count)
 	if err != nil {
 		return nil, err
@@ -233,7 +233,7 @@ func (m *Memory) GetMessagesForLLM(ctx context.Context, deviceID string, count i
 	return memoryMessages, nil
 }
 
-// SetSystemPrompt 设置或更新设备的系统 prompt
+// SetSystemPrompt Thiết lập hoặc cập nhật system prompt cho thiết bị
 func (m *Memory) SetSystemPrompt(ctx context.Context, deviceID string, prompt string) error {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -244,7 +244,7 @@ func (m *Memory) SetSystemPrompt(ctx context.Context, deviceID string, prompt st
 	return m.redisClient.Set(ctx, key, prompt, 0).Err()
 }
 
-// GetSystemPrompt 获取设备的系统 prompt
+// GetSystemPrompt Lấy system prompt của thiết bị
 func (m *Memory) GetSystemPrompt(ctx context.Context, deviceID string) (schema.Message, error) {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -255,7 +255,7 @@ func (m *Memory) GetSystemPrompt(ctx context.Context, deviceID string) (schema.M
 
 	result, err := m.redisClient.Get(ctx, key).Result()
 	if err == redis.Nil {
-		return schema.Message{}, nil // 返回空消息结构
+		return schema.Message{}, nil // Trả về cấu trúc tin nhắn rỗng
 	}
 	if err != nil {
 		return schema.Message{}, fmt.Errorf("get system prompt failed: %w", err)
@@ -267,14 +267,14 @@ func (m *Memory) GetSystemPrompt(ctx context.Context, deviceID string) (schema.M
 	}, nil
 }
 
-// ResetMemory 重置设备的对话记忆（包括系统 prompt）
+// ResetMemory Đặt lại (reset) bộ nhớ hội thoại của thiết bị (bao gồm cả system prompt)
 func (m *Memory) ResetMemory(ctx context.Context, deviceID string) error {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
 		return nil
 	}
 
-	// 删除对话历史
+	// Xóa lịch sử hội thoại
 	historyKey := m.getMemoryKey(deviceID)
 	if err := m.redisClient.Del(ctx, historyKey).Err(); err != nil {
 		return fmt.Errorf("delete history failed: %w", err)
@@ -283,7 +283,7 @@ func (m *Memory) ResetMemory(ctx context.Context, deviceID string) error {
 	return nil
 }
 
-// GetLastNMessages 获取最近的 N 条消息
+// GetLastNMessages Lấy N tin nhắn gần nhất
 func (m *Memory) GetLastNMessages(ctx context.Context, deviceID string, n int64) ([]schema.Message, error) {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -292,14 +292,14 @@ func (m *Memory) GetLastNMessages(ctx context.Context, deviceID string, n int64)
 
 	key := m.getMemoryKey(deviceID)
 
-	// 获取最后 N 条消息
+	// Lấy N tin nhắn cuối cùng
 	results, err := m.redisClient.ZRevRange(ctx, key, 0, n-1).Result()
 	if err != nil {
 		return nil, fmt.Errorf("get last messages failed: %w", err)
 	}
 
 	messages := make([]schema.Message, 0, len(results))
-	for i := len(results) - 1; i >= 0; i-- { // 反转顺序以保持时间顺序
+	for i := len(results) - 1; i >= 0; i-- { // Đảo ngược thứ tự để giữ đúng thứ tự thời gian
 		var msg schema.Message
 		if err := json.Unmarshal([]byte(results[i]), &msg); err != nil {
 			return nil, fmt.Errorf("unmarshal message failed: %w", err)
@@ -310,7 +310,7 @@ func (m *Memory) GetLastNMessages(ctx context.Context, deviceID string, n int64)
 	return messages, nil
 }
 
-// RemoveOldMessages 删除指定时间之前的消息
+// RemoveOldMessages Xóa các tin nhắn trước một thời điểm chỉ định
 func (m *Memory) RemoveOldMessages(ctx context.Context, deviceID string, before time.Time) error {
 	if m.redisClient == nil {
 		log.Log().Warn("redis client is nil")
@@ -323,17 +323,17 @@ func (m *Memory) RemoveOldMessages(ctx context.Context, deviceID string, before 
 	return m.redisClient.ZRemRangeByScore(ctx, key, "-inf", fmt.Sprintf("%f", score)).Err()
 }
 
-// Summary 获取对话的摘要
+// Summary Lấy bản tóm tắt (summary) của hội thoại
 func (m *Memory) GetSummary(ctx context.Context, deviceID string) (string, error) {
 	return "", nil
 }
 
-// SetSummary 设置对话的摘要
+// SetSummary Thiết lập bản tóm tắt (summary) của hội thoại
 func (m *Memory) SetSummary(ctx context.Context, deviceID string, summary string) error {
 	return nil
 }
 
-// 进行总结
+// Thực hiện tóm tắt (summarization)
 func (m *Memory) Summary(ctx context.Context, deviceID string, msgList []schema.Message) (string, error) {
 	return "", nil
 }

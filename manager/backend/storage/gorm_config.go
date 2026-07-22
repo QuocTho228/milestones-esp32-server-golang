@@ -6,19 +6,19 @@ import (
 	"milestones/manager/backend/models"
 )
 
-// GormConfigStorage 通用GORM配置存储实现
+// GormConfigStorage triển khai lưu trữ cấu hình dùng chung bằng GORM
 type GormConfigStorage struct {
 	db *gorm.DB
 }
 
-// NewGormConfigStorage 创建GORM配置存储实例
+// NewGormConfigStorage tạo mới instance lưu trữ cấu hình bằng GORM
 func NewGormConfigStorage(db *gorm.DB) *GormConfigStorage {
 	return &GormConfigStorage{
 		db: db,
 	}
 }
 
-// 通用配置操作方法
+// Các phương thức thao tác cấu hình dùng chung
 func (s *GormConfigStorage) CreateConfig(ctx context.Context, config *models.Config) error {
 	return s.db.WithContext(ctx).Create(config).Error
 }
@@ -69,18 +69,18 @@ func (s *GormConfigStorage) DeleteConfig(ctx context.Context, id uint) error {
 }
 
 func (s *GormConfigStorage) SetDefaultConfig(ctx context.Context, configType string, id uint) error {
-	// 开启事务
+	// Mở transaction (giao dịch)
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 先将该类型的所有配置设为非默认
+		// Đầu tiên đặt tất cả cấu hình cùng loại này thành không mặc định
 		if err := tx.Model(&models.Config{}).Where("type = ?", configType).Update("is_default", false).Error; err != nil {
 			return err
 		}
-		// 再将指定配置设为默认
+		// Sau đó đặt cấu hình được chỉ định thành mặc định
 		return tx.Model(&models.Config{}).Where("id = ?", id).Update("is_default", true).Error
 	})
 }
 
-// 全局角色配置相关方法
+// Các phương thức liên quan đến cấu hình vai trò toàn cục (global role)
 func (s *GormConfigStorage) CreateGlobalRole(ctx context.Context, role *models.GlobalRole) error {
 	return s.db.WithContext(ctx).Create(role).Error
 }

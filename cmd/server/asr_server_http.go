@@ -16,20 +16,20 @@ const (
 )
 
 var (
-	asrHTTPServer *http.Server // 本进程内嵌的 asr_server HTTP 服务句柄，用于优雅关闭
+	asrHTTPServer *http.Server // Handle của dịch vụ HTTP asr_server được nhúng trong tiến trình này, dùng để tắt (shutdown) một cách an toàn
 )
 
-// StartAsrServerHTTP 在本进程内启动 asr_server 的 HTTP 服务（独立端口）。是否调用由 main 根据 -asr-enable 决定。
-// configPath：asr_server 配置文件路径，空则使用默认路径 asr_server/config.json
+// StartAsrServerHTTP khởi động dịch vụ HTTP của asr_server ngay trong tiến trình này (cổng riêng biệt). Việc có gọi hàm này hay không do main quyết định dựa trên tham số -asr-enable.
+// configPath: đường dẫn tệp cấu hình của asr_server, nếu để trống sẽ dùng đường dẫn mặc định asr_server/config.json
 func StartAsrServerHTTP(configPath string) {
 	if configPath == "" {
 		configPath = defaultAsrServerConfigPath
 	}
-	log.Infof("正在启动内嵌 asr_server HTTP 服务，配置文件: %s", configPath)
+	log.Infof("Đang khởi động dịch vụ HTTP asr_server được nhúng sẵn, tệp cấu hình: %s", configPath)
 
 	handler, addr, readTimeout, err := server.Setup(configPath)
 	if err != nil {
-		log.Warnf("asr_server 初始化失败，跳过启动: %v", err)
+		log.Warnf("Khởi tạo asr_server thất bại, bỏ qua việc khởi động: %v", err)
 		return
 	}
 
@@ -40,22 +40,22 @@ func StartAsrServerHTTP(configPath string) {
 	}
 
 	go func() {
-		log.Infof("asr_server HTTP 服务启动在 %s", addr)
+		log.Infof("Dịch vụ HTTP asr_server đã khởi động tại %s", addr)
 		if err := asrHTTPServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("asr_server HTTP 服务异常退出: %v", err)
+			log.Errorf("Dịch vụ HTTP asr_server thoát bất thường: %v", err)
 		}
 	}()
 }
 
-// StopAsrServerHTTP 优雅关闭本进程内嵌的 asr_server HTTP 服务
+// StopAsrServerHTTP tắt (shutdown) một cách an toàn dịch vụ HTTP asr_server được nhúng trong tiến trình này
 func StopAsrServerHTTP() {
 	if asrHTTPServer != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := asrHTTPServer.Shutdown(ctx); err != nil {
-			log.Warnf("asr_server HTTP 关闭超时或异常: %v", err)
+			log.Warnf("Đóng dịch vụ HTTP asr_server bị timeout hoặc gặp lỗi: %v", err)
 		}
 		asrHTTPServer = nil
-		log.Info("asr_server HTTP 服务已关闭")
+		log.Info("Dịch vụ HTTP asr_server đã được đóng")
 	}
 }

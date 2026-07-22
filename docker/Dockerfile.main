@@ -1,11 +1,11 @@
-# 构建阶段（仅支持 amd64/x64 架构）
+# Giai đoạn build (chỉ hỗ trợ kiến trúc amd64/x64)
 # syntax=docker/dockerfile:1
 FROM --platform=linux/amd64 golang:1.24.4 AS builder
 
-# 设置非交互式安装环境变量
+# Thiết lập biến môi trường để cài đặt ở chế độ không tương tác (non-interactive)
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安装构建依赖
+# Cài đặt các dependency cần thiết để build
 RUN apt-get update && apt-get install -y \
     libopus-dev \
     libopusfile-dev \
@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y \
     libc++abi-dev \
     g++
 
-# 复制 onnxruntime 库文件（仅 x64）
+# Sao chép tệp thư viện onnxruntime (chỉ x64)
 COPY docker/lib/onnxruntime-linux-x64-1.21.0.tgz /tmp/
 
-# 安装ONNX Runtime（x64架构）
+# Cài đặt ONNX Runtime (kiến trúc x64)
 RUN echo "Installing ONNX Runtime for x64 architecture" && \
     cd /tmp && \
     if [ ! -f "onnxruntime-linux-x64-1.21.0.tgz" ]; then \
@@ -49,39 +49,39 @@ RUN echo "Installing ONNX Runtime for x64 architecture" && \
     rm -rf /tmp/onnxruntime* && \
     (ldconfig 2>&1 || echo "Warning: ldconfig failed, but continuing...")
 
-# 设置Go环境变量
+# Thiết lập biến môi trường cho Go
 ENV ONNXRUNTIME_DIR=/usr/local
 ENV CGO_CFLAGS="-I${ONNXRUNTIME_DIR}/include/onnxruntime" 
 ENV CGO_LDFLAGS="-L${ONNXRUNTIME_DIR}/lib -lonnxruntime"
 ENV GOPROXY=https://goproxy.cn,direct
 ENV CGO_ENABLED=1
 
-# 创建工作目录并复制源代码
+# Tạo thư mục làm việc và sao chép mã nguồn
 WORKDIR /app
-# 先复制 lib 目录（包含 ten-vad 的头文件和库文件，cgo 编译时需要）
+# Sao chép thư mục lib trước (chứa header và thư viện của ten-vad, cần thiết khi biên dịch cgo)
 COPY lib ./lib
 COPY . .
 
-# 校验 asr_server 子模块内容已带入构建上下文（CI 需 checkout 使用 submodules: recursive）
-RUN test -f asr_server/server/setup.go || (echo "ERROR: asr_server 子模块内容缺失，构建上下文中无 voice_server/server 包。CI 请确保 checkout 使用 submodules: recursive。" && exit 1)
+# Kiểm tra nội dung submodule asr_server đã được đưa vào build context (CI cần checkout với submodules: recursive)
+RUN test -f asr_server/server/setup.go || (echo "ERROR: Thiếu nội dung submodule asr_server, build context không có package voice_server/server. CI cần đảm bảo checkout với submodules: recursive." && exit 1)
 
-# 下载Go模块
+# Tải các module Go
 RUN go mod tidy
 
-# 设置 CGO 链接库路径（用于 ten-vad）
+# Thiết lập đường dẫn thư viện liên kết CGO (dùng cho ten-vad)
 ENV CGO_LDFLAGS="-L${ONNXRUNTIME_DIR}/lib -lonnxruntime -L/app/lib/ten-vad/lib/Linux/x64"
 ENV CGO_CFLAGS="-I${ONNXRUNTIME_DIR}/include/onnxruntime -I/app/lib/ten-vad/include"
 
-# 构建主程序
+# Build chương trình chính
 RUN go build -o /app/milestones_server ./cmd/server/
 
-# 运行阶段（仅支持 amd64/x64 架构）
+# Giai đoạn chạy (chỉ hỗ trợ kiến trúc amd64/x64)
 FROM --platform=linux/amd64 ubuntu:22.04
 
-# 设置非交互式安装环境变量
+# Thiết lập biến môi trường để cài đặt ở chế độ không tương tác (non-interactive)
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安装运行时依赖（最小化安装）
+# Cài đặt các dependency thời gian chạy (cài đặt tối giản)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libopus0 \
     libopusfile0 \
@@ -90,10 +90,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制 onnxruntime 库文件（仅 x64）
+# Sao chép tệp thư viện onnxruntime (chỉ x64)
 COPY docker/lib/onnxruntime-linux-x64-1.21.0.tgz /tmp/
 
-# 安装ONNX Runtime运行时（x64架构）
+# Cài đặt runtime của ONNX Runtime (kiến trúc x64)
 RUN echo "Installing ONNX Runtime for x64 architecture" && \
     cd /tmp && \
     if [ ! -f "onnxruntime-linux-x64-1.21.0.tgz" ]; then \
@@ -125,27 +125,27 @@ RUN echo "Installing ONNX Runtime for x64 architecture" && \
     rm -rf /tmp/onnxruntime* && \
     (ldconfig 2>&1 || echo "Warning: ldconfig failed, but continuing...")
 
-# 设置ONNX Runtime环境变量
+# Thiết lập biến môi trường cho ONNX Runtime
 ENV ONNXRUNTIME_DIR=/usr/local
 ENV CGO_CFLAGS="-I${ONNXRUNTIME_DIR}/include/onnxruntime" 
 ENV CGO_LDFLAGS="-L${ONNXRUNTIME_DIR}/lib -lonnxruntime"
 
-# 设置工作目录
+# Thiết lập thư mục làm việc
 WORKDIR /workspace
 
-# 从构建阶段复制编译后的二进制文件
+# Sao chép tệp nhị phân đã biên dịch từ giai đoạn build
 COPY --from=builder /app/milestones_server /workspace/bin/milestones_server
-# 复制 lib 目录（包含 ten-vad 运行时库）
+# Sao chép thư mục lib (chứa thư viện runtime của ten-vad)
 COPY --from=builder /app/lib /workspace/lib
 
-# 创建必要的目录
+# Tạo các thư mục cần thiết
 RUN mkdir -p /workspace/logs /workspace/config
 
-# 设置运行时库路径（用于 ten-vad）
+# Thiết lập đường dẫn thư viện runtime (dùng cho ten-vad)
 ENV LD_LIBRARY_PATH=/workspace/lib:/workspace/lib/ten-vad/lib/Linux/x64
 
-# 暴露端口: http/websocket:8989, udp:8990, mqtt: 1883,2883,8883
+# Mở các cổng: http/websocket:8989, udp:8990, mqtt: 1883,2883,8883
 EXPOSE 8989 8990 1883 2883 8883
 
-# 启动命令
+# Lệnh khởi động
 CMD ["bin/milestones_server", "-c", "config/config.yaml"]

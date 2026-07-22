@@ -20,7 +20,7 @@ var (
 	serverMu      sync.Mutex
 )
 
-// StartMqttServer 启动 MQTT 服务器（可被 StopMqttServer 后再次调用以热更）
+// StartMqttServer: Khởi động máy chủ MQTT (có thể được gọi lại sau khi StopMqttServer để cập nhật nóng).
 func StartMqttServer() error {
 	serverMu.Lock()
 	defer serverMu.Unlock()
@@ -83,7 +83,8 @@ func StartMqttServer() error {
 	currentServer = srv
 	log.Infof("Máy chủ MQTT khởi động và lắng nghe trên địa chỉ %s...", address)
 	go func() {
-		// Serve() 在库内启动 listener 协程后即返回，不会阻塞，故不在此处清 currentServer
+		// Serve() sẽ trả về ngay sau khi khởi động goroutine listener trong thư viện, không chặn luồng thực thi.
+		// Vì vậy, không đặt currentServer về nil tại đây.
 		if err := srv.Serve(); err != nil {
 			log.Warnf("Thoát MQTT Server Serve: %v", err)
 		}
@@ -91,7 +92,7 @@ func StartMqttServer() error {
 	return nil
 }
 
-// StopMqttServer 停止当前 MQTT 服务器，便于热更后重新 StartMqttServer
+// StopMqttServer: Dừng máy chủ MQTT hiện tại để có thể khởi động lại bằng StartMqttServer sau khi cập nhật nóng.
 func StopMqttServer() error {
 	log.Infof("enter StopMqttServer ")
 	defer log.Infof("exit StopMqttServer ")
@@ -101,7 +102,7 @@ func StopMqttServer() error {
 	if srv == nil {
 		return nil
 	}
-	// 将 Close 纳入同一临界区，避免并发 Stop 对同一实例重复调用 Close。
+	// Đưa thao tác Close vào cùng vùng tới hạn để tránh nhiều lệnh Stop đồng thời gọi Close trên cùng một đối tượng.
 	if err := srv.Close(); err != nil {
 		log.Warnf("StopMqttServer Close: %v", err)
 		return err

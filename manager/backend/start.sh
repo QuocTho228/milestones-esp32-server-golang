@@ -1,21 +1,21 @@
 #!/bin/bash
 
-echo "=== 小智管理系统后端启动脚本 ==="
+echo "=== Script khởi động backend hệ thống quản lý Xiaozhi ==="
 
-# 检查参数
+# Kiểm tra tham số
 if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    echo "使用方法:"
-    echo "  ./start.sh                    # 使用默认配置文件"
-    echo "  ./start.sh dev                # 使用开发环境配置"
-    echo "  ./start.sh prod               # 使用生产环境配置"
-    echo "  ./start.sh custom config.json # 使用自定义配置文件"
-    echo "  ./start.sh reset              # 重置数据库并使用默认配置"
-    echo "  ./start.sh reset-dev          # 重置数据库并使用开发环境配置"
-    echo "  ./start.sh help               # 显示帮助信息"
+    echo "Cách sử dụng:"
+    echo "  ./start.sh                    # Sử dụng file cấu hình mặc định"
+    echo "  ./start.sh dev                # Sử dụng cấu hình môi trường development"
+    echo "  ./start.sh prod               # Sử dụng cấu hình môi trường production"
+    echo "  ./start.sh custom config.json # Sử dụng file cấu hình tùy chỉnh"
+    echo "  ./start.sh reset              # Reset lại database và dùng cấu hình mặc định"
+    echo "  ./start.sh reset-dev          # Reset lại database và dùng cấu hình môi trường development"
+    echo "  ./start.sh help               # Hiển thị thông tin trợ giúp"
     exit 0
 fi
 
-# 设置配置文件路径
+# Thiết lập đường dẫn file cấu hình
 CONFIG_FILE="manager/backend/config/config.json"
 
 RESET_DB=""
@@ -23,60 +23,60 @@ RESET_DB=""
 case "$1" in
     "dev")
         CONFIG_FILE="manager/backend/config/config.dev.json"
-        echo "使用开发环境配置: $CONFIG_FILE"
+        echo "Sử dụng cấu hình môi trường development: $CONFIG_FILE"
         ;;
     "prod")
         CONFIG_FILE="manager/backend/config/config.prod.json"
-        echo "使用生产环境配置: $CONFIG_FILE"
+        echo "Sử dụng cấu hình môi trường production: $CONFIG_FILE"
         ;;
     "reset")
         RESET_DB="-reset-db"
-        echo "重置数据库并使用默认配置: $CONFIG_FILE"
+        echo "Reset lại database và dùng cấu hình mặc định: $CONFIG_FILE"
         ;;
     "reset-dev")
         CONFIG_FILE="manager/backend/config/config.dev.json"
         RESET_DB="-reset-db"
-        echo "重置数据库并使用开发环境配置: $CONFIG_FILE"
+        echo "Reset lại database và dùng cấu hình môi trường development: $CONFIG_FILE"
         ;;
     "custom")
         if [ -z "$2" ]; then
-            echo "错误: 请指定配置文件路径"
-            echo "使用方法: ./start.sh custom config.json"
+            echo "Lỗi: vui lòng chỉ định đường dẫn file cấu hình"
+            echo "Cách sử dụng: ./start.sh custom config.json"
             exit 1
         fi
         CONFIG_FILE="$2"
-        echo "使用自定义配置: $CONFIG_FILE"
+        echo "Sử dụng cấu hình tùy chỉnh: $CONFIG_FILE"
         ;;
     "")
-        echo "使用默认配置: $CONFIG_FILE"
+        echo "Sử dụng cấu hình mặc định: $CONFIG_FILE"
         ;;
     *)
-        echo "未知参数: $1"
-        echo "使用 './start.sh help' 查看帮助"
+        echo "Tham số không xác định: $1"
+        echo "Dùng './start.sh help' để xem trợ giúp"
         exit 1
         ;;
 esac
 
-# 检查配置文件是否存在
+# Kiểm tra file cấu hình có tồn tại hay không
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "错误: 配置文件不存在: $CONFIG_FILE"
+    echo "Lỗi: file cấu hình không tồn tại: $CONFIG_FILE"
     exit 1
 fi
 
-# 进入后端目录
+# Vào thư mục backend
 cd manager/backend
 
-# 安装依赖
-echo "安装Go依赖..."
+# Cài đặt dependency
+echo "Đang cài đặt dependency Go..."
 go mod tidy
 
-# 启动服务
-echo "启动服务..."
+# Khởi động service
+echo "Đang khởi động service..."
 if [ -n "$RESET_DB" ]; then
-    echo "警告: 将重置数据库，所有数据将被删除！"
-    read -p "确定要继续吗？(y/N): " confirm
+    echo "Cảnh báo: database sẽ bị reset, toàn bộ dữ liệu sẽ bị xóa!"
+    read -p "Bạn có chắc chắn muốn tiếp tục không? (y/N): " confirm
     if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
-        echo "操作已取消"
+        echo "Đã hủy thao tác"
         exit 0
     fi
     go run main.go -config="../../$CONFIG_FILE" $RESET_DB

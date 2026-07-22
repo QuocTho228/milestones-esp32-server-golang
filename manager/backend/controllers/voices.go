@@ -2,18 +2,18 @@ package controllers
 
 import "strings"
 
-// VoiceInfo 描述一个千问 TTS 音色
+// VoiceInfo: Mô tả một giọng nói của Qwen TTS.
 type VoiceInfo struct {
-	Value       string   `json:"value"`       // API 的 voice 参数，例如 "Cherry"
-	Label       string   `json:"label"`       // 显示名称，例如 "芊悦"
-	Description string   `json:"description"` // 简短描述
-	Languages   []string `json:"languages"`   // 支持语种
+	Value       string   `json:"value"`       // Tham số voice của API, ví dụ: "Cherry".
+	Label       string   `json:"label"`       // Tên hiển thị, ví dụ: "芊悦".
+	Description string   `json:"description"` // Mô tả ngắn.
+	Languages   []string `json:"languages"`   // Các ngôn ngữ được hỗ trợ.
 }
 
-// ModelVoiceMap 模型家族 -> 支持的音色列表
-// 注意：这里按模型"家族"归类，例如 qwen3-tts-flash* 归为一类，qwen-tts* 归为一类。
+// ModelVoiceMap: Ánh xạ giữa họ mô hình và danh sách giọng nói được hỗ trợ.
+// Lưu ý: Các mô hình được phân loại theo "họ". Ví dụ: qwen3-tts-flash* thuộc một họ, qwen-tts* thuộc một họ.
 var ModelVoiceMap = map[string][]VoiceInfo{
-	// 通义千问3-TTS-Flash 系列（qwen3-tts-flash / qwen3-tts-flash-2025-11-27 / qwen3-tts-flash-2025-09-18）
+	// Dòng mô hình Tongyi Qwen3 TTS Flash (qwen3-tts-flash / qwen3-tts-flash-2025-11-27 / qwen3-tts-flash-2025-09-18)
 	"qwen3-tts-flash": {
 		{Value: "Cherry", Label: "芊悦", Description: "阳光积极、亲切自然小姐姐（女性）"},
 		{Value: "Serena", Label: "苏瑶", Description: "温柔小姐姐（女性）"},
@@ -66,20 +66,20 @@ var ModelVoiceMap = map[string][]VoiceInfo{
 		{Value: "Kiki", Label: "粤语-阿清", Description: "甜美的港妹闺蜜（女性）"},
 	},
 
-	// 通义千问-TTS 系列（qwen-tts / qwen-tts-latest / qwen-tts-2025-xx-xx）
+	/// Dòng mô hình Tongyi Qwen TTS (qwen-tts / qwen-tts-latest / qwen-tts-2025-xx-xx).
 	"qwen-tts": {
 		{Value: "Cherry", Label: "芊悦", Description: "阳光积极、亲切自然小姐姐（女性）"},
 		{Value: "Serena", Label: "苏瑶", Description: "温柔小姐姐（女性）"},
 		{Value: "Ethan", Label: "晨煦", Description: "标准普通话，带部分北方口音，阳光、温暖、活力（男性）"},
 		{Value: "Chelsie", Label: "千雪", Description: "二次元虚拟女友（女性）"},
 		{Value: "Momo", Label: "茉兔", Description: "撒娇搞怪，逗你开心（女性）"},
-		// 其余音色根据需要可继续补充
+		// Có thể bổ sung thêm các giọng nói khác khi cần.
 	},
 }
 
-// normalizeModel 将具体模型名归一化为模型家族键
-// 例如：qwen3-tts-flash-2025-11-27 -> qwen3-tts-flash
-//       qwen-tts-2025-05-22       -> qwen-tts
+// normalizeModel: Chuẩn hóa tên mô hình cụ thể thành khóa của họ mô hình.
+// Ví dụ: qwen3-tts-flash-2025-11-27 -> qwen3-tts-flash
+//         qwen-tts-2025-05-22       -> qwen-tts
 func normalizeModel(model string) string {
 	model = strings.TrimSpace(model)
 	if model == "" {
@@ -94,7 +94,7 @@ func normalizeModel(model string) string {
 	return model
 }
 
-// GetVoicesByModel 根据模型名称获取支持的音色列表
+// GetVoicesByModel: Lấy danh sách các giọng nói được hỗ trợ theo tên mô hình.
 func GetVoicesByModel(model string) []VoiceInfo {
 	key := normalizeModel(model)
 	if voices, ok := ModelVoiceMap[key]; ok {
@@ -103,7 +103,7 @@ func GetVoicesByModel(model string) []VoiceInfo {
 	return nil
 }
 
-// IsVoiceSupported 检查指定模型是否支持某个音色
+// IsVoiceSupported: Kiểm tra xem một giọng nói có được mô hình chỉ định hỗ trợ hay không.
 func IsVoiceSupported(model, voice string) bool {
 	if voice == "" {
 		return false

@@ -85,7 +85,7 @@ type xunfeiSuperRequest struct {
 
 type xunfeiSuperHeader struct {
 	AppID   string `json:"app_id"`
-	Status  int    `json:"status"` // 讯飞要求请求中必须带 header.status，0 表示首帧不能省略
+	Status  int    `json:"status"` // Xunfei yêu cầu request luôn phải có header.status; giá trị 0 nghĩa là không được bỏ khung đầu tiên
 	Code    int    `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
 	SID     string `json:"sid,omitempty"`
@@ -126,17 +126,17 @@ type xunfeiSuperAudioParam struct {
 type xunfeiSuperPayload struct {
 	Text  xunfeiSuperTextPayload   `json:"text"`
 	Audio *xunfeiSuperAudioResp    `json:"audio,omitempty"`
-	Pybuf *xunfeiSuperPybufPayload `json:"pybuf,omitempty"` // rhy=1 时返回，base64 编码的音素/拼音
+	Pybuf *xunfeiSuperPybufPayload `json:"pybuf,omitempty"` // Trả về khi rhy=1, là dữ liệu âm vị/pinyin được mã hóa base64
 }
 
-// xunfeiSuperPybufPayload 响应 payload.pybuf，文档见 https://www.xfyun.cn/doc/spark/super%20smart-tts.html
+// xunfeiSuperPybufPayload là payload.pybuf trong phản hồi, xem tài liệu tại https://www.xfyun.cn/doc/spark/super%20smart-tts.html
 type xunfeiSuperPybufPayload struct {
 	Encoding string `json:"encoding"`
 	Compress string `json:"compress"`
 	Format   string `json:"format"`
 	Status   int    `json:"status"`
 	Seq      int    `json:"seq"`
-	Text     string `json:"text"` // base64 编码，解码后为音素信息
+	Text     string `json:"text"` // Mã hóa base64, sau khi giải mã là thông tin âm vị
 }
 
 type xunfeiSuperTextPayload struct {
@@ -235,7 +235,7 @@ func NewXunfeiSuperTTSProvider(config map[string]interface{}) *XunfeiSuperTTSPro
 
 	encoding, expectedPayloadLen, err := mapXunfeiSuperAudioEncoding(provider.AudioEncoding, provider.SampleRate)
 	if err != nil {
-		log.Warnf("初始化 xunfei_super_tts 配置失败，回退到 raw/24k: %v", err)
+		log.Warnf("Khởi tạo cấu hình xunfei_super_tts thất bại, quay về raw/24k: %v", err)
 		provider.AudioEncoding = defaultXunfeiSuperAudioEncoding
 		provider.SampleRate = defaultXunfeiSuperSampleRate
 		encoding = "raw"
@@ -258,7 +258,7 @@ func (p *XunfeiSuperTTSProvider) TextToSpeech(ctx context.Context, text string, 
 		audioFrames = append(audioFrames, frame)
 	}
 	if len(audioFrames) == 0 {
-		return nil, fmt.Errorf("xunfei_super_tts 返回音频为空")
+		return nil, fmt.Errorf("xunfei_super_tts trả về âm thanh rỗng")
 	}
 	return audioFrames, nil
 }
@@ -287,7 +287,7 @@ func (p *XunfeiSuperTTSProvider) TextToSpeechStream(ctx context.Context, text st
 
 	go func() {
 		if err := p.streamSynthesis(ctx, text, targetSampleRate, targetFrameDuration, startTs, outputChan); err != nil && ctx.Err() == nil {
-			log.Errorf("xunfei_super_tts 流式合成失败: %v", err)
+			log.Errorf("Tổng hợp giọng nói dạng luồng của xunfei_super_tts thất bại: %v", err)
 		}
 	}()
 
@@ -298,8 +298,8 @@ func (p *XunfeiSuperTTSProvider) streamSynthesis(ctx context.Context, text strin
 	p.synthesisMu.Lock()
 	defer p.synthesisMu.Unlock()
 
-	// 讯飞超拟人连接在单次合成结束后会结束 input channel，跨句复用连接会导致后续请求直接失败。
-	// 因此每次合成都使用独立连接；单次合成内部的多段文本仍复用这一条连接。
+	// Kết nối "siêu chân thực" (super-realistic) của Xunfei sẽ đóng input channel sau khi một lần tổng hợp kết thúc; nếu tái sử dụng kết nối giữa các câu, yêu cầu tiếp theo sẽ thất bại ngay lập tức.
+	// Vì vậy mỗi lần tổng hợp đều dùng một kết nối độc lập; nhiều đoạn văn bản trong cùng một lần tổng hợp vẫn dùng chung kết nối đó.
 	conn, err := p.reconnect(ctx)
 	if err != nil {
 		close(outputChan)
@@ -337,17 +337,17 @@ func (p *XunfeiSuperTTSProvider) streamSynthesis(ctx context.Context, text strin
 
 		if decoderStarted {
 			if audioFormat != decoderAudioFmt {
-				return fmt.Errorf("xunfei_super_tts 返回音频编码发生变化: %s -> %s", decoderAudioFmt, audioFormat)
+				return fmt.Errorf("Định dạng mã hóa âm thanh mà xunfei_super_tts trả về đã thay đổi: %s -> %s", decoderAudioFmt, audioFormat)
 			}
 			if audioFormat != "mp3" && sourceSampleRate != decoderSampleRate {
-				return fmt.Errorf("xunfei_super_tts 返回采样率发生变化: %d -> %d", decoderSampleRate, sourceSampleRate)
+				return fmt.Errorf("Tần số lấy mẫu mà xunfei_super_tts trả về đã thay đổi: %d -> %d", decoderSampleRate, sourceSampleRate)
 			}
 			return nil
 		}
 
 		decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, pipeReader, outputChan, frameDuration, audioFormat, targetSampleRate)
 		if err != nil {
-			return fmt.Errorf("创建 xunfei_super_tts 音频解码器失败: %v", err)
+			return fmt.Errorf("Tạo bộ giải mã âm thanh xunfei_super_tts thất bại: %v", err)
 		}
 		if audioFormat != "mp3" {
 			decoder.WithFormat(beep.Format{
@@ -363,7 +363,7 @@ func (p *XunfeiSuperTTSProvider) streamSynthesis(ctx context.Context, text strin
 		go func() {
 			defer close(decoderDone)
 			if err := decoder.Run(startTs); err != nil && ctx.Err() == nil {
-				log.Errorf("xunfei_super_tts 音频解码失败: %v", err)
+				log.Errorf("Giải mã âm thanh xunfei_super_tts thất bại: %v", err)
 			}
 		}()
 		return nil
@@ -392,7 +392,7 @@ func (p *XunfeiSuperTTSProvider) streamSynthesis(ctx context.Context, text strin
 	finishDecoder(streamErr)
 
 	if streamErr == nil && ctx.Err() == nil {
-		log.Infof("xunfei_super_tts 耗时: 从输入至获取音频数据结束耗时: %d ms", time.Now().UnixMilli()-startTs)
+		log.Infof("Thời gian xử lý xunfei_super_tts: từ lúc nhập đến khi nhận xong dữ liệu âm thanh mất %d ms", time.Now().UnixMilli()-startTs)
 	}
 
 	return streamErr
@@ -408,7 +408,7 @@ func (p *XunfeiSuperTTSProvider) sendSynthesisRequestWithRetry(ctx context.Conte
 	for _, reqBody := range reqBodies {
 		payload, marshalErr := json.Marshal(reqBody)
 		if marshalErr != nil {
-			return fmt.Errorf("序列化 xunfei_super_tts 请求失败: %v", marshalErr)
+			return fmt.Errorf("Tuần tự hóa (serialize) yêu cầu xunfei_super_tts thất bại: %v", marshalErr)
 		}
 		payloads = append(payloads, payload)
 	}
@@ -492,10 +492,10 @@ func (p *XunfeiSuperTTSProvider) buildSingleSynthesisRequest(text string, seq in
 func (p *XunfeiSuperTTSProvider) buildSynthesisRequests(text string) ([]xunfeiSuperRequest, error) {
 	trimmed := strings.TrimSpace(text)
 	if trimmed == "" {
-		return nil, fmt.Errorf("xunfei_super_tts 文本不能为空")
+		return nil, fmt.Errorf("Văn bản của xunfei_super_tts không được để trống")
 	}
 	if len([]byte(trimmed)) > maxXunfeiSuperTextBytes {
-		return nil, fmt.Errorf("xunfei_super_tts 文本超过 64KB 限制，当前: %d bytes", len([]byte(trimmed)))
+		return nil, fmt.Errorf("Văn bản của xunfei_super_tts vượt quá giới hạn 64KB, hiện tại: %d bytes", len([]byte(trimmed)))
 	}
 
 	return []xunfeiSuperRequest{
@@ -514,7 +514,7 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 
 		conn := p.currentConn()
 		if conn == nil {
-			return fmt.Errorf("xunfei_super_tts 连接已断开")
+			return fmt.Errorf("Kết nối xunfei_super_tts đã bị ngắt")
 		}
 
 		if p.ReadTimeout > 0 {
@@ -528,7 +528,7 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 				return ctx.Err()
 			}
 			p.invalidateConnection(conn)
-			return fmt.Errorf("读取 xunfei_super_tts WebSocket 消息失败: %v", err)
+			return fmt.Errorf("Đọc tin nhắn WebSocket của xunfei_super_tts thất bại: %v", err)
 		}
 		if messageType != websocket.TextMessage {
 			continue
@@ -536,10 +536,10 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 
 		var resp xunfeiSuperResponse
 		if err := json.Unmarshal(message, &resp); err != nil {
-			return fmt.Errorf("解析 xunfei_super_tts 响应失败: %v, body=%s", err, previewString(string(message), 300))
+			return fmt.Errorf("Phân tích phản hồi xunfei_super_tts thất bại: %v, body=%s", err, previewString(string(message), 300))
 		}
 		if resp.Header.Code != 0 {
-			return fmt.Errorf("xunfei_super_tts 错误 [%d]: %s", resp.Header.Code, strings.TrimSpace(resp.Header.Message))
+			return fmt.Errorf("Lỗi xunfei_super_tts [%d]: %s", resp.Header.Code, strings.TrimSpace(resp.Header.Message))
 		}
 
 		audioResp := resp.Payload.Audio
@@ -557,7 +557,7 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 		if audioData != "" {
 			chunk, err := base64.StdEncoding.DecodeString(audioData)
 			if err != nil {
-				return fmt.Errorf("解码 xunfei_super_tts 音频 Base64 失败: %v", err)
+				return fmt.Errorf("Giải mã Base64 âm thanh xunfei_super_tts thất bại: %v", err)
 			}
 
 			encoding := strings.ToLower(strings.TrimSpace(audioResp.Encoding))
@@ -578,24 +578,24 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 			switch {
 			case encoding == "raw":
 				if _, err := pipeWriter.Write(chunk); err != nil {
-					return fmt.Errorf("写入 xunfei_super_tts PCM 数据失败: %v", err)
+					return fmt.Errorf("Ghi dữ liệu PCM của xunfei_super_tts thất bại: %v", err)
 				}
 			case encoding == "lame" || encoding == "mp3":
 				if _, err := pipeWriter.Write(chunk); err != nil {
-					return fmt.Errorf("写入 xunfei_super_tts MP3 数据失败: %v", err)
+					return fmt.Errorf("Ghi dữ liệu MP3 của xunfei_super_tts thất bại: %v", err)
 				}
 			case strings.HasPrefix(encoding, "opus"):
 				frames, err := decodeXunfeiSuperOpusFrames(chunk, p.ExpectedOpusPayloadLen)
 				if err != nil {
-					return fmt.Errorf("解析 xunfei_super_tts Opus 数据失败: %v", err)
+					return fmt.Errorf("Phân tích dữ liệu Opus của xunfei_super_tts thất bại: %v", err)
 				}
 				for _, frame := range frames {
 					if err := util.WriteLengthPrefixedFrame(pipeWriter, frame); err != nil {
-						return fmt.Errorf("写入 xunfei_super_tts Opus 帧失败: %v", err)
+						return fmt.Errorf("Ghi khung (frame) Opus của xunfei_super_tts thất bại: %v", err)
 					}
 				}
 			default:
-				return fmt.Errorf("xunfei_super_tts 返回了未支持的音频编码: %s", encoding)
+				return fmt.Errorf("xunfei_super_tts trả về định dạng mã hóa âm thanh không được hỗ trợ: %s", encoding)
 			}
 		}
 
@@ -618,13 +618,13 @@ func (p *XunfeiSuperTTSProvider) readSynthesisResponse(ctx context.Context, pipe
 
 func (p *XunfeiSuperTTSProvider) writeRequest(conn *websocket.Conn, payload []byte) error {
 	if conn == nil {
-		return fmt.Errorf("xunfei_super_tts 连接为空")
+		return fmt.Errorf("Kết nối xunfei_super_tts đang trống (nil)")
 	}
 	if p.ReadTimeout > 0 {
 		_ = conn.SetWriteDeadline(time.Now().Add(time.Duration(p.ReadTimeout) * time.Second))
 	}
 	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
-		return fmt.Errorf("发送 xunfei_super_tts 请求失败: %v", err)
+		return fmt.Errorf("Gửi yêu cầu xunfei_super_tts thất bại: %v", err)
 	}
 	return nil
 }
@@ -697,9 +697,9 @@ func (p *XunfeiSuperTTSProvider) dial(ctx context.Context) (*websocket.Conn, err
 	if err != nil {
 		if resp != nil {
 			body, _ := io.ReadAll(resp.Body)
-			return nil, fmt.Errorf("连接 xunfei_super_tts WebSocket 失败，状态码: %d, 响应: %s, err: %v", resp.StatusCode, string(body), err)
+			return nil, fmt.Errorf("Kết nối WebSocket xunfei_super_tts thất bại, mã trạng thái: %d, phản hồi: %s, lỗi: %v", resp.StatusCode, string(body), err)
 		}
-		return nil, fmt.Errorf("连接 xunfei_super_tts WebSocket 失败: %v", err)
+		return nil, fmt.Errorf("Kết nối WebSocket xunfei_super_tts thất bại: %v", err)
 	}
 	return conn, nil
 }
@@ -707,12 +707,12 @@ func (p *XunfeiSuperTTSProvider) dial(ctx context.Context) (*websocket.Conn, err
 func (p *XunfeiSuperTTSProvider) buildSignedURL() (string, error) {
 	parsed, err := url.Parse(p.WSURL)
 	if err != nil {
-		return "", fmt.Errorf("无效的 xunfei_super_tts ws_url: %v", err)
+		return "", fmt.Errorf("ws_url của xunfei_super_tts không hợp lệ: %v", err)
 	}
 
 	host := parsed.Host
 	if host == "" {
-		return "", fmt.Errorf("xunfei_super_tts ws_url 缺少 host")
+		return "", fmt.Errorf("ws_url của xunfei_super_tts thiếu host")
 	}
 
 	requestURI := parsed.EscapedPath()
@@ -746,16 +746,16 @@ func (p *XunfeiSuperTTSProvider) buildSignedURL() (string, error) {
 
 func (p *XunfeiSuperTTSProvider) validate() error {
 	if p == nil {
-		return fmt.Errorf("xunfei_super_tts provider 不能为空")
+		return fmt.Errorf("provider của xunfei_super_tts không được để trống")
 	}
 	if p.AppID == "" {
-		return fmt.Errorf("xunfei_super_tts app_id 不能为空")
+		return fmt.Errorf("app_id của xunfei_super_tts không được để trống")
 	}
 	if p.APIKey == "" {
-		return fmt.Errorf("xunfei_super_tts api_key 不能为空")
+		return fmt.Errorf("api_key của xunfei_super_tts không được để trống")
 	}
 	if p.APISecret == "" {
-		return fmt.Errorf("xunfei_super_tts api_secret 不能为空")
+		return fmt.Errorf("api_secret của xunfei_super_tts không được để trống")
 	}
 	if _, _, err := mapXunfeiSuperAudioEncoding(p.AudioEncoding, p.SampleRate); err != nil {
 		return err
@@ -763,7 +763,7 @@ func (p *XunfeiSuperTTSProvider) validate() error {
 	return nil
 }
 
-// StreamingSynthesize 双流式合成：从 textChan 持续收文本、边合成边输出事件。textChan 关闭表示文本结束。
+// StreamingSynthesize thực hiện tổng hợp song luồng (dual-stream): liên tục nhận văn bản từ textChan, vừa tổng hợp vừa xuất sự kiện. Khi textChan đóng nghĩa là văn bản đã kết thúc.
 func (p *XunfeiSuperTTSProvider) StreamingSynthesize(ctx context.Context, textChan <-chan string, sampleRate int, channels int, frameDuration int) (chan streaming.SynthesisEvent, error) {
 	if err := p.validate(); err != nil {
 		return nil, err
@@ -780,7 +780,7 @@ func (p *XunfeiSuperTTSProvider) StreamingSynthesize(ctx context.Context, textCh
 	startTs := time.Now().UnixMilli()
 	go func() {
 		if err := p.streamingSynthesisLoop(ctx, textChan, targetSampleRate, targetFrameDuration, startTs, outputChan); err != nil && ctx.Err() == nil {
-			log.Errorf("xunfei_super_tts 双流式合成失败: %v", err)
+			log.Errorf("Tổng hợp song luồng của xunfei_super_tts thất bại: %v", err)
 		}
 	}()
 	return outputChan, nil
@@ -919,16 +919,16 @@ func (p *XunfeiSuperTTSProvider) streamingSynthesisLoop(ctx context.Context, tex
 		}
 		if decoderStarted {
 			if audioFormat != decoderAudioFmt {
-				return fmt.Errorf("xunfei_super_tts 返回音频编码发生变化: %s -> %s", decoderAudioFmt, audioFormat)
+				return fmt.Errorf("Định dạng mã hóa âm thanh mà xunfei_super_tts trả về đã thay đổi: %s -> %s", decoderAudioFmt, audioFormat)
 			}
 			if audioFormat != "mp3" && sourceSampleRate != decoderSampleRate {
-				return fmt.Errorf("xunfei_super_tts 返回采样率发生变化: %d -> %d", decoderSampleRate, sourceSampleRate)
+				return fmt.Errorf("Tần số lấy mẫu mà xunfei_super_tts trả về đã thay đổi: %d -> %d", decoderSampleRate, sourceSampleRate)
 			}
 			return nil
 		}
 		decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, pipeReader, audioFrameChan, frameDuration, audioFormat, targetSampleRate)
 		if err != nil {
-			return fmt.Errorf("创建 xunfei_super_tts 音频解码器失败: %v", err)
+			return fmt.Errorf("Tạo bộ giải mã âm thanh xunfei_super_tts thất bại: %v", err)
 		}
 		if audioFormat != "mp3" {
 			decoder.WithFormat(beep.Format{
@@ -943,7 +943,7 @@ func (p *XunfeiSuperTTSProvider) streamingSynthesisLoop(ctx context.Context, tex
 		go func() {
 			defer close(decoderDone)
 			if err := decoder.Run(startTs); err != nil && ctx.Err() == nil {
-				log.Errorf("xunfei_super_tts 双流式音频解码失败: %v", err)
+				log.Errorf("Giải mã âm thanh song luồng của xunfei_super_tts thất bại: %v", err)
 			}
 		}()
 		return nil
@@ -963,7 +963,7 @@ func (p *XunfeiSuperTTSProvider) streamingSynthesisLoop(ctx context.Context, tex
 		close(audioFrameChan)
 	}
 
-	// 等待第一条非空文本
+	// Chờ đoạn văn bản không rỗng đầu tiên
 	var firstText string
 	for {
 		select {
@@ -983,8 +983,8 @@ func (p *XunfeiSuperTTSProvider) streamingSynthesisLoop(ctx context.Context, tex
 	}
 gotFirstText:
 
-	// 双流式请求状态按协议独立推进：
-	// 首个非空文本必须使用 status=0，后续文本使用 status=1，输入关闭时用 status=2 收尾。
+	// Trạng thái yêu cầu song luồng được tiến triển độc lập theo giao thức:
+	// Đoạn văn bản không rỗng đầu tiên phải dùng status=0, các đoạn tiếp theo dùng status=1, khi đầu vào đóng thì dùng status=2 để kết thúc.
 	sendErrCh := make(chan error, 1)
 	go func() {
 		seq := 0
@@ -1056,7 +1056,7 @@ gotFirstText:
 		}
 
 		if !fallbackLogged {
-			log.Warnf("xunfei_super_tts 双流式响应未返回 ced，回退为音频块级句子边界估算")
+			log.Warnf("Phản hồi song luồng của xunfei_super_tts không trả về ced, quay về ước lượng ranh giới câu theo từng khối âm thanh")
 			fallbackLogged = true
 		}
 		enableFallbackMode()
@@ -1071,7 +1071,7 @@ gotFirstText:
 		streamErr = sendErr
 	}
 	if streamErr == nil && ctx.Err() == nil {
-		log.Infof("xunfei_super_tts 双流式耗时: %d ms", time.Now().UnixMilli()-startTs)
+		log.Infof("Thời gian xử lý song luồng của xunfei_super_tts: %d ms", time.Now().UnixMilli()-startTs)
 	}
 	return streamErr
 }
@@ -1081,7 +1081,7 @@ func (p *XunfeiSuperTTSProvider) SetVoice(voiceConfig map[string]interface{}) er
 		p.Voice = strings.TrimSpace(voice)
 		return nil
 	}
-	return fmt.Errorf("无效的音色配置: 缺少 voice")
+	return fmt.Errorf("Cấu hình âm sắc (voice) không hợp lệ: thiếu voice")
 }
 
 func (p *XunfeiSuperTTSProvider) Close() error {
@@ -1102,7 +1102,7 @@ func mapXunfeiSuperResponseAudioFormat(encoding string) (string, error) {
 	case strings.HasPrefix(normalized, "opus"):
 		return "opus", nil
 	default:
-		return "", fmt.Errorf("不支持的 xunfei_super_tts 响应音频编码: %s", encoding)
+		return "", fmt.Errorf("Định dạng mã hóa âm thanh phản hồi không được hỗ trợ của xunfei_super_tts: %s", encoding)
 	}
 }
 
@@ -1110,7 +1110,7 @@ func mapXunfeiSuperAudioEncoding(audioEncoding string, sampleRate int) (string, 
 	switch strings.ToLower(strings.TrimSpace(audioEncoding)) {
 	case "", "raw":
 		if sampleRate != 8000 && sampleRate != 16000 && sampleRate != 24000 {
-			return "", 0, fmt.Errorf("xunfei_super_tts raw 仅支持 8000/16000/24000 采样率，当前: %d", sampleRate)
+			return "", 0, fmt.Errorf("xunfei_super_tts raw chỉ hỗ trợ tần số lấy mẫu 8000/16000/24000, hiện tại: %d", sampleRate)
 		}
 		return "raw", 0, nil
 	case "opus":
@@ -1120,13 +1120,13 @@ func mapXunfeiSuperAudioEncoding(audioEncoding string, sampleRate int) (string, 
 		case 16000:
 			return "opus-wb", 40, nil
 		case 24000:
-			// 文档列出了 opus-swb 编码名，但未明确响应载荷大小，这里不强行假设长度。
+			// Tài liệu có liệt kê tên mã hóa opus-swb, nhưng không nêu rõ kích thước payload phản hồi, nên ở đây không giả định cứng độ dài.
 			return "opus-swb", 0, nil
 		default:
-			return "", 0, fmt.Errorf("xunfei_super_tts opus 仅支持 8000/16000/24000 采样率，当前: %d", sampleRate)
+			return "", 0, fmt.Errorf("xunfei_super_tts opus chỉ hỗ trợ tần số lấy mẫu 8000/16000/24000, hiện tại: %d", sampleRate)
 		}
 	default:
-		return "", 0, fmt.Errorf("不支持的 xunfei_super_tts audio_encoding: %s", audioEncoding)
+		return "", 0, fmt.Errorf("audio_encoding không được hỗ trợ của xunfei_super_tts: %s", audioEncoding)
 	}
 }
 
@@ -1367,7 +1367,7 @@ func (t *xunfeiSuperSentenceTracker) Append(text string) error {
 	defer t.mu.Unlock()
 
 	if t.totalBytes+textBytes > maxXunfeiSuperTextBytes {
-		return fmt.Errorf("xunfei_super_tts 双流式文本超过 64KB 限制，当前: %d bytes", t.totalBytes+textBytes)
+		return fmt.Errorf("Văn bản song luồng của xunfei_super_tts vượt quá giới hạn 64KB, hiện tại: %d bytes", t.totalBytes+textBytes)
 	}
 
 	startByte := t.totalBytes

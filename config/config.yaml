@@ -434,7 +434,7 @@ greeting_list:
 
 # đánh thức danh sách từ
 wakeup_words:
-  - 'Milestones'
+  - 'Xin chào Milestones'
   - 'Hey Milestones'
 
 voice_identify:

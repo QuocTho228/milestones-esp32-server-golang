@@ -29,11 +29,11 @@ type AsrWsClient struct {
 	requestOptions request.FullClientRequestOptions
 	mu             sync.RWMutex // Protects connect from concurrent access
 
-	// 延迟连接相关字段
-	connectOnce  sync.Once     // 确保连接只建立一次
-	connectReady chan struct{} // 通知接收 goroutine 连接已建立
-	connectErr   error         // 连接建立时的错误
-	connectErrMu sync.Mutex    // 保护 connectErr
+	// Các trường liên quan đến việc thiết lập kết nối trễ (lazy connect)
+	connectOnce  sync.Once     // Đảm bảo kết nối chỉ được thiết lập một lần
+	connectReady chan struct{} // Thông báo cho goroutine nhận biết kết nối đã được thiết lập
+	connectErr   error         // Lỗi xảy ra khi thiết lập kết nối
+	connectErrMu sync.Mutex    // Bảo vệ connectErr
 }
 
 func NewAsrWsClient(url string, appKey, accessKey, resourceID, connectID, debugID string, requestOptions request.FullClientRequestOptions) *AsrWsClient {
@@ -104,7 +104,7 @@ func (c *AsrWsClient) CreateConnection(ctx context.Context) error {
 			logID = resp.Header.Get("x-tt-logid")
 		}
 	}
-	log.Debugf("%s websocket 连接建立成功: connect_id=%s, logid=%s", c.logPrefix(), c.connectID, logID)
+	log.Debugf("%s websocket đã thiết lập kết nối thành công: connect_id=%s, logid=%s", c.logPrefix(), c.connectID, logID)
 	c.mu.Lock()
 	c.connect = conn
 	c.mu.Unlock()
@@ -136,38 +136,38 @@ func (c *AsrWsClient) SendFullClientRequest() error {
 	return nil
 }
 
-// ensureConnection 确保连接已建立（延迟连接，带重试机制）
+// ensureConnection đảm bảo kết nối đã được thiết lập (kết nối trễ - lazy connect, có cơ chế thử lại)
 func (c *AsrWsClient) ensureConnection(ctx context.Context) error {
 	var err error
 	c.connectOnce.Do(func() {
-		log.Debugf("%s 延迟建立连接：收到第一个音频包，开始建立连接", c.logPrefix())
+		log.Debugf("%s thiết lập kết nối trễ: đã nhận gói audio đầu tiên, bắt đầu thiết lập kết nối", c.logPrefix())
 
-		// 重试配置
+		// Cấu hình thử lại (retry)
 		const (
-			maxRetries = 3                      // 最大重试次数（总共尝试4次：初始1次 + 重试3次）
-			retryDelay = 500 * time.Millisecond // 重试延迟
+			maxRetries = 3                      // Số lần thử lại tối đa (tổng cộng thử 4 lần: 1 lần ban đầu + 3 lần thử lại)
+			retryDelay = 500 * time.Millisecond // Độ trễ giữa các lần thử lại
 		)
 
 		for attempt := 1; attempt <= maxRetries+1; attempt++ {
-			// 尝试建立连接
+			// Thử thiết lập kết nối
 			err = c.CreateConnection(ctx)
 			if err != nil {
 				if attempt <= maxRetries {
-					log.Warnf("%s 延迟建立连接失败(第%d次): %v，%v后重试", c.logPrefix(), attempt, err, retryDelay)
+					log.Warnf("%s thiết lập kết nối trễ thất bại (lần %d): %v, thử lại sau %v", c.logPrefix(), attempt, err, retryDelay)
 					select {
 					case <-ctx.Done():
-						err = fmt.Errorf("连接建立被取消: %w", ctx.Err())
+						err = fmt.Errorf("việc thiết lập kết nối đã bị hủy: %w", ctx.Err())
 						c.connectErrMu.Lock()
 						c.connectErr = err
 						c.connectErrMu.Unlock()
 						return
 					case <-time.After(retryDelay):
-						// 固定延迟后重试
+						// Chờ đủ độ trễ cố định rồi thử lại
 					}
 					continue
 				} else {
-					// 最后一次重试失败
-					log.Errorf("%s 延迟建立连接失败(第%d次，已达最大重试次数): %v", c.logPrefix(), attempt, err)
+					// Lần thử lại cuối cùng thất bại
+					log.Errorf("%s thiết lập kết nối trễ thất bại (lần %d, đã đạt số lần thử lại tối đa): %v", c.logPrefix(), attempt, err)
 					c.connectErrMu.Lock()
 					c.connectErr = err
 					c.connectErrMu.Unlock()
@@ -175,29 +175,29 @@ func (c *AsrWsClient) ensureConnection(ctx context.Context) error {
 				}
 			}
 
-			// 连接建立成功，发送初始化请求
+			// Kết nối thiết lập thành công, gửi request khởi tạo
 			err = c.SendFullClientRequest()
 			if err != nil {
-				// 发送初始化请求失败，关闭连接并重试
-				log.Warnf("%s 发送初始化请求失败(第%d次): %v", c.logPrefix(), attempt, err)
+				// Gửi request khởi tạo thất bại, đóng kết nối và thử lại
+				log.Warnf("%s gửi request khởi tạo thất bại (lần %d): %v", c.logPrefix(), attempt, err)
 				c.Close()
 
 				if attempt <= maxRetries {
-					log.Warnf("%s %v后重试建立连接", c.logPrefix(), retryDelay)
+					log.Warnf("%s thử lại thiết lập kết nối sau %v", c.logPrefix(), retryDelay)
 					select {
 					case <-ctx.Done():
-						err = fmt.Errorf("连接建立被取消: %w", ctx.Err())
+						err = fmt.Errorf("việc thiết lập kết nối đã bị hủy: %w", ctx.Err())
 						c.connectErrMu.Lock()
 						c.connectErr = err
 						c.connectErrMu.Unlock()
 						return
 					case <-time.After(retryDelay):
-						// 固定延迟后重试
+						// Chờ đủ độ trễ cố định rồi thử lại
 					}
 					continue
 				} else {
-					// 最后一次重试失败
-					log.Errorf("%s 发送初始化请求失败(第%d次，已达最大重试次数): %v", c.logPrefix(), attempt, err)
+					// Lần thử lại cuối cùng thất bại
+					log.Errorf("%s gửi request khởi tạo thất bại (lần %d, đã đạt số lần thử lại tối đa): %v", c.logPrefix(), attempt, err)
 					c.connectErrMu.Lock()
 					c.connectErr = err
 					c.connectErrMu.Unlock()
@@ -205,13 +205,13 @@ func (c *AsrWsClient) ensureConnection(ctx context.Context) error {
 				}
 			}
 
-			// 连接和初始化都成功
+			// Cả kết nối lẫn khởi tạo đều thành công
 			if attempt > 1 {
-				log.Infof("%s 延迟建立连接成功(第%d次尝试)", c.logPrefix(), attempt)
+				log.Infof("%s thiết lập kết nối trễ thành công (lần thử thứ %d)", c.logPrefix(), attempt)
 			} else {
-				log.Debugf("%s 延迟建立连接成功", c.logPrefix())
+				log.Debugf("%s thiết lập kết nối trễ thành công", c.logPrefix())
 			}
-			// 通知接收 goroutine 连接已建立
+			// Thông báo cho goroutine nhận biết kết nối đã được thiết lập
 			close(c.connectReady)
 			return
 		}
@@ -267,28 +267,28 @@ func (c *AsrWsClient) SendMessages(ctx context.Context, audioStream <-chan []flo
 			if !ok {
 				exitReason = "audio_stream_closed"
 				log.Debugf("%s sendMessages audioStream closed", c.logPrefix())
-				// 如果连接未建立（静音情况），直接返回
+				// Nếu kết nối chưa được thiết lập (trường hợp im lặng), trả về ngay
 				c.mu.RLock()
 				conn := c.connect
 				c.mu.RUnlock()
 				if conn == nil {
-					log.Debugf("%s audioStream 关闭且连接未建立，直接返回（静音情况）", c.logPrefix())
+					log.Debugf("%s audioStream đã đóng và kết nối chưa được thiết lập, trả về ngay (trường hợp im lặng)", c.logPrefix())
 					return nil
 				}
-				// 连接已建立，发送结束消息
+				// Kết nối đã được thiết lập, gửi message kết thúc
 				endMessage := request.NewAudioOnlyRequest(-c.seq, []byte{})
 				messageChan <- endMessage
-				log.Debugf("%s 发送结束音频包: seq=%d", c.logPrefix(), -c.seq)
+				log.Debugf("%s gửi gói audio kết thúc: seq=%d", c.logPrefix(), -c.seq)
 				return nil
 			}
 
-			// 收到第一个音频包时，建立连接
+			// Khi nhận được gói audio đầu tiên, thiết lập kết nối
 			if firstPacket {
 				firstPacket = false
 				err := c.ensureConnection(ctx)
 				if err != nil {
 					exitReason = "ensure_connection_failed"
-					log.Errorf("%s 建立连接失败: %v", c.logPrefix(), err)
+					log.Errorf("%s thiết lập kết nối thất bại: %v", c.logPrefix(), err)
 					return fmt.Errorf("ensure connection err: %w", err)
 				}
 			}
@@ -297,7 +297,7 @@ func (c *AsrWsClient) SendMessages(ctx context.Context, audioStream <-chan []flo
 			totalSamples += len(audioData)
 			if packetCount <= 3 || packetCount%25 == 0 {
 				log.Debugf(
-					"%s 发送音频包: idx=%d, seq=%d, samples=%d, total_samples=%d",
+					"%s gửi gói audio: idx=%d, seq=%d, samples=%d, total_samples=%d",
 					c.logPrefix(),
 					packetCount,
 					c.seq,
@@ -329,7 +329,7 @@ func (c *AsrWsClient) recvMessages(ctx context.Context, resChan chan<- *response
 
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Warnf("%s 读取豆包响应失败: recv_count=%d, err=%v", c.logPrefix(), recvCount, err)
+			log.Warnf("%s đọc phản hồi từ Doubao thất bại: recv_count=%d, err=%v", c.logPrefix(), recvCount, err)
 			return
 		}
 		resp := response.ParseResponse(message)
@@ -348,7 +348,7 @@ func (c *AsrWsClient) recvMessages(ctx context.Context, resChan chan<- *response
 			audioDuration = resp.PayloadMsg.AudioInfo.Duration
 		}
 		log.Debugf(
-			"%s 收到响应包: idx=%d, payload_seq=%d, event=%d, last=%v, code=%d, text_len=%d, text=%q, utterances=%d, first_utterance=%q, audio_duration=%d",
+			"%s nhận được gói phản hồi: idx=%d, payload_seq=%d, event=%d, last=%v, code=%d, text_len=%d, text=%q, utterances=%d, first_utterance=%q, audio_duration=%d",
 			c.logPrefix(),
 			recvCount,
 			resp.PayloadSequence,
@@ -367,11 +367,11 @@ func (c *AsrWsClient) recvMessages(ctx context.Context, resChan chan<- *response
 		case resChan <- resp:
 		}
 		if resp.IsLastPackage {
-			log.Debugf("%s 收到最后一个响应包，停止接收: recv_count=%d", c.logPrefix(), recvCount)
+			log.Debugf("%s đã nhận gói phản hồi cuối cùng, dừng nhận: recv_count=%d", c.logPrefix(), recvCount)
 			return
 		}
 		if resp.Code != 0 {
-			log.Warnf("%s 响应包返回错误码，通知发送协程停止: recv_count=%d, code=%d", c.logPrefix(), recvCount, resp.Code)
+			log.Warnf("%s gói phản hồi trả về mã lỗi, thông báo cho goroutine gửi dừng lại: recv_count=%d, code=%d", c.logPrefix(), recvCount, resp.Code)
 			close(stopChan)
 			return
 		}
@@ -380,40 +380,40 @@ func (c *AsrWsClient) recvMessages(ctx context.Context, resChan chan<- *response
 
 func (c *AsrWsClient) StartAudioStream(ctx context.Context, audioStream <-chan []float32, resChan chan<- *response.AsrResponse) error {
 	stopChan := make(chan struct{})
-	sendDoneChan := make(chan error, 1) // 发送完成通知（nil表示正常完成，error表示出错）
+	sendDoneChan := make(chan error, 1) // Thông báo gửi đã hoàn thành (nil nghĩa là hoàn thành bình thường, error nghĩa là có lỗi)
 	log.Debugf("%s StartAudioStream begin", c.logPrefix())
 
-	// 启动发送 goroutine
+	// Khởi chạy goroutine gửi
 	go func() {
 		err := c.SendMessages(ctx, audioStream, stopChan)
-		// 无论成功还是失败，都发送通知
+		// Dù thành công hay thất bại, đều gửi thông báo
 		sendDoneChan <- err
 	}()
 
-	// 等待连接建立或发送完成
+	// Chờ kết nối được thiết lập hoặc việc gửi hoàn thành
 	select {
 	case <-ctx.Done():
 		log.Debugf("%s StartAudioStream context done before connect", c.logPrefix())
 		return fmt.Errorf("start audio stream context done")
 	case <-c.connectReady:
-		// 连接已建立，启动接收 goroutine
-		log.Debugf("%s 连接已建立，启动接收 goroutine", c.logPrefix())
+		// Kết nối đã được thiết lập, khởi chạy goroutine nhận
+		log.Debugf("%s kết nối đã được thiết lập, khởi chạy goroutine nhận", c.logPrefix())
 		c.recvMessages(ctx, resChan, stopChan)
 		return nil
 	case err := <-sendDoneChan:
-		// 发送完成（可能是正常完成或出错）
+		// Việc gửi đã hoàn thành (có thể hoàn thành bình thường hoặc có lỗi)
 		if err != nil {
-			// 发送过程中出错
-			log.Errorf("%s 发送音频流失败: %v", c.logPrefix(), err)
+			// Xảy ra lỗi trong quá trình gửi
+			log.Errorf("%s gửi luồng audio thất bại: %v", c.logPrefix(), err)
 			return err
 		}
-		// 检查是否是静音情况（连接未建立）
+		// Kiểm tra xem có phải trường hợp im lặng hay không (kết nối chưa được thiết lập)
 		c.mu.RLock()
 		conn := c.connect
 		c.mu.RUnlock()
 		if conn == nil {
-			// 静音情况：audioStream 关闭但连接未建立
-			log.Debugf("%s 静音情况：连接未建立，发送空结果", c.logPrefix())
+			// Trường hợp im lặng: audioStream đã đóng nhưng kết nối chưa được thiết lập
+			log.Debugf("%s trường hợp im lặng: kết nối chưa được thiết lập, gửi kết quả rỗng", c.logPrefix())
 			payload := &response.AsrResponsePayload{}
 			payload.Result.Text = ""
 			resChan <- &response.AsrResponse{
@@ -423,8 +423,8 @@ func (c *AsrWsClient) StartAudioStream(ctx context.Context, audioStream <-chan [
 			}
 			return nil
 		}
-		// 连接已建立，启动接收 goroutine（处理剩余的响应）
-		log.Debugf("%s SendMessages 已结束，开始接收剩余响应", c.logPrefix())
+		// Kết nối đã được thiết lập, khởi chạy goroutine nhận (xử lý các phản hồi còn lại)
+		log.Debugf("%s SendMessages đã kết thúc, bắt đầu nhận các phản hồi còn lại", c.logPrefix())
 		c.recvMessages(ctx, resChan, stopChan)
 		return nil
 	}

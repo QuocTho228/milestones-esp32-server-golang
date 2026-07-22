@@ -10,7 +10,7 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// ExampleConfig 示例配置
+// ExampleConfig Cấu hình mẫu (ví dụ)
 var ExampleConfig = map[string]interface{}{
 	"type":       "eino_llm",
 	"model_name": "gpt-3.5-turbo",
@@ -20,9 +20,9 @@ var ExampleConfig = map[string]interface{}{
 	"streamable": true,
 }
 
-// ExampleUsage 展示如何使用EinoLLMProvider
+// ExampleUsage Minh họa cách sử dụng EinoLLMProvider
 func ExampleUsage() {
-	// 1. OpenAI配置示例
+	// 1. Ví dụ cấu hình OpenAI
 	openaiConfig := map[string]interface{}{
 		"type":       "openai",
 		"model_name": "gpt-3.5-turbo",
@@ -32,7 +32,7 @@ func ExampleUsage() {
 		"streamable": true,
 	}
 
-	// 2. Ollama配置示例
+	// 2. Ví dụ cấu hình Ollama
 	ollamaConfig := map[string]interface{}{
 		"type":       "ollama",
 		"model_name": "llama2",
@@ -41,89 +41,89 @@ func ExampleUsage() {
 		"streamable": true,
 	}
 
-	// 3. 创建提供者
+	// 3. Tạo provider
 	openaiProvider, err := NewEinoLLMProvider(openaiConfig)
 	if err != nil {
-		log.Errorf("创建OpenAI提供者失败: %v", err)
+		log.Errorf("Tạo provider OpenAI thất bại: %v", err)
 		return
 	}
 
 	ollamaProvider, err := NewEinoLLMProvider(ollamaConfig)
 	if err != nil {
-		log.Errorf("创建Ollama提供者失败: %v", err)
+		log.Errorf("Tạo provider Ollama thất bại: %v", err)
 		return
 	}
 
-	// 4. 使用Eino原生消息类型
+	// 4. Sử dụng kiểu tin nhắn gốc của Eino
 	messages := []*schema.Message{
 		{
 			Role:    schema.System,
-			Content: "你是一个有用的助手",
+			Content: "Bạn là một trợ lý hữu ích",
 		},
 		{
 			Role:    schema.User,
-			Content: "请介绍一下Eino框架",
+			Content: "Vui lòng giới thiệu về framework Eino",
 		},
 	}
 
-	// 5. 基本对话
-	fmt.Println("=== OpenAI 基本对话 ===")
+	// 5. Hội thoại cơ bản
+	fmt.Println("=== Hội thoại cơ bản với OpenAI ===")
 	responseChan := openaiProvider.ResponseWithContext(context.Background(), "example_session", messages, nil)
 	for resp := range responseChan {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 
-	fmt.Println("=== Ollama 基本对话 ===")
+	fmt.Println("=== Hội thoại cơ bản với Ollama ===")
 	responseChan = ollamaProvider.ResponseWithContext(context.Background(), "example_session", messages, nil)
 	for resp := range responseChan {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 
-	// 6. 工具调用示例
+	// 6. Ví dụ gọi công cụ (tool call)
 	tools := []*schema.ToolInfo{
 		{
 			Name:        "get_weather",
 			ParamsOneOf: &schema.ParamsOneOf{
-				// 工具参数定义
+				// Định nghĩa tham số công cụ
 			},
 		},
 	}
 
-	fmt.Println("=== 带工具调用的对话 ===")
+	fmt.Println("=== Hội thoại kèm gọi công cụ ===")
 	toolResponseChan := openaiProvider.ResponseWithContext(context.Background(), "example_session", messages, tools)
 	for resp := range toolResponseChan {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 
-	// 7. 链式调用示例
-	fmt.Println("=== 链式调用示例 ===")
+	// 7. Ví dụ gọi theo chuỗi (chain call)
+	fmt.Println("=== Ví dụ gọi theo chuỗi (chain call) ===")
 	enhancedProvider := openaiProvider.
 		WithMaxTokens(1000).
 		WithStreamable(false)
 
-	fmt.Printf("提供者类型: %s\n", enhancedProvider.GetProviderType())
-	fmt.Printf("模型信息: %+v\n", enhancedProvider.GetModelInfo())
+	fmt.Printf("Loại provider: %s\n", enhancedProvider.GetProviderType())
+	fmt.Printf("Thông tin model: %+v\n", enhancedProvider.GetModelInfo())
 }
 
-// ExampleAdvancedUsage 高级用法示例
+// ExampleAdvancedUsage Ví dụ sử dụng nâng cao
 func ExampleAdvancedUsage() {
 	config := map[string]interface{}{
 		"type":       "openai",
@@ -135,47 +135,47 @@ func ExampleAdvancedUsage() {
 
 	provider, err := NewEinoLLMProvider(config)
 	if err != nil {
-		log.Errorf("创建提供者失败: %v", err)
+		log.Errorf("Tạo provider thất bại: %v", err)
 		return
 	}
 
-	// 使用上下文控制
+	// Sử dụng context để kiểm soát
 	ctx := context.Background()
 	messages := []*schema.Message{
 		{
 			Role:    schema.User,
-			Content: "请写一个关于AI的长篇文章",
+			Content: "Vui lòng viết một bài viết dài về AI",
 		},
 	}
 
-	fmt.Println("=== 带上下文控制的对话 ===")
+	fmt.Println("=== Hội thoại có kiểm soát bằng context ===")
 	responseChan := provider.ResponseWithContext(ctx, "advanced_session", messages, nil)
 	for resp := range responseChan {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 
-	// 直接使用Eino ChatModel
+	// Sử dụng trực tiếp Eino ChatModel
 	chatModel := provider.GetChatModel()
 	result, err := chatModel.Generate(ctx, messages)
 	if err != nil {
-		log.Errorf("直接调用ChatModel失败: %v", err)
+		log.Errorf("Gọi trực tiếp ChatModel thất bại: %v", err)
 		return
 	}
 
-	fmt.Printf("直接调用结果: %s\n", result.Content)
+	fmt.Printf("Kết quả gọi trực tiếp: %s\n", result.Content)
 }
 
-// ExampleMultiProvider 多提供者示例
+// ExampleMultiProvider Ví dụ nhiều provider
 func ExampleMultiProvider() {
 	providers := make(map[string]*EinoLLMProvider)
 
-	// 创建多个提供者
+	// Tạo nhiều provider
 	configs := map[string]map[string]interface{}{
 		"openai": {
 			"type":       "openai",
@@ -192,76 +192,76 @@ func ExampleMultiProvider() {
 	for name, config := range configs {
 		provider, err := NewEinoLLMProvider(config)
 		if err != nil {
-			log.Errorf("创建%s提供者失败: %v", name, err)
+			log.Errorf("Tạo provider %s thất bại: %v", name, err)
 			continue
 		}
 		providers[name] = provider
 	}
 
-	// 使用不同提供者处理相同请求
+	// Sử dụng các provider khác nhau để xử lý cùng một request
 	messages := []*schema.Message{
 		{
 			Role:    schema.User,
-			Content: "你好，请介绍一下你自己",
+			Content: "Xin chào, hãy tự giới thiệu về bạn",
 		},
 	}
 
 	for name, provider := range providers {
-		fmt.Printf("=== %s 提供者响应 ===\n", name)
+		fmt.Printf("=== Phản hồi từ provider %s ===\n", name)
 		responseChan := provider.ResponseWithContext(context.Background(), "multi_session", messages, nil)
 		for resp := range responseChan {
 			if resp.Content != "" {
 				fmt.Print(resp.Content)
 			}
 			if len(resp.ToolCalls) > 0 {
-				fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+				fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 			}
 		}
 		fmt.Println()
 	}
 }
 
-// ExampleWithTools 工具调用示例
+// ExampleWithTools Ví dụ gọi công cụ (tool call)
 func ExampleWithTools() {
 	provider, err := NewEinoLLMProvider(ExampleConfig)
 	if err != nil {
-		log.Errorf("创建提供者失败: %v", err)
+		log.Errorf("Tạo provider thất bại: %v", err)
 		return
 	}
 
-	// 使用Eino原生消息类型
+	// Sử dụng kiểu tin nhắn gốc của Eino
 	messages := []*schema.Message{
 		{
 			Role:    schema.User,
-			Content: "今天北京的天气如何？请帮我查询一下。",
+			Content: "Hôm nay thời tiết ở Thượng Hải thế nào? Vui lòng giúp tôi tra cứu.",
 		},
 	}
 
-	// 使用Eino原生工具类型
+	// Sử dụng kiểu công cụ (tool) gốc của Eino
 	tools := []*schema.ToolInfo{
 		{
 			Name:        "get_weather",
 			ParamsOneOf: &schema.ParamsOneOf{
-				// 简化的工具参数定义
-				// 在实际使用中，这里需要正确定义参数结构
+				// Định nghĩa tham số công cụ đơn giản hóa
+				// Trong sử dụng thực tế, cần định nghĩa đúng cấu trúc tham số ở đây
 			},
 		},
 	}
 
-	fmt.Println("=== 工具调用示例 ===")
+	fmt.Println("=== Ví dụ gọi công cụ (tool call) ===")
 
-	// 使用Eino原生工具调用接口
-	fmt.Println("--- Eino原生工具调用 ---")
+	// Sử dụng interface gọi công cụ gốc của Eino
+	fmt.Println("--- Gọi công cụ gốc của Eino ---")
 	responseChan := provider.ResponseWithContext(context.Background(), "tool_session", messages, tools)
 	for resp := range responseChan {
-		fmt.Printf("响应: %+v\n", resp)
+		fmt.Printf("Phản hồi: %+v\n", resp)
 	}
 }
 
-// MultiProviderExample 多提供者示例
+// MultiProviderExample Ví dụ nhiều provider
 func MultiProviderExample() {
-	// OpenAI提供者示例
-	fmt.Println("=== OpenAI 提供者示例 ===")
+	// Ví dụ provider OpenAI
+	fmt.Println("=== Ví dụ provider OpenAI ===")
 	openaiConfig := map[string]interface{}{
 		"type":       "openai",
 		"model_name": "gpt-3.5-turbo",
@@ -272,14 +272,14 @@ func MultiProviderExample() {
 
 	openaiProvider, err := NewEinoLLMProvider(openaiConfig)
 	if err != nil {
-		log.Errorf("创建OpenAI提供者失败: %v", err)
+		log.Errorf("Tạo provider OpenAI thất bại: %v", err)
 		return
 	}
 
-	fmt.Printf("提供者类型: %s\n", openaiProvider.GetProviderType())
+	fmt.Printf("Loại provider: %s\n", openaiProvider.GetProviderType())
 
-	// Ollama提供者示例
-	fmt.Println("\n=== Ollama 提供者示例 ===")
+	// Ví dụ provider Ollama
+	fmt.Println("\n=== Ví dụ provider Ollama ===")
 	ollamaConfig := map[string]interface{}{
 		"type":       "ollama",
 		"model_name": "llama2",
@@ -289,188 +289,188 @@ func MultiProviderExample() {
 
 	ollamaProvider, err := NewEinoLLMProvider(ollamaConfig)
 	if err != nil {
-		log.Errorf("创建Ollama提供者失败: %v", err)
+		log.Errorf("Tạo provider Ollama thất bại: %v", err)
 		return
 	}
 
-	fmt.Printf("提供者类型: %s\n", ollamaProvider.GetProviderType())
+	fmt.Printf("Loại provider: %s\n", ollamaProvider.GetProviderType())
 
-	// 使用Eino原生消息类型
+	// Sử dụng kiểu tin nhắn gốc của Eino
 	messages := []*schema.Message{
 		{
 			Role:    schema.User,
-			Content: "请介绍一下你自己。",
+			Content: "Vui lòng tự giới thiệu về bạn.",
 		},
 	}
 
-	// 分别测试两个提供者
+	// Kiểm thử lần lượt hai provider
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	fmt.Println("\n--- OpenAI 响应 ---")
+	fmt.Println("\n--- Phản hồi từ OpenAI ---")
 	openaiResponse := openaiProvider.ResponseWithContext(ctx, "openai_session", messages, nil)
 	for resp := range openaiResponse {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 
-	fmt.Println("\n--- Ollama 响应 ---")
+	fmt.Println("\n--- Phản hồi từ Ollama ---")
 	ollamaResponse := ollamaProvider.ResponseWithContext(ctx, "ollama_session", messages, nil)
 	for resp := range ollamaResponse {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 }
 
-// EinoFrameworkAdvantages Eino框架的优势说明
+// EinoFrameworkAdvantages Mô tả ưu điểm của framework Eino
 func EinoFrameworkAdvantages() string {
 	return `
-Eino框架的主要优势：
+Những ưu điểm chính của framework Eino:
 
-1. **组件化设计**
-   - 丰富的组件抽象（ChatModel, Tool, ChatTemplate, Retriever等）
-   - 每个组件都有统一的输入输出接口
-   - 支持组件嵌套和复杂业务逻辑封装
+1. **Thiết kế theo thành phần (component-based)**
+   - Bộ trừu tượng thành phần phong phú (ChatModel, Tool, ChatTemplate, Retriever, v.v.)
+   - Mỗi thành phần đều có interface đầu vào/đầu ra thống nhất
+   - Hỗ trợ lồng ghép thành phần và đóng gói logic nghiệp vụ phức tạp
 
-2. **强大的编排能力**
-   - 基于图的数据流编排
-   - 自动处理类型检查、流处理、并发管理
-   - 支持分支执行、状态管理、字段映射
+2. **Khả năng điều phối (orchestration) mạnh mẽ**
+   - Điều phối luồng dữ liệu dựa trên đồ thị (graph)
+   - Tự động xử lý kiểm tra kiểu dữ liệu, xử lý luồng (stream), quản lý đồng thời
+   - Hỗ trợ thực thi rẽ nhánh, quản lý trạng thái, ánh xạ trường dữ liệu
 
-3. **完整的流处理**
-   - 自动串联流式数据块
-   - 自动装箱非流数据为流
-   - 自动合并多个流
-   - 自动复制流到多个下游节点
+3. **Xử lý luồng (streaming) hoàn chỉnh**
+   - Tự động nối tiếp các khối dữ liệu dạng luồng
+   - Tự động đóng gói dữ liệu không phải luồng thành luồng
+   - Tự động hợp nhất nhiều luồng
+   - Tự động sao chép luồng đến nhiều node phía sau (downstream)
 
-4. **高扩展性**
-   - 支持自定义回调处理器
-   - 五种切面支持（OnStart, OnEnd, OnError等）
-   - 可注入日志、追踪、监控等横切关注点
+4. **Khả năng mở rộng cao**
+   - Hỗ trợ bộ xử lý callback tùy chỉnh
+   - Hỗ trợ năm loại aspect (OnStart, OnEnd, OnError, v.v.)
+   - Có thể chèn (inject) các mối quan tâm xuyên suốt (cross-cutting concerns) như log, tracing, giám sát
 
-5. **生产就绪**
-   - 完整的错误处理机制
-   - 支持超时和取消操作
-   - 连接池和性能优化
-   - 详细的日志和监控
+5. **Sẵn sàng cho production**
+   - Cơ chế xử lý lỗi hoàn chỉnh
+   - Hỗ trợ thao tác timeout và hủy (cancel)
+   - Connection pool và tối ưu hiệu năng
+   - Log và giám sát chi tiết
 
-本实现特点：
+Đặc điểm của phiên bản triển khai này:
 
-**多提供者支持**：
-- 统一的Eino接口支持OpenAI和Ollama
-- 通过type配置灵活切换提供者
-- 每个提供者都使用相同的Eino ChatModel接口
+**Hỗ trợ đa provider**:
+- Interface Eino thống nhất hỗ trợ cả OpenAI và Ollama
+- Chuyển đổi provider linh hoạt thông qua cấu hình type
+- Mỗi provider đều sử dụng cùng một interface Eino ChatModel
 
-**Eino原生实现**：
-- 直接使用*schema.Message类型进行对话
-- 直接使用*schema.ToolInfo类型进行工具调用
-- 完全基于Eino框架构建，无需类型转换
+**Triển khai gốc theo Eino (Eino-native)**:
+- Sử dụng trực tiếp kiểu *schema.Message để hội thoại
+- Sử dụng trực tiếp kiểu *schema.ToolInfo để gọi công cụ
+- Xây dựng hoàn toàn dựa trên framework Eino, không cần chuyển đổi kiểu dữ liệu
 
-**增强功能**：
-- 链式调用支持 (WithMaxTokens, WithStreamable)
-- 统一的错误处理和日志记录
-- 支持流式和非流式调用模式
-- 完全兼容原有LLMProvider接口
+**Tính năng nâng cao**:
+- Hỗ trợ gọi theo chuỗi (chain call) (WithMaxTokens, WithStreamable)
+- Xử lý lỗi và ghi log thống nhất
+- Hỗ trợ chế độ gọi cả streaming và non-streaming
+- Tương thích hoàn toàn với interface LLMProvider ban đầu
 
-**最佳实践**：
-- 支持上下文取消和超时控制
-- 结构化日志和监控集成
-- 类型安全的配置管理
-- 资源自动管理和清理
+**Thực hành tốt nhất**:
+- Hỗ trợ hủy theo context và kiểm soát timeout
+- Tích hợp log có cấu trúc và giám sát
+- Quản lý cấu hình an toàn về kiểu dữ liệu (type-safe)
+- Tự động quản lý và dọn dẹp tài nguyên
 
-这种实现方式真正使用了Eino框架的核心能力，同时支持多种LLM提供者。
+Cách triển khai này thực sự tận dụng được năng lực cốt lõi của framework Eino, đồng thời hỗ trợ nhiều nhà cung cấp LLM khác nhau.
 `
 }
 
-// BasicUsageExample 基础用法示例
+// BasicUsageExample Ví dụ sử dụng cơ bản
 func BasicUsageExample() {
 	provider, err := NewEinoLLMProvider(ExampleConfig)
 	if err != nil {
-		log.Errorf("创建提供者失败: %v", err)
+		log.Errorf("Tạo provider thất bại: %v", err)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	// 演示链式配置
+	// Minh họa cấu hình theo chuỗi (chain configuration)
 	enhancedProvider := provider.
 		WithMaxTokens(2000).
 		WithStreamable(true)
 
-	// 获取底层的Eino ChatModel
+	// Lấy ChatModel gốc của Eino ở tầng dưới
 	chatModel := enhancedProvider.GetChatModel()
-	fmt.Printf("底层ChatModel: %+v\n", chatModel)
+	fmt.Printf("ChatModel tầng dưới: %+v\n", chatModel)
 
-	// 获取提供者类型
+	// Lấy loại provider
 	providerType := enhancedProvider.GetProviderType()
-	fmt.Printf("提供者类型: %s\n", providerType)
+	fmt.Printf("Loại provider: %s\n", providerType)
 
-	// 获取增强后的模型信息
+	// Lấy thông tin model đã được nâng cao
 	modelInfo := enhancedProvider.GetModelInfo()
-	fmt.Printf("增强模型信息: %+v\n", modelInfo)
+	fmt.Printf("Thông tin model đã nâng cao: %+v\n", modelInfo)
 
-	// 复杂对话示例 - 使用Eino原生消息类型
+	// Ví dụ hội thoại phức tạp - sử dụng kiểu tin nhắn gốc của Eino
 	messages := []*schema.Message{
 		{
 			Role:    schema.System,
-			Content: "你是一个专业的软件架构师，精通Go语言和AI应用开发。",
+			Content: "Bạn là một kiến trúc sư phần mềm chuyên nghiệp, thành thạo ngôn ngữ Go và phát triển ứng dụng AI.",
 		},
 		{
 			Role:    schema.User,
-			Content: "请设计一个基于Eino框架的聊天机器人系统架构。",
+			Content: "Vui lòng thiết kế kiến trúc hệ thống chatbot dựa trên framework Eino.",
 		},
 	}
 
-	// 使用增强配置进行调用
+	// Sử dụng cấu hình đã nâng cao để gọi
 	responseChan := enhancedProvider.ResponseWithContext(ctx, "basic_example", messages, nil)
-	fmt.Printf("架构设计响应:\n")
+	fmt.Printf("Phản hồi thiết kế kiến trúc:\n")
 	for resp := range responseChan {
 		if resp.Content != "" {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 }
 
-// EinoNativeExample Eino原生API示例
+// EinoNativeExample Ví dụ API gốc của Eino
 func EinoNativeExample() {
 	provider, err := NewEinoLLMProvider(ExampleConfig)
 	if err != nil {
-		log.Errorf("创建提供者失败: %v", err)
+		log.Errorf("Tạo provider thất bại: %v", err)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// 使用Eino原生消息类型
+	// Sử dụng kiểu tin nhắn gốc của Eino
 	messages := []*schema.Message{
 		{
 			Role:    schema.System,
-			Content: "你是一个有用的AI助手。",
+			Content: "Bạn là một trợ lý AI hữu ích.",
 		},
 		{
 			Role:    schema.User,
-			Content: "请简单介绍一下Eino框架。",
+			Content: "Vui lòng giới thiệu ngắn gọn về framework Eino.",
 		},
 	}
 
-	fmt.Println("=== Eino原生API示例 ===")
+	fmt.Println("=== Ví dụ API gốc của Eino ===")
 
-	// 1. 使用EinoResponse
+	// 1. Sử dụng EinoResponse
 	fmt.Println("--- EinoResponse ---")
 	responseChan := provider.ResponseWithContext(ctx, "eino_session", messages, nil)
 	for resp := range responseChan {
@@ -478,18 +478,18 @@ func EinoNativeExample() {
 			fmt.Print(resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 	fmt.Println()
 
-	// 2. 使用EinoResponseWithTools
+	// 2. Sử dụng EinoResponseWithTools
 	fmt.Println("\n--- EinoResponseWithTools ---")
 	tools := []*schema.ToolInfo{
 		{
 			Name:        "search_docs",
 			ParamsOneOf: &schema.ParamsOneOf{
-				// 工具参数定义
+				// Định nghĩa tham số công cụ
 			},
 		},
 	}
@@ -497,10 +497,10 @@ func EinoNativeExample() {
 	toolResponseChan := provider.ResponseWithContext(ctx, "eino_tools_session", messages, tools)
 	for resp := range toolResponseChan {
 		if resp.Content != "" {
-			fmt.Printf("内容: %s\n", resp.Content)
+			fmt.Printf("Nội dung: %s\n", resp.Content)
 		}
 		if len(resp.ToolCalls) > 0 {
-			fmt.Printf("工具调用: %+v\n", resp.ToolCalls)
+			fmt.Printf("Gọi công cụ (tool call): %+v\n", resp.ToolCalls)
 		}
 	}
 }

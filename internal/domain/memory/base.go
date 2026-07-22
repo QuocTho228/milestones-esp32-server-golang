@@ -12,44 +12,44 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-// MemoryProvider 记忆提供者接口
-// 定义所有记忆提供者都需要实现的核心方法
+// MemoryProvider Interface của nhà cung cấp bộ nhớ (memory provider)
+// Định nghĩa các phương thức cốt lõi mà mọi memory provider đều phải triển khai
 type MemoryProvider interface {
-	// AddMessage 添加一条消息到记忆
+	// AddMessage Thêm một tin nhắn vào bộ nhớ
 	AddMessage(ctx context.Context, agentID string, msg schema.Message) error
 
-	// GetMessages 获取用户的历史消息
+	// GetMessages Lấy tin nhắn lịch sử của người dùng
 	GetMessages(ctx context.Context, agentId string, count int) ([]*schema.Message, error)
 
-	// GetContext 获取用户的上下文信息，用于增强 LLM prompt
+	// GetContext Lấy thông tin context của người dùng, dùng để tăng cường (enhance) LLM prompt
 	GetContext(ctx context.Context, agentId string, maxToken int) (string, error)
 
-	// Search 搜索用户的记忆
+	// Search Tìm kiếm bộ nhớ của người dùng
 	Search(ctx context.Context, agentId string, query string, topK int, timeRangeDays int64) (string, error)
 
-	// Flush 刷新用户的记忆
+	// Flush Làm mới (flush) bộ nhớ của người dùng
 	Flush(ctx context.Context, agentId string) error
 
-	// ResetMemory 重置用户的记忆
+	// ResetMemory Đặt lại (reset) bộ nhớ của người dùng
 	ResetMemory(ctx context.Context, agentId string) error
 }
 
-// MemoryType 记忆类型
+// MemoryType Loại bộ nhớ (memory)
 type MemoryType string
 
 const (
 	MemoryTypeNone     MemoryType = "nomemo"
-	MemoryTypeMemobase MemoryType = "memobase" // Memobase 长期记忆
-	MemoryTypeMem0     MemoryType = "mem0"     // Mem0 记忆服务
-	MemoryTypeMemOS    MemoryType = "memos"    // MemOS（兼容 Mem0 API）
+	MemoryTypeMemobase MemoryType = "memobase" // Bộ nhớ dài hạn (long-term memory) Memobase
+	MemoryTypeMem0     MemoryType = "mem0"     // Dịch vụ bộ nhớ Mem0
+	MemoryTypeMemOS    MemoryType = "memos"    // MemOS (tương thích API của Mem0)
 )
 
-// GetProvider 获取指定类型的记忆提供者
+// GetProvider Lấy nhà cung cấp bộ nhớ theo loại được chỉ định
 func GetProvider(memoryType MemoryType, config map[string]interface{}) (MemoryProvider, error) {
 	return GetProviderByType(memoryType, config)
 }
 
-// GetProviderByType 根据类型获取记忆提供者
+// GetProviderByType Lấy nhà cung cấp bộ nhớ dựa theo loại
 func GetProviderByType(memoryType MemoryType, config map[string]interface{}) (MemoryProvider, error) {
 	if memoryType == "" {
 		memoryType = MemoryTypeNone

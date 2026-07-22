@@ -9,22 +9,22 @@ import (
 	mcp_go "github.com/mark3labs/mcp-go/mcp"
 )
 
-// MCPResponseType 定义MCP响应的类型
+// MCPResponseType định nghĩa loại phản hồi (response) của MCP
 type MCPResponseType string
 
 const (
-	// 动作类：需要执行特定动作，通常会终止后续处理
+	// Loại hành động (action): cần thực hiện một hành động cụ thể, thường sẽ dừng các bước xử lý tiếp theo
 	MCPResponseTypeAction MCPResponseType = "action"
-	// 音频资源类：需要执行特定动作，通常会终止后续处理, 也不需要返回stop
+	// Loại tài nguyên âm thanh (audio): cần thực hiện một hành động cụ thể, thường dừng xử lý tiếp theo, nhưng không cần trả về stop
 	MCPResponseTypeAudio MCPResponseType = "audio"
 
-	// 内容类：返回信息内容，允许后续处理
+	// Loại nội dung (content): trả về thông tin nội dung, cho phép tiếp tục xử lý sau đó
 	MCPResponseTypeContent MCPResponseType = "content"
-	// 错误类：处理错误情况
+	// Loại lỗi (error): xử lý các trường hợp lỗi
 	MCPResponseTypeError MCPResponseType = "error"
 )
 
-// MCPResponseBase 所有MCP响应的基础结构
+// MCPResponseBase là cấu trúc cơ bản dùng chung cho mọi phản hồi MCP
 type MCPResponseBase struct {
 	Type      MCPResponseType `json:"type"`
 	Success   bool            `json:"success"`
@@ -32,14 +32,14 @@ type MCPResponseBase struct {
 	ToolName  string          `json:"tool_name"`
 }
 
-// MCPActionResponse 动作类响应 - 用于播放音乐、退出对话等需要执行动作的场景
+// MCPActionResponse phản hồi loại hành động - dùng cho các tình huống cần thực hiện hành động như phát nhạc, thoát cuộc trò chuyện, v.v.
 type MCPActionResponse struct {
 	MCPResponseBase
 	Action   string            `json:"action"`
 	Message  string            `json:"message"`
 	Status   string            `json:"status"`
 	Metadata map[string]string `json:"metadata,omitempty"`
-	// 控制标志
+	// Các cờ điều khiển
 	FinalAction       bool   `json:"final_action"`
 	NoFurtherResponse bool   `json:"no_further_response"`
 	SilenceLLM        bool   `json:"silence_llm"`
@@ -47,7 +47,7 @@ type MCPActionResponse struct {
 	Instruction       string `json:"instruction,omitempty"`
 }
 
-// MCPActionResponse 动作类响应 - 用于播放音乐、退出对话等需要执行动作的场景
+// MCPAudioResponse phản hồi loại hành động - dùng cho các tình huống cần thực hiện hành động như phát nhạc, thoát cuộc trò chuyện, v.v.
 type MCPAudioResponse struct {
 	MCPResponseBase
 	Data      []byte            `json:"data"`
@@ -55,37 +55,37 @@ type MCPAudioResponse struct {
 	Action    string            `json:"action"`
 	Status    string            `json:"status"`
 	Metadata  map[string]string `json:"metadata,omitempty"`
-	// 控制标志
+	// Các cờ điều khiển
 	FinalAction bool `json:"final_action"`
 }
 
-// MCPContentResponse 内容类响应 - 用于获取时间、查询信息等返回数据的场景
+// MCPContentResponse phản hồi loại nội dung - dùng cho các tình huống lấy thời gian, tra cứu thông tin, trả về dữ liệu, v.v.
 type MCPContentResponse struct {
 	MCPResponseBase
 	Data    interface{} `json:"data"`
 	Message string      `json:"message"`
 }
 
-// MCPErrorResponse 错误类响应 - 统一的错误处理
+// MCPErrorResponse phản hồi loại lỗi - xử lý lỗi một cách thống nhất
 type MCPErrorResponse struct {
 	MCPResponseBase
 	Error      string `json:"error"`
 	ErrorCode  string `json:"error_code,omitempty"`
 	Details    string `json:"details,omitempty"`
-	Suggestion string `json:"suggestion,omitempty"` // 给用户的建议
+	Suggestion string `json:"suggestion,omitempty"` // Gợi ý dành cho người dùng
 }
 
-// MCPResponse 统一的MCP响应接口
+// MCPResponse là interface phản hồi MCP thống nhất
 type MCPResponse interface {
 	GetType() MCPResponseType
 	GetSuccess() bool
-	IsTerminal() bool // 是否是终止性操作
+	IsTerminal() bool // Có phải là thao tác kết thúc (terminal) hay không
 	ToJSON() (string, error)
 	GetContent() []mcp_go.Content
-	GetAction() string // 获取动作类型
+	GetAction() string // Lấy loại hành động
 }
 
-// 实现MCPResponse接口
+// Triển khai interface MCPResponse
 func (r *MCPActionResponse) GetType() MCPResponseType { return MCPResponseTypeAction }
 func (r *MCPActionResponse) GetSuccess() bool         { return r.Success }
 func (r *MCPActionResponse) IsTerminal() bool         { return r.FinalAction || r.NoFurtherResponse }
@@ -99,7 +99,7 @@ func (r *MCPActionResponse) GetContent() []mcp_go.Content {
 	}
 }
 
-// 为MCPAudioResponse添加接口方法实现
+// Bổ sung triển khai các phương thức interface cho MCPAudioResponse
 func (r *MCPAudioResponse) GetType() MCPResponseType { return MCPResponseTypeAudio }
 func (r *MCPAudioResponse) GetSuccess() bool         { return r.Success }
 func (r *MCPAudioResponse) IsTerminal() bool         { return r.FinalAction }
@@ -120,8 +120,8 @@ func (r *MCPAudioResponse) GetContent() []mcp_go.Content {
 
 func (r *MCPContentResponse) GetType() MCPResponseType { return MCPResponseTypeContent }
 func (r *MCPContentResponse) GetSuccess() bool         { return r.Success }
-func (r *MCPContentResponse) IsTerminal() bool         { return false } // 内容类通常不终止
-func (r *MCPContentResponse) GetAction() string        { return "" }    // 内容类没有动作
+func (r *MCPContentResponse) IsTerminal() bool         { return false } // Loại nội dung thường không kết thúc luồng xử lý
+func (r *MCPContentResponse) GetAction() string        { return "" }    // Loại nội dung không có hành động
 func (r *MCPContentResponse) GetContent() []mcp_go.Content {
 	return []mcp_go.Content{
 		mcp_go.TextContent{
@@ -133,8 +133,8 @@ func (r *MCPContentResponse) GetContent() []mcp_go.Content {
 
 func (r *MCPErrorResponse) GetType() MCPResponseType { return MCPResponseTypeError }
 func (r *MCPErrorResponse) GetSuccess() bool         { return r.Success }
-func (r *MCPErrorResponse) IsTerminal() bool         { return false } // 错误类允许后续处理
-func (r *MCPErrorResponse) GetAction() string        { return "" }    // 错误类没有动作
+func (r *MCPErrorResponse) IsTerminal() bool         { return false } // Loại lỗi cho phép tiếp tục xử lý sau đó
+func (r *MCPErrorResponse) GetAction() string        { return "" }    // Loại lỗi không có hành động
 func (r *MCPErrorResponse) GetContent() []mcp_go.Content {
 	return []mcp_go.Content{
 		mcp_go.TextContent{
@@ -144,13 +144,13 @@ func (r *MCPErrorResponse) GetContent() []mcp_go.Content {
 	}
 }
 
-// ToJSON 方法实现
+// Triển khai phương thức ToJSON
 func (r *MCPActionResponse) ToJSON() (string, error) {
 	data, err := json.Marshal(r)
 	return string(data), err
 }
 
-// 为MCPAudioResponse添加ToJSON方法
+// Bổ sung phương thức ToJSON cho MCPAudioResponse
 func (r *MCPAudioResponse) ToJSON() (string, error) {
 	data, err := json.Marshal(r)
 	return string(data), err
@@ -166,9 +166,9 @@ func (r *MCPErrorResponse) ToJSON() (string, error) {
 	return string(data), err
 }
 
-// 便利构造函数
+// Các hàm khởi tạo tiện lợi (constructor)
 
-// NewActionResponse 创建动作类响应
+// NewActionResponse tạo phản hồi loại hành động
 func NewActionResponse(toolName, action, message, status string, terminal bool) *MCPActionResponse {
 	return &MCPActionResponse{
 		MCPResponseBase: MCPResponseBase{
@@ -186,7 +186,7 @@ func NewActionResponse(toolName, action, message, status string, terminal bool) 
 	}
 }
 
-// NewAudioResponse 创建音频类响应 - 修正返回类型
+// NewAudioResponse tạo phản hồi loại âm thanh - đã sửa lại kiểu trả về
 func NewAudioResponse(toolName, action, status string, terminal bool, data []byte) *MCPAudioResponse {
 	return &MCPAudioResponse{
 		MCPResponseBase: MCPResponseBase{
@@ -202,7 +202,7 @@ func NewAudioResponse(toolName, action, status string, terminal bool, data []byt
 	}
 }
 
-// NewContentResponse 创建内容类响应
+// NewContentResponse tạo phản hồi loại nội dung
 func NewContentResponse(toolName string, data interface{}, message string) *MCPContentResponse {
 	return &MCPContentResponse{
 		MCPResponseBase: MCPResponseBase{
@@ -216,7 +216,7 @@ func NewContentResponse(toolName string, data interface{}, message string) *MCPC
 	}
 }
 
-// NewErrorResponse 创建错误类响应
+// NewErrorResponse tạo phản hồi loại lỗi
 func NewErrorResponse(toolName, error, errorCode, suggestion string) *MCPErrorResponse {
 	return &MCPErrorResponse{
 		MCPResponseBase: MCPResponseBase{
@@ -231,7 +231,7 @@ func NewErrorResponse(toolName, error, errorCode, suggestion string) *MCPErrorRe
 	}
 }
 
-// ParseMCPResponse 从JSON字符串解析MCP响应
+// ParseMCPResponse phân tích (parse) phản hồi MCP từ chuỗi JSON
 func ParseMCPResponse(jsonStr string) (MCPResponse, error) {
 	var base MCPResponseBase
 	if err := json.Unmarshal([]byte(jsonStr), &base); err != nil {
@@ -264,6 +264,6 @@ func ParseMCPResponse(jsonStr string) (MCPResponse, error) {
 		}
 		return &response, nil
 	default:
-		return NewErrorResponse("unknown", "未知的响应类型", "INVALID_TYPE", "请检查工具实现"), fmt.Errorf("未知的响应类型: %s", base.Type)
+		return NewErrorResponse("unknown", "Loại phản hồi không xác định", "INVALID_TYPE", "Vui lòng kiểm tra lại cách triển khai công cụ"), fmt.Errorf("loại phản hồi không xác định: %s", base.Type)
 	}
 }

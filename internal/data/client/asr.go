@@ -11,27 +11,27 @@ import (
 
 type Asr struct {
 	lock sync.RWMutex
-	// ASR 上下文和通道
+	// Context và các channel của ASR
 	Ctx              context.Context
 	Cancel           context.CancelFunc
 	AsrEnd           chan bool
-	AsrAudioChannel  chan []float32                 //流式音频输入的channel
-	AsrResultChannel chan asr_types.StreamingResult //流式输出asr识别到的结果片断
-	AsrResult        bytes.Buffer                   //保存此次识别到的最终文本
-	Statue           int                            //0:初始化 1:识别中 2:识别结束
-	AutoEnd          bool                           //auto_end是指使用asr自动判断结束，不再使用vad模块
+	AsrAudioChannel  chan []float32                 // channel đầu vào audio dạng streaming
+	AsrResultChannel chan asr_types.StreamingResult // channel xuất ra các đoạn kết quả nhận dạng ASR theo dạng streaming
+	AsrResult        bytes.Buffer                   // lưu văn bản cuối cùng nhận dạng được trong lần này
+	Statue           int                            // 0: khởi tạo, 1: đang nhận dạng, 2: kết thúc nhận dạng
+	AutoEnd          bool                           // auto_end nghĩa là dùng ASR tự động xác định điểm kết thúc, không dùng module VAD nữa
 
-	// ASR 类型和模式
-	AsrType string // ASR 类型，如 "funasr", "doubao"
-	Mode    string // ASR 模式，如 "online", "offline"
+	// Loại và chế độ của ASR
+	AsrType string // Loại ASR, ví dụ "funasr", "doubao"
+	Mode    string // Chế độ ASR, ví dụ "online", "offline"
 
-	// ClientState 引用，用于回调通知
+	// Tham chiếu đến ClientState, dùng để gọi callback thông báo
 	ClientState *ClientState
 
-	// 聊天历史音频缓存：持续累积发送到ASR的音频数据
+	// Bộ đệm audio lịch sử chat: liên tục tích lũy dữ liệu audio đã gửi tới ASR
 	HistoryAudioBuffer []float32
 
-	// 当前这轮ASR是否已经收到首个非空文本
+	// Cho biết vòng ASR hiện tại đã nhận được văn bản không rỗng đầu tiên hay chưa
 	ReceivedTextInTurn bool
 }
 
@@ -57,7 +57,7 @@ func (a *Asr) RetireAsrResult(ctx context.Context) (asr_types.StreamingResult, b
 
 	log.Log().Debugf("asr type: %s, mode: %s", a.AsrType, a.Mode)
 
-	// 使用局部变量跟踪是否已发送首次字符事件
+	// Dùng biến cục bộ để theo dõi xem đã gửi sự kiện ký tự đầu tiên hay chưa
 	firstTextSent := false
 	var emptyResult asr_types.StreamingResult
 
@@ -67,22 +67,23 @@ func (a *Asr) RetireAsrResult(ctx context.Context) (asr_types.StreamingResult, b
 			log.Debugf("RetireAsrResult: ctx done, exit")
 			return emptyResult, false, nil
 		default:
-			// 避免 ctx 取消时概率性选中 channel，导致使用已取消 context 的结果
+			// Tránh trường hợp khi ctx bị hủy vẫn có xác suất chọn trúng channel,
+			// dẫn đến việc sử dụng kết quả của một context đã bị hủy
 			select {
 			case result, ok := <-a.AsrResultChannel:
 				log.Debugf("asr result: %s, ok: %+v, isFinal: %+v, emptyReason: %s, error: %+v", result.Text, ok, result.IsFinal, result.EmptyReason, result.Error)
 				if result.Error != nil {
 					if result.RetryReason != "" {
-						log.Warnf("ASR 返回可恢复错误(%s)，交由上层恢复: %v", result.RetryReason, result.Error)
+						log.Warnf("ASR trả về lỗi có thể khôi phục (%s), giao cho tầng trên xử lý khôi phục: %v", result.RetryReason, result.Error)
 						return result, true, nil
 					}
 					return emptyResult, false, result.Error
 				}
 
-				// 检测首次返回字符（文本不为空且未发送过）
+				// Kiểm tra ký tự trả về lần đầu (văn bản không rỗng và chưa từng gửi trước đó)
 				if result.Text != "" && !firstTextSent && a.ClientState != nil && a.ClientState.OnAsrFirstTextCallback != nil {
 					firstTextSent = true
-					// 调用回调函数通知首次字符
+					// Gọi hàm callback để thông báo ký tự đầu tiên
 					a.ClientState.OnAsrFirstTextCallback(result.Text, result.IsFinal)
 				}
 
@@ -90,7 +91,7 @@ func (a *Asr) RetireAsrResult(ctx context.Context) (asr_types.StreamingResult, b
 					strings.EqualFold(a.Mode, "2pass") &&
 					strings.EqualFold(result.Mode, "2pass-online") {
 					if result.IsFinal {
-						log.Debugf("funasr 2pass-online 结果误标 final，继续等待 2pass-offline 最终结果")
+						log.Debugf("funasr 2pass-online bị gắn nhầm cờ final, tiếp tục chờ kết quả cuối cùng từ 2pass-offline")
 					}
 					continue
 				}
@@ -132,8 +133,8 @@ func (a *Asr) StopWithReason(reason string) {
 
 	if a.AsrAudioChannel != nil {
 		log.Debugf("Asr.StopWithReason: reason=%s", reason)
-		close(a.AsrAudioChannel) // close掉asr输入音频的channel，通知asr停止, 返回结果
-		a.AsrAudioChannel = nil  // 由于已经close，所以需要置空
+		close(a.AsrAudioChannel) // đóng channel audio đầu vào của ASR để báo ASR dừng lại và trả về kết quả
+		a.AsrAudioChannel = nil  // vì đã đóng nên cần gán về nil
 	}
 }
 
@@ -152,40 +153,40 @@ func (a *Asr) AddAudioData(pcmFrameData []float32) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if a.AsrAudioChannel != nil {
-		// 使用 select 实现非阻塞发送，避免 channel 满时死锁
+		// Dùng select để gửi không chặn (non-blocking), tránh deadlock khi channel đầy
 		select {
 		case a.AsrAudioChannel <- pcmFrameData:
-			// 成功发送，同步缓存音频数据用于聊天历史记录
+			// Gửi thành công, đồng thời lưu lại dữ liệu audio vào bộ đệm để dùng cho lịch sử chat
 			a.HistoryAudioBuffer = append(a.HistoryAudioBuffer, pcmFrameData...)
 		default:
-			// channel 已满，跳过本次数据，避免阻塞导致死锁
-			log.Warnf("AsrAudioChannel 已满，跳过本次音频数据")
+			// channel đã đầy, bỏ qua dữ liệu audio lần này để tránh bị chặn dẫn đến deadlock
+			log.Warnf("AsrAudioChannel đã đầy, bỏ qua dữ liệu audio lần này")
 		}
 	}
 	return nil
 }
 
-// GetHistoryAudio 获取历史音频缓存（返回副本，不清空原始数据）
+// GetHistoryAudio lấy bộ đệm audio lịch sử (trả về bản sao, không xóa dữ liệu gốc)
 func (a *Asr) GetHistoryAudio() []float32 {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if len(a.HistoryAudioBuffer) == 0 {
 		return nil
 	}
-	// 返回副本，避免外部修改影响原始数据
+	// Trả về bản sao để tránh việc chỉnh sửa bên ngoài ảnh hưởng đến dữ liệu gốc
 	result := make([]float32, len(a.HistoryAudioBuffer))
 	copy(result, a.HistoryAudioBuffer)
 	return result
 }
 
-// GetHistoryAudioLen 获取历史音频缓存长度（采样点数）
+// GetHistoryAudioLen lấy độ dài bộ đệm audio lịch sử (số điểm lấy mẫu - sample)
 func (a *Asr) GetHistoryAudioLen() int {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	return len(a.HistoryAudioBuffer)
 }
 
-// ClearHistoryAudio 清空历史音频缓存
+// ClearHistoryAudio xóa bộ đệm audio lịch sử
 func (a *Asr) ClearHistoryAudio() {
 	a.lock.Lock()
 	defer a.lock.Unlock()
@@ -210,7 +211,7 @@ func (a *AsrAudioBuffer) GetAsrDataSize() int {
 	return len(a.PcmData)
 }
 
-// GetFrameCount 获取帧数（需要传入帧大小用于计算）
+// GetFrameCount lấy số lượng frame (cần truyền vào kích thước frame để tính toán)
 func (a *AsrAudioBuffer) GetFrameCount(frameSize int) int {
 	a.AudioBufferMutex.RLock()
 	defer a.AudioBufferMutex.RUnlock()
@@ -229,7 +230,7 @@ func (a *AsrAudioBuffer) GetAndClearAllData() []float32 {
 	return pcmData
 }
 
-// GetAsrData 滑动窗口进行取数据（需要传入帧大小用于计算）
+// GetAsrData lấy dữ liệu theo kiểu cửa sổ trượt - sliding window (cần truyền vào kích thước frame để tính toán)
 func (a *AsrAudioBuffer) GetAsrData(frameCount int, frameSize int) []float32 {
 	a.AudioBufferMutex.Lock()
 	defer a.AudioBufferMutex.Unlock()
@@ -243,7 +244,7 @@ func (a *AsrAudioBuffer) GetAsrData(frameCount int, frameSize int) []float32 {
 	return pcmData
 }
 
-// RemoveAsrAudioData 移除指定帧数的音频数据（需要传入帧大小用于计算）
+// RemoveAsrAudioData xóa bỏ dữ liệu audio theo số lượng frame chỉ định (cần truyền vào kích thước frame để tính toán)
 func (a *AsrAudioBuffer) RemoveAsrAudioData(frameCount int, frameSize int) {
 	a.AudioBufferMutex.Lock()
 	defer a.AudioBufferMutex.Unlock()

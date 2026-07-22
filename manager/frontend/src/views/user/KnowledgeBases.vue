@@ -1,7 +1,7 @@
 <template>
   <div class="config-page">
     <div class="page-actions">
-      <el-button type="primary" @click="openDialog()">Thêm kho kiến thức</el-button>
+      <el-button type="primary" @click="openDialog()">Thêm kho tri thức</el-button>
     </div>
 
     <el-table :data="items" v-loading="loading" stripe table-layout="fixed" style="width: 100%">
@@ -76,11 +76,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editing ? 'Chỉnh sửa kho kiến thức' : 'Thêm kho kiến thức'"
-      width="720px"
-    >
+    <el-dialog v-model="dialogVisible" :title="editing ? 'Chỉnh sửa kho tri thức' : 'Thêm kho tri thức'" width="720px">
       <el-form :model="form" label-width="150px">
         <el-form-item label="Tên kho">
           <el-input v-model="form.name" maxlength="100" show-word-limit />
@@ -90,7 +86,7 @@
         </el-form-item>
         <el-form-item label="Hướng dẫn đồng bộ">
           <div class="kb-helper-text">
-            Sau khi lưu sẽ tự động đồng bộ tới nhà cung cấp kho kiến thức do quản trị viên cấu hình (Dify / RAGFlow /
+            Sau khi lưu sẽ tự động đồng bộ tới nhà cung cấp kho tri thức do quản trị viên cấu hình (Dify / RAGFlow /
             WeKnora). Tài liệu vui lòng thêm trong "Quản lý tài liệu".
           </div>
         </el-form-item>
@@ -121,7 +117,7 @@
     <el-dialog v-model="documentsVisible" title="Quản lý tài liệu" width="900px">
       <div class="dialog-toolbar">
         <div>
-          Kho kiến thức hiện tại: <strong>{{ currentKb?.name || '-' }}</strong>
+          Kho tri thức hiện tại: <strong>{{ currentKb?.name || '-' }}</strong>
         </div>
         <div class="dialog-toolbar-actions">
           <el-upload
@@ -196,7 +192,7 @@
     <el-dialog v-model="searchTestVisible" title="Kiểm thử truy xuất" width="960px">
       <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap">
         <div>
-          Kho kiến thức hiện tại: <strong>{{ searchTestKb?.name || '-' }}</strong>
+          Kho tri thức hiện tại: <strong>{{ searchTestKb?.name || '-' }}</strong>
           <el-tag size="small" style="margin-left: 8px">{{ searchTestKb?.sync_provider || '-' }}</el-tag>
         </div>
         <div style="display: flex; gap: 8px; flex: 1; min-width: 420px; justify-content: flex-end">
@@ -464,7 +460,7 @@ const submit = async () => {
 
 const removeItem = async (id) => {
   try {
-    await ElMessageBox.confirm('Bạn có chắc muốn xóa kho kiến thức này và toàn bộ tài liệu không?', 'Thông báo', {
+    await ElMessageBox.confirm('Bạn có chắc muốn xóa kho tri thức này và toàn bộ tài liệu không?', 'Thông báo', {
       type: 'warning',
     });
     const res = await api.delete(`/user/knowledge-bases/${id}`);
@@ -564,7 +560,7 @@ const openSearchTestDialog = (row) => {
 
 const runSearchTest = async () => {
   if (!searchTestKb.value?.id) {
-    ElMessage.error('Vui lòng chọn kho kiến thức trước');
+    ElMessage.error('Vui lòng chọn kho tri thức trước');
     return;
   }
   const query = (searchTestForm.query || '').trim();
@@ -698,13 +694,13 @@ const syncDocument = async (docId) => {
 
 const uploadDocumentFile = async (options) => {
   if (!currentKb.value?.id) {
-    ElMessage.error('Vui lòng chọn kho kiến thức trước');
+    ElMessage.error('Vui lòng chọn kho tri thức trước');
     options?.onError?.(new Error('missing knowledge base'));
     return;
   }
   if (!isUploadProviderSupported.value) {
     ElMessage.error(
-      `Nhà cung cấp kho kiến thức hiện tại là ${currentKBProvider.value}, chưa hỗ trợ tạo tài liệu bằng tải tệp`,
+      `Nhà cung cấp kho tri thức hiện tại là ${currentKBProvider.value}, chưa hỗ trợ tạo tài liệu bằng tải tệp`,
     );
     options?.onError?.(new Error('provider not supported'));
     return;

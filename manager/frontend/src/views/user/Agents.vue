@@ -56,7 +56,7 @@
         <div class="welcome-content">
           <el-icon size="64" color="var(--apple-primary)"><Monitor /></el-icon>
           <h3>Hãy tạo trợ lý AI đầu tiên</h3>
-          <p>Sau khi tạo, bạn có thể liên kết thiết bị, cấu hình kho kiến thức và năng lực giọng nói.</p>
+          <p>Sau khi tạo, bạn có thể liên kết thiết bị, cấu hình kho tri thức và năng lực giọng nói.</p>
           <div class="welcome-actions">
             <el-button type="primary" size="large" @click="showAddAgentDialog = true">
               <el-icon><Plus /></el-icon>
@@ -241,7 +241,7 @@ const onlineDevicesCountText = computed(() => (initialLoading.value ? '--' : onl
 const knowledgeBaseNameMap = computed(() => {
   const map = new Map();
   for (const kb of knowledgeBases.value) {
-    map.set(Number(kb.id), kb.name || `Kho kiến thức #${kb.id}`);
+    map.set(Number(kb.id), kb.name || `Kho tri thức #${kb.id}`);
   }
   return map;
 });
@@ -288,7 +288,7 @@ const loadKnowledgeBases = async () => {
     knowledgeBases.value = response.data.data || [];
   } catch (error) {
     knowledgeBases.value = [];
-    console.error('Tải danh sách kho kiến thức thất bại:', error);
+    console.error('Tải danh sách kho tri thức thất bại:', error);
   }
 };
 
@@ -473,15 +473,15 @@ const getKnowledgeBaseCount = (agent) => {
 };
 
 const getKnowledgeBaseNames = (agent) => {
-  return getKnowledgeBaseIds(agent).map((id) => knowledgeBaseNameMap.value.get(Number(id)) || `Kho kiến thức #${id}`);
+  return getKnowledgeBaseIds(agent).map((id) => knowledgeBaseNameMap.value.get(Number(id)) || `Kho tri thức #${id}`);
 };
 
 const getKnowledgeBaseTooltip = (agent) => {
   const names = getKnowledgeBaseNames(agent);
   if (names.length === 0) {
-    return 'Kho kiến thức liên kết: Chưa liên kết';
+    return 'Kho tri thức liên kết: Chưa liên kết';
   }
-  return `Kho kiến thức liên kết: ${names.join('、')}`;
+  return `Kho tri thức liên kết: ${names.join('、')}`;
 };
 
 const normalizeMcpServiceNames = (raw) => {

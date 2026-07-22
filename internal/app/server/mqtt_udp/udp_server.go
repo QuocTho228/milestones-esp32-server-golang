@@ -14,7 +14,7 @@ import (
 	. "milestones-esp32-server-golang/logger"
 )
 
-// UDPServer UDP服务器结构
+// UDPServer Cấu trúc UDP server
 /*
 type UDPServer struct {
 	conn       *net.UDPConn
@@ -38,7 +38,7 @@ const maxConnIDGenerateAttempts = 16
 
 var udpRandReader io.Reader = rand.Reader
 
-// NewUDPServer 创建新的UDP服务器
+// NewUDPServer Tạo mới UDP server
 func NewUDPServer(udpPort int, externalHost string, externalPort int) *UdpServer {
 	return &UdpServer{
 		udpPort:        udpPort,
@@ -48,7 +48,7 @@ func NewUDPServer(udpPort int, externalHost string, externalPort int) *UdpServer
 	}
 }
 
-// Start 启动UDP服务器
+// Start Khởi động UDP server
 func (s *UdpServer) Start() error {
 	addr := &net.UDPAddr{
 		IP:   net.ParseIP("0.0.0.0"),
@@ -63,16 +63,16 @@ func (s *UdpServer) Start() error {
 	s.conn = conn
 	Infof("Máy chủ UDP đã khởi động trong %s:%d", "0.0.0.0", s.udpPort)
 
-	// 启动会话清理
+	// Khởi động dọn dẹp session
 	//go s.cleanupSessions()
 
-	// 启动数据包处理
+	// Khởi động xử lý gói tin
 	go s.handlePackets()
 
 	return nil
 }
 
-// Close 关闭 UDP 服务器，使 handlePackets 退出
+// Close Đóng UDP server, làm cho handlePackets thoát
 func (s *UdpServer) Close() error {
 	s.Lock()
 	conn := s.conn
@@ -84,9 +84,9 @@ func (s *UdpServer) Close() error {
 	return conn.Close()
 }
 
-// handlePackets 处理接收到的数据包
+// handlePackets Xử lý gói tin nhận được
 func (s *UdpServer) handlePackets() {
-	buffer := make([]byte, 4096) // 使用默认的缓冲区大小
+	buffer := make([]byte, 4096) // Dùng kích thước buffer mặc định
 	for {
 		s.RLock()
 		conn := s.conn
@@ -106,11 +106,11 @@ func (s *UdpServer) handlePackets() {
 			continue
 		}
 
-		// 复制数据，避免并发修改
+		// Sao chép dữ liệu, tránh bị sửa đổi đồng thời (concurrent)
 		data := make([]byte, n)
 		copy(data, buffer[:n])
 
-		// 处理数据包
+		// Xử lý gói tin
 		s.processPacket(addr, data)
 	}
 }
@@ -123,24 +123,24 @@ func (s *UdpServer) getSessionByConnID(connID string) *UdpSession {
 	return nil
 }
 
-// processPacket 处理单个数据包
+// processPacket Xử lý một gói tin đơn lẻ
 func (s *UdpServer) processPacket(addr *net.UDPAddr, data []byte) {
-	// 检查数据包大小
+	// Kiểm tra kích thước gói tin
 	if len(data) < 16 {
 		Warn("Gói dữ liệu quá nhỏ.")
 		return
 	}
 
 	fullNonce := data[:16]
-	connID := fullNonce[4:8] // 取5-8字节作为连接id
+	connID := fullNonce[4:8] // Lấy byte thứ 5-8 làm connection id
 	strConnID := hex.EncodeToString(connID)
 	udpSession := s.getSessionByConnID(strConnID)
 	if udpSession == nil {
-		//Warnf("session不存在 addr: %s, connID: %s", addr, strConnID)
+		//Warnf("session không tồn tại addr: %s, connID: %s", addr, strConnID)
 		return
 	}
 
-	// 更新最后活动时间
+	// Cập nhật thời gian hoạt động cuối cùng
 	udpSession.LastActive = time.Now()
 
 	decrypted, err := udpSession.Decrypt(data)
@@ -152,7 +152,7 @@ func (s *UdpServer) processPacket(addr *net.UDPAddr, data []byte) {
 	if currentAddr == nil || currentAddr.String() != addr.String() {
 		udpSession.SetRemoteAddr(addr)
 	}
-	Debugf("Dữ liệu âm thanh đã nhận được, addr: %s, 大小: %d 字节", addr, len(decrypted))
+	Debugf("Dữ liệu âm thanh đã nhận được, addr: %s, kích thước: %d byte", addr, len(decrypted))
 	ok, err := udpSession.RecvData(decrypted)
 	if err != nil {
 		Errorf("addr: %s Không nhận được dữ liệu: %v", addr, err)
@@ -170,7 +170,7 @@ func (s *UdpServer) processPacket(addr *net.UDPAddr, data []byte) {
 	}*/
 }
 
-// cleanupSessions 清理过期会话
+// cleanupSessions Dọn dẹp các session đã hết hạn
 func (s *UdpServer) cleanupSessions() {
 	ticker := time.NewTicker(time.Minute)
 	for range ticker.C {
@@ -186,35 +186,35 @@ func (s *UdpServer) cleanupSessions() {
 	}
 }
 
-// CreateSession 创建新会话
+// CreateSession Tạo session mới
 func (s *UdpServer) CreateSession(deviceId, clientId string) *UdpSession {
-	// 生成会话ID
+	// Tạo session ID
 	sessionID, err := generateSessionID()
 	if err != nil {
 		Errorf("Không tạo được ID phiên: %v", err)
 		return nil
 	}
 
-	// 生成AES密钥
+	// Tạo khóa AES
 	key := make([]byte, 16)
 	if err := fillRandomBytes(key); err != nil {
 		Errorf("Không tạo được khóa AES: %v", err)
 		return nil
 	}
 
-	// 创建AES块
+	// Tạo khối (block) AES
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		Errorf("Không tạo được khối AES: %v", err)
 		return nil
 	}
 
-	// 将key转换为[16]byte
+	// Chuyển key thành [16]byte
 	aesKey := [16]byte{}
 	copy(aesKey[:], key)
 
 	for attempt := 0; attempt < maxConnIDGenerateAttempts; attempt++ {
-		// 生成4字节连接id
+		// Tạo connection id 4 byte
 		connID := make([]byte, 4)
 		if err := fillRandomBytes(connID); err != nil {
 			Errorf("Không tạo được ID kết nối: %v", err)
@@ -222,25 +222,25 @@ func (s *UdpServer) CreateSession(deviceId, clientId string) *UdpSession {
 		}
 		strConnID := hex.EncodeToString(connID)
 
-		// 4字节时间戳
+		// Timestamp 4 byte
 		timestamp := make([]byte, 4)
 		binary.BigEndian.PutUint32(timestamp, uint32(time.Now().Unix()))
 
-		// 拼接nonce: 4字节连接id + 4字节时间戳
+		// Ghép nonce: 4 byte connection id + 4 byte timestamp
 		nonce := append(connID, timestamp...)
 
-		// 将nonce转换为[8]byte
+		// Chuyển nonce thành [8]byte
 		nonceBytes := [8]byte{}
 		copy(nonceBytes[:], nonce)
 
-		// 创建会话
+		// Tạo session
 		session := &UdpSession{
 			ID:          sessionID,
 			ConnId:      strConnID,
 			ClientId:    clientId,
 			DeviceId:    deviceId,
 			AesKey:      aesKey,
-			Nonce:       nonceBytes, // 保存原始nonce模板
+			Nonce:       nonceBytes, // Lưu template nonce gốc
 			CreatedAt:   time.Now(),
 			LastActive:  time.Now(),
 			Block:       block,
@@ -296,13 +296,13 @@ func (s *UdpServer) writeToUDP(data []byte, remoteAddr *net.UDPAddr) (int, error
 	return conn.WriteToUDP(data, remoteAddr)
 }
 
-// CloseSession 关闭会话
+// CloseSession Đóng session
 func (s *UdpServer) CloseSession(connID string) {
 	session := s.getSessionByConnID(connID)
 	s.CloseSessionByRef(session)
 }
 
-// ClearSessionAddrBinding 清理 connID 对应会话的 UDP 地址绑定，不销毁会话本身
+// ClearSessionAddrBinding Xóa binding địa chỉ UDP của session tương ứng với connID, không hủy (destroy) session
 func (s *UdpServer) ClearSessionAddrBinding(connID string) {
 	session := s.getSessionByConnID(connID)
 	if session == nil {
@@ -316,7 +316,7 @@ func (s *UdpServer) SetConnId2Session(connID string, session *UdpSession) {
 	s.connId2Session.Store(connID, session)
 }
 
-// GetSessionByConnID 获取会话信息
+// GetSessionByConnID Lấy thông tin session
 func (s *UdpServer) GetSessionByConnID(connID string) *UdpSession {
 	val, ok := s.connId2Session.Load(connID)
 	if ok {
@@ -325,7 +325,7 @@ func (s *UdpServer) GetSessionByConnID(connID string) *UdpSession {
 	return nil
 }
 
-// generateSessionID 生成会话ID
+// generateSessionID Tạo session ID
 func generateSessionID() (string, error) {
 	b := make([]byte, 8)
 	if err := fillRandomBytes(b); err != nil {

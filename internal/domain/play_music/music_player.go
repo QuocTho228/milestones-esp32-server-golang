@@ -15,13 +15,13 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// 全局HTTP客户端，实现连接池
+// Global HTTP client, dùng chung connection pool
 var (
 	httpClient     *http.Client
 	httpClientOnce sync.Once
 )
 
-// 获取配置了连接池的HTTP客户端
+// Lấy HTTP client đã được cấu hình connection pool
 func getHTTPClient() *http.Client {
 	httpClientOnce.Do(func() {
 		transport := &http.Transport{
@@ -44,41 +44,41 @@ func getHTTPClient() *http.Client {
 	return httpClient
 }
 
-// PlayMusicStream 从URL播放音乐，返回音频流通道
-// frameDuration: 每帧时长（毫秒），默认20ms
-// audioFormat: 音频格式，支持 "mp3"
+// PlayMusicStream Phát nhạc từ URL, trả về kênh (channel) luồng âm thanh
+// frameDuration: thời lượng mỗi khung (mili giây), mặc định 20ms
+// audioFormat: định dạng âm thanh, hỗ trợ "mp3"
 func PlayMusicStream(ctx context.Context, url string, sampleRate int, frameDuration int, audioFormat string) (outputChan chan []byte, err error) {
-	// 参数校验和默认值设置
+	// Kiểm tra tham số và thiết lập giá trị mặc định
 	if frameDuration <= 0 {
-		frameDuration = 20 // 默认20ms帧时长
+		frameDuration = 20 // Mặc định thời lượng khung 20ms
 	}
 	if audioFormat == "" {
-		audioFormat = "mp3" // 默认MP3格式
+		audioFormat = "mp3" // Mặc định định dạng MP3
 	}
 
 	startTs := time.Now().UnixMilli()
 
-	// 创建HTTP请求
+	// Tạo HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("创建请求失败: %v", err)
+		return nil, fmt.Errorf("tạo request thất bại: %v", err)
 	}
 
 	req.Header.Set("Accept", "audio/*")
 	req.Header.Set("User-Agent", "MusicPlayer/1.0")
 
-	// 使用连接池创建客户端
+	// Sử dụng connection pool để tạo client
 	client := getHTTPClient()
 
-	// 创建输出通道
+	// Tạo kênh output
 	outputChan = make(chan []byte, 100)
 
-	// 启动goroutine处理流式响应
+	// Khởi chạy goroutine xử lý phản hồi dạng stream
 	go func() {
-		// 发送请求
+		// Gửi request
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Errorf("发送请求失败: %v", err)
+			log.Errorf("Gửi request thất bại: %v", err)
 			close(outputChan)
 			return
 		}
@@ -86,62 +86,62 @@ func PlayMusicStream(ctx context.Context, url string, sampleRate int, frameDurat
 			resp.Body.Close()
 		}()
 
-		// 检查响应状态码
+		// Kiểm tra mã trạng thái phản hồi
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
-			log.Errorf("API请求失败，状态码: %d, 响应: %s", resp.StatusCode, string(body))
+			log.Errorf("API request thất bại, mã trạng thái: %d, phản hồi: %s", resp.StatusCode, string(body))
 			close(outputChan)
 			return
 		}
 
-		// 检查响应内容类型和内容长度
+		// Kiểm tra loại nội dung và độ dài nội dung của phản hồi
 		contentLength := resp.ContentLength
 
-		// 记录响应长度到日志
-		log.Debugf("收到音乐流响应，Content-Length: %d", contentLength)
+		// Ghi log độ dài phản hồi
+		log.Debugf("Nhận được phản hồi luồng nhạc, Content-Length: %d", contentLength)
 
-		// 判断Content-Length是否合理
+		// Kiểm tra Content-Length có hợp lý không
 		if contentLength == 0 {
-			log.Errorf("音乐流返回空响应，Content-Length为0")
+			log.Errorf("Luồng nhạc trả về phản hồi rỗng, Content-Length bằng 0")
 			close(outputChan)
 			return
 		}
 
-		// MP3文件头至少需要100字节才能正常解析
-		// -1表示未知长度（例如分块传输）
+		// Header file MP3 cần tối thiểu 100 byte mới phân tích được
+		// -1 nghĩa là độ dài chưa xác định (ví dụ truyền theo dạng chunked)
 		if contentLength > 0 && contentLength < 100 {
-			log.Errorf("音乐流响应太小无法解析为MP3: %d字节", contentLength)
+			log.Errorf("Phản hồi luồng nhạc quá nhỏ, không thể phân tích thành MP3: %d byte", contentLength)
 			close(outputChan)
 			return
 		}
 
-		log.Infof("开始播放音乐: %s", url)
+		log.Infof("Bắt đầu phát nhạc: %s", url)
 
-		// 根据音频格式处理流式响应
+		// Xử lý phản hồi dạng stream theo định dạng âm thanh
 		if audioFormat == "mp3" {
-			// 创建 MP3 解码器，传入 context 而不是 done 通道
+			// Tạo bộ giải mã MP3, truyền context thay vì kênh done
 			mp3Decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, resp.Body, outputChan, frameDuration, audioFormat, sampleRate)
 			if err != nil {
-				log.Errorf("创建MP3解码器失败: %v", err)
+				log.Errorf("Tạo bộ giải mã MP3 thất bại: %v", err)
 				close(outputChan)
 				return
 			}
 
-			// 启动解码过程
+			// Bắt đầu quá trình giải mã
 			if err := mp3Decoder.Run(startTs); err != nil {
-				log.Errorf("MP3解码失败: %v", err)
+				log.Errorf("Giải mã MP3 thất bại: %v", err)
 				return
 			}
 
 			select {
 			case <-ctx.Done():
-				log.Debugf("音乐播放取消, URL: %s", url)
+				log.Debugf("Phát nhạc bị hủy, URL: %s", url)
 				return
 			default:
-				log.Infof("音乐播放完成耗时: %d ms", time.Now().UnixMilli()-startTs)
+				log.Infof("Phát nhạc hoàn tất, thời gian: %d ms", time.Now().UnixMilli()-startTs)
 			}
 		} else {
-			log.Errorf("当前仅支持MP3格式的流式播放，传入格式: %s", audioFormat)
+			log.Errorf("Hiện chỉ hỗ trợ phát stream định dạng MP3, định dạng truyền vào: %s", audioFormat)
 			close(outputChan)
 		}
 	}()
@@ -150,58 +150,58 @@ func PlayMusicStream(ctx context.Context, url string, sampleRate int, frameDurat
 }
 
 func PlayMusicFromAudioData(ctx context.Context, audioData []byte, sampleRate int, frameDuration int, audioFormat string) (outputChan chan []byte, err error) {
-	// 参数校验和默认值设置
+	// Kiểm tra tham số và thiết lập giá trị mặc định
 	if frameDuration <= 0 {
-		frameDuration = 20 // 默认20ms帧时长
+		frameDuration = 20 // Mặc định thời lượng khung 20ms
 	}
 	if audioFormat == "" {
-		audioFormat = "mp3" // 默认MP3格式
+		audioFormat = "mp3" // Mặc định định dạng MP3
 	}
 
-	// 添加调试信息
-	log.Debugf("PlayMusicFromAudioData: 音频数据长度=%d字节, 采样率=%d, 帧时长=%dms, 格式=%s",
+	// Thêm thông tin debug
+	log.Debugf("PlayMusicFromAudioData: độ dài dữ liệu âm thanh=%d byte, tần số lấy mẫu=%d, thời lượng khung=%dms, định dạng=%s",
 		len(audioData), sampleRate, frameDuration, audioFormat)
 
-	// 检查音频数据是否为空
+	// Kiểm tra dữ liệu âm thanh có rỗng không
 	if len(audioData) == 0 {
-		log.Errorf("音频数据为空，无法播放")
-		return nil, fmt.Errorf("音频数据为空")
+		log.Errorf("Dữ liệu âm thanh rỗng, không thể phát")
+		return nil, fmt.Errorf("dữ liệu âm thanh rỗng")
 	}
 
 	startTs := time.Now().UnixMilli()
 
-	// 创建输出通道
+	// Tạo kênh output
 	outputChan = make(chan []byte, 100)
 
-	// 启动goroutine处理流式响应
+	// Khởi chạy goroutine xử lý phản hồi dạng stream
 	go func() {
-		// 从 audioData 创建一个 io.ReadCloser
+		// Tạo một io.ReadCloser từ audioData
 		audioReader := io.NopCloser(bytes.NewReader(audioData))
 
-		// 根据音频格式处理流式响应
+		// Xử lý phản hồi dạng stream theo định dạng âm thanh
 		if audioFormat == "mp3" {
-			// 创建 MP3 解码器，传入 context 而不是 done 通道
+			// Tạo bộ giải mã MP3, truyền context thay vì kênh done
 			mp3Decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, audioReader, outputChan, frameDuration, audioFormat, sampleRate)
 			if err != nil {
-				log.Errorf("创建MP3解码器失败: %v", err)
+				log.Errorf("Tạo bộ giải mã MP3 thất bại: %v", err)
 				return
 			}
 
-			// 启动解码过程
+			// Bắt đầu quá trình giải mã
 			if err := mp3Decoder.Run(startTs); err != nil {
-				log.Errorf("MP3解码失败: %v", err)
+				log.Errorf("Giải mã MP3 thất bại: %v", err)
 				return
 			}
 
 			select {
 			case <-ctx.Done():
-				log.Debugf("音乐播放取消")
+				log.Debugf("Phát nhạc bị hủy")
 				return
 			default:
-				log.Infof("音乐播放完成耗时: %d ms", time.Now().UnixMilli()-startTs)
+				log.Infof("Phát nhạc hoàn tất, thời gian: %d ms", time.Now().UnixMilli()-startTs)
 			}
 		} else {
-			log.Errorf("当前仅支持MP3格式的流式播放，传入格式: %s", audioFormat)
+			log.Errorf("Hiện chỉ hỗ trợ phát stream định dạng MP3, định dạng truyền vào: %s", audioFormat)
 		}
 	}()
 
@@ -209,49 +209,49 @@ func PlayMusicFromAudioData(ctx context.Context, audioData []byte, sampleRate in
 }
 
 func PlayMusicFromPipe(ctx context.Context, pipeReader *io.PipeReader, sampleRate int, frameDuration int, audioFormat string) (outputChan chan []byte, err error) {
-	// 参数校验和默认值设置
+	// Kiểm tra tham số và thiết lập giá trị mặc định
 	if frameDuration <= 0 {
-		frameDuration = 20 // 默认20ms帧时长
+		frameDuration = 20 // Mặc định thời lượng khung 20ms
 	}
 	if audioFormat == "" {
-		audioFormat = "mp3" // 默认MP3格式
+		audioFormat = "mp3" // Mặc định định dạng MP3
 	}
 
-	// 添加调试信息
-	log.Debugf("PlayMusicFromPipe: 采样率=%d, 帧时长=%dms, 格式=%s",
+	// Thêm thông tin debug
+	log.Debugf("PlayMusicFromPipe: tần số lấy mẫu=%d, thời lượng khung=%dms, định dạng=%s",
 		sampleRate, frameDuration, audioFormat)
 
 	startTs := time.Now().UnixMilli()
 
-	// 创建输出通道
+	// Tạo kênh output
 	outputChan = make(chan []byte, 100)
 
-	// 启动goroutine处理流式响应
+	// Khởi chạy goroutine xử lý phản hồi dạng stream
 	go func() {
-		// 根据音频格式处理流式响应
+		// Xử lý phản hồi dạng stream theo định dạng âm thanh
 		if audioFormat == "mp3" {
-			// 创建 MP3 解码器，传入 context 而不是 done 通道
+			// Tạo bộ giải mã MP3, truyền context thay vì kênh done
 			mp3Decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, pipeReader, outputChan, frameDuration, audioFormat, sampleRate)
 			if err != nil {
-				log.Errorf("创建MP3解码器失败: %v", err)
+				log.Errorf("Tạo bộ giải mã MP3 thất bại: %v", err)
 				return
 			}
 
-			// 启动解码过程
+			// Bắt đầu quá trình giải mã
 			if err := mp3Decoder.Run(startTs); err != nil {
-				log.Errorf("MP3解码失败: %v", err)
+				log.Errorf("Giải mã MP3 thất bại: %v", err)
 				return
 			}
 
 			select {
 			case <-ctx.Done():
-				log.Debugf("音乐播放取消")
+				log.Debugf("Phát nhạc bị hủy")
 				return
 			default:
-				log.Infof("音乐播放完成耗时: %d ms", time.Now().UnixMilli()-startTs)
+				log.Infof("Phát nhạc hoàn tất, thời gian: %d ms", time.Now().UnixMilli()-startTs)
 			}
 		} else {
-			log.Errorf("当前仅支持MP3格式的流式播放，传入格式: %s", audioFormat)
+			log.Errorf("Hiện chỉ hỗ trợ phát stream định dạng MP3, định dạng truyền vào: %s", audioFormat)
 		}
 	}()
 

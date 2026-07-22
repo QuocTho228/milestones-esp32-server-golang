@@ -6,7 +6,7 @@ import (
 	config_types "milestones-esp32-server-golang/internal/domain/config/types"
 )
 
-// Searcher 按 provider 实现知识库检索。
+// Searcher triển khai việc truy vấn cơ sở tri thức theo từng provider.
 type Searcher interface {
 	Search(
 		ctx context.Context,

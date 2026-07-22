@@ -21,7 +21,7 @@ func TestHandleListenDetectDebouncesLLMQueue(t *testing.T) {
 	if err := session.HandleListenDetect(&data_client.ClientMessage{
 		Type:     msgdata.MessageTypeListen,
 		DeviceID: session.clientState.DeviceID,
-		Text:     "普通问题",
+		Text:     "câu hỏi thông thường",
 	}); err != nil {
 		t.Fatalf("HandleListenDetect returned error: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestHandleListenDetectDebouncesLLMQueue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected debounced detect llm to be enqueued, got %v", err)
 	}
-	if item.text != "普通问题" {
+	if item.text != "câu hỏi thông thường" {
 		t.Fatalf("expected debounced text to be preserved, got %q", item.text)
 	}
 }
@@ -46,7 +46,7 @@ func TestHandleListenStartCancelsPendingDetectLLM(t *testing.T) {
 	if err := session.HandleListenDetect(&data_client.ClientMessage{
 		Type:     msgdata.MessageTypeListen,
 		DeviceID: session.clientState.DeviceID,
-		Text:     "普通问题",
+		Text:     "câu hỏi thông thường",
 	}); err != nil {
 		t.Fatalf("HandleListenDetect returned error: %v", err)
 	}
@@ -260,7 +260,7 @@ func TestShouldInterruptOutputOnListenStartPreservesWelcomeForRealtime(t *testin
 func TestHandleListenDetectSilentlySkipsWakeupWhenAutoListenActiveAfterWelcome(t *testing.T) {
 	session := newDetectDebounceTestSession(t)
 	setViperValueForTest(t, "enable_greeting", true)
-	setViperValueForTest(t, "wakeup_words", []string{"你好小智"})
+	setViperValueForTest(t, "wakeup_words", []string{"Xin chào Milestones"})
 	session.clientState.IsWelcomeSpeaking = true
 	session.clientState.ListenMode = "auto"
 	session.clientState.SetListenPhase(data_client.ListenPhaseListening)
@@ -268,7 +268,7 @@ func TestHandleListenDetectSilentlySkipsWakeupWhenAutoListenActiveAfterWelcome(t
 	if err := session.HandleListenDetect(&data_client.ClientMessage{
 		Type:     msgdata.MessageTypeListen,
 		DeviceID: session.clientState.DeviceID,
-		Text:     "你好小智",
+		Text:     "Xin chào Milestones",
 	}); err != nil {
 		t.Fatalf("HandleListenDetect returned error: %v", err)
 	}
@@ -284,7 +284,7 @@ func TestHandleListenDetectSilentlySkipsWakeupWhenAutoListenActiveAfterWelcome(t
 func TestHandleListenDetectWelcomedWakeupSchedulesLLMWhenAutoListenIdle(t *testing.T) {
 	session := newDetectDebounceTestSession(t)
 	setViperValueForTest(t, "enable_greeting", true)
-	setViperValueForTest(t, "wakeup_words", []string{"你好小智"})
+	setViperValueForTest(t, "wakeup_words", []string{"Xin chào Milestones"})
 	session.clientState.IsWelcomeSpeaking = true
 	session.clientState.ListenMode = "auto"
 	session.clientState.SetListenPhase(data_client.ListenPhaseIdle)
@@ -292,7 +292,7 @@ func TestHandleListenDetectWelcomedWakeupSchedulesLLMWhenAutoListenIdle(t *testi
 	if err := session.HandleListenDetect(&data_client.ClientMessage{
 		Type:     msgdata.MessageTypeListen,
 		DeviceID: session.clientState.DeviceID,
-		Text:     "你好小智",
+		Text:     "Xin chào Milestones",
 	}); err != nil {
 		t.Fatalf("HandleListenDetect returned error: %v", err)
 	}
@@ -301,7 +301,7 @@ func TestHandleListenDetectWelcomedWakeupSchedulesLLMWhenAutoListenIdle(t *testi
 	if err != nil {
 		t.Fatalf("expected welcomed wake detect outside active auto listen to enter llm debounce path, got %v", err)
 	}
-	if item.text != "你好小智" {
+	if item.text != "Xin chào Milestones" {
 		t.Fatalf("expected wake detect text to be preserved, got %q", item.text)
 	}
 }

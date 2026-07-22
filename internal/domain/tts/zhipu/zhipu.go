@@ -22,7 +22,7 @@ import (
 	sse "github.com/tmaxmax/go-sse"
 )
 
-// 全局HTTP客户端，实现连接池
+// HTTP client toàn cục, triển khai connection pool (bể kết nối)
 var (
 	httpClient     *http.Client
 	httpClientOnce sync.Once
@@ -33,7 +33,7 @@ const (
 	zhipuLeadingFadeInMs   = 5
 )
 
-// 获取配置了连接池的HTTP客户端
+// Lấy HTTP client đã được cấu hình connection pool
 func getHTTPClient() *http.Client {
 	httpClientOnce.Do(func() {
 		transport := &http.Transport{
@@ -56,7 +56,7 @@ func getHTTPClient() *http.Client {
 	return httpClient
 }
 
-// ZhipuTTSProvider 智谱 TTS提供者
+// ZhipuTTSProvider là nhà cung cấp TTS của Zhipu
 type ZhipuTTSProvider struct {
 	APIKey         string
 	APIURL         string
@@ -66,11 +66,11 @@ type ZhipuTTSProvider struct {
 	Speed          float64
 	Volume         float64
 	Stream         bool
-	EncodeFormat   string // 仅流式时使用：base64 或 hex
+	EncodeFormat   string // Chỉ dùng khi ở chế độ streaming: base64 hoặc hex
 	FrameDuration  int
 }
 
-// 请求结构体（根据智谱 API 文档）
+// Cấu trúc yêu cầu (request) (theo tài liệu API của Zhipu)
 type zhipuRequest struct {
 	Model          string  `json:"model"`
 	Input          string  `json:"input"`
@@ -79,10 +79,10 @@ type zhipuRequest struct {
 	Speed          float64 `json:"speed,omitempty"`
 	Volume         float64 `json:"volume,omitempty"`
 	Stream         bool    `json:"stream,omitempty"`
-	EncodeFormat   string  `json:"encode_format,omitempty"` // 仅流式时使用：base64 或 hex
+	EncodeFormat   string  `json:"encode_format,omitempty"` // Chỉ dùng khi ở chế độ streaming: base64 hoặc hex
 }
 
-// Event Stream 响应结构体（类似 OpenAI 格式）
+// Cấu trúc phản hồi Event Stream (tương tự định dạng của OpenAI)
 type zhipuEventStreamResponse struct {
 	ID      string `json:"id"`
 	Created int64  `json:"created"`
@@ -92,14 +92,14 @@ type zhipuEventStreamResponse struct {
 		FinishReason string `json:"finish_reason,omitempty"`
 		Delta        struct {
 			Role             string `json:"role,omitempty"`
-			Content          string `json:"content,omitempty"` // base64 编码的音频数据
+			Content          string `json:"content,omitempty"` // Dữ liệu âm thanh được mã hóa base64
 			ReturnSampleRate int    `json:"return_sample_rate,omitempty"`
 			ReturnFormat     string `json:"return_format,omitempty"`
 		} `json:"delta"`
 	} `json:"choices"`
 }
 
-// NewZhipuTTSProvider 创建新的智谱 TTS提供者
+// NewZhipuTTSProvider tạo một nhà cung cấp TTS Zhipu mới
 func NewZhipuTTSProvider(config map[string]interface{}) *ZhipuTTSProvider {
 	apiKey, _ := config["api_key"].(string)
 	apiURL, _ := config["api_url"].(string)
@@ -112,7 +112,7 @@ func NewZhipuTTSProvider(config map[string]interface{}) *ZhipuTTSProvider {
 	encodeFormat, _ := config["encode_format"].(string)
 	frameDuration, _ := config["frame_duration"].(float64)
 
-	// 设置默认值
+	// Thiết lập giá trị mặc định
 	if apiURL == "" {
 		apiURL = "https://open.bigmodel.cn/api/paas/v4/audio/speech"
 	}
@@ -120,19 +120,19 @@ func NewZhipuTTSProvider(config map[string]interface{}) *ZhipuTTSProvider {
 		model = "glm-tts"
 	}
 	if voice == "" {
-		voice = "tongtong" // 默认音色
+		voice = "tongtong" // Âm sắc (voice) mặc định
 	}
 	if responseFormat == "" {
-		responseFormat = "pcm" // 智谱默认 pcm，也支持 wav
+		responseFormat = "pcm" // Zhipu mặc định dùng pcm, cũng hỗ trợ wav
 	}
 	if speed == 0 {
-		speed = 1.0 // 0.5 到 2.0
+		speed = 1.0 // Từ 0.5 đến 2.0
 	}
 	if volume == 0 {
-		volume = 1.0 // 0 到 10
+		volume = 1.0 // Từ 0 đến 10
 	}
 	if encodeFormat == "" {
-		encodeFormat = "base64" // 默认 base64，也支持 hex
+		encodeFormat = "base64" // Mặc định base64, cũng hỗ trợ hex
 	}
 	if frameDuration == 0 {
 		frameDuration = audio.FrameDuration
@@ -152,17 +152,17 @@ func NewZhipuTTSProvider(config map[string]interface{}) *ZhipuTTSProvider {
 	}
 }
 
-// TextToSpeech 将文本转换为语音，返回音频帧数据和错误
+// TextToSpeech chuyển văn bản thành giọng nói, trả về dữ liệu khung âm thanh và lỗi (nếu có)
 func (p *ZhipuTTSProvider) TextToSpeech(ctx context.Context, text string, sampleRate int, channels int, frameDuration int) ([][]byte, error) {
 	startTs := time.Now().UnixMilli()
 
-	// 限制文本长度（智谱 API 最大 1024 字符）
+	// Giới hạn độ dài văn bản (API Zhipu tối đa 1024 ký tự)
 	if len(text) > 1024 {
 		text = text[:1024]
-		log.Warnf("文本长度超过1024字符，已截断")
+		log.Warnf("Độ dài văn bản vượt quá 1024 ký tự, đã bị cắt bớt")
 	}
 
-	// 创建请求体
+	// Tạo phần thân yêu cầu (request body)
 	reqBody := zhipuRequest{
 		Model:          p.Model,
 		Input:          text,
@@ -170,68 +170,68 @@ func (p *ZhipuTTSProvider) TextToSpeech(ctx context.Context, text string, sample
 		ResponseFormat: p.ResponseFormat,
 		Speed:          p.Speed,
 		Volume:         p.Volume,
-		Stream:         false, // 非流式
+		Stream:         false, // Không phải chế độ streaming
 	}
 
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("序列化请求失败: %v", err)
+		return nil, fmt.Errorf("Tuần tự hóa (serialize) yêu cầu thất bại: %v", err)
 	}
 
-	// 创建HTTP请求
+	// Tạo yêu cầu HTTP
 	req, err := http.NewRequestWithContext(ctx, "POST", p.APIURL, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, fmt.Errorf("创建请求失败: %v", err)
+		return nil, fmt.Errorf("Tạo yêu cầu thất bại: %v", err)
 	}
 
-	// 设置请求头
+	// Thiết lập header cho yêu cầu
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.APIKey))
 
-	// 使用连接池发送请求
+	// Gửi yêu cầu bằng connection pool
 	client := getHTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("发送请求失败: %v", err)
+		return nil, fmt.Errorf("Gửi yêu cầu thất bại: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// 检查响应状态码
+	// Kiểm tra mã trạng thái phản hồi
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API请求失败，状态码: %d, 响应: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("Yêu cầu API thất bại, mã trạng thái: %d, phản hồi: %s", resp.StatusCode, string(body))
 	}
 
-	// 检查响应内容长度
+	// Kiểm tra độ dài nội dung phản hồi
 	contentLength := resp.ContentLength
-	log.Debugf("收到智谱 TTS响应，Content-Length: %d", contentLength)
+	log.Debugf("Nhận được phản hồi TTS của Zhipu, Content-Length: %d", contentLength)
 
-	// 判断Content-Length是否合理
+	// Kiểm tra xem Content-Length có hợp lý không
 	if contentLength == 0 {
-		log.Errorf("API返回空响应，Content-Length为0")
-		return nil, fmt.Errorf("API返回空响应，Content-Length为0")
+		log.Errorf("API trả về phản hồi rỗng, Content-Length bằng 0")
+		return nil, fmt.Errorf("API trả về phản hồi rỗng, Content-Length bằng 0")
 	}
 
-	// 根据音频格式处理响应（智谱只支持 wav 和 pcm）
+	// Xử lý phản hồi theo định dạng âm thanh (Zhipu chỉ hỗ trợ wav và pcm)
 	if p.ResponseFormat == "wav" || p.ResponseFormat == "pcm" {
 		audioReader := io.ReadCloser(resp.Body)
 		if strings.EqualFold(p.ResponseFormat, "pcm") {
 			pcmData, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return nil, fmt.Errorf("读取智谱 PCM 数据失败: %v", err)
+				return nil, fmt.Errorf("Đọc dữ liệu PCM của Zhipu thất bại: %v", err)
 			}
 			audioReader = io.NopCloser(bytes.NewReader(
 				applyPCM16MonoLeadingFadeIn(pcmData, leadingFadeInSampleCount(zhipuDefaultSampleRate, zhipuLeadingFadeInMs)),
 			))
 		}
 
-		// 创建一个通道来收集音频帧
+		// Tạo một channel để thu thập các khung âm thanh
 		outputChan := make(chan []byte, 1000)
 
-		// 创建音频解码器
+		// Tạo bộ giải mã âm thanh
 		decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, audioReader, outputChan, frameDuration, p.ResponseFormat, sampleRate)
 		if err != nil {
-			return nil, fmt.Errorf("创建音频解码器失败: %v", err)
+			return nil, fmt.Errorf("Tạo bộ giải mã âm thanh thất bại: %v", err)
 		}
 		if strings.EqualFold(p.ResponseFormat, "pcm") {
 			decoder.WithFormat(beep.Format{
@@ -240,40 +240,40 @@ func (p *ZhipuTTSProvider) TextToSpeech(ctx context.Context, text string, sample
 			})
 		}
 
-		// 启动解码过程
+		// Bắt đầu quá trình giải mã
 		go func() {
 			if err := decoder.Run(startTs); err != nil {
-				log.Errorf("音频解码失败: %v", err)
+				log.Errorf("Giải mã âm thanh thất bại: %v", err)
 			}
 		}()
 
-		// 收集所有的音频帧
+		// Thu thập tất cả các khung âm thanh
 		var audioFrames [][]byte
 		for frame := range outputChan {
 			audioFrames = append(audioFrames, frame)
 		}
 
-		log.Debugf("智谱 TTS完成，从输入到获取音频数据结束耗时: %d ms", time.Now().UnixMilli()-startTs)
+		log.Debugf("Zhipu TTS hoàn tất, thời gian từ lúc nhập đến khi nhận xong dữ liệu âm thanh: %d ms", time.Now().UnixMilli()-startTs)
 		return audioFrames, nil
 	}
 
-	return nil, fmt.Errorf("不支持的音频格式: %s，智谱仅支持 wav 和 pcm", p.ResponseFormat)
+	return nil, fmt.Errorf("Định dạng âm thanh không được hỗ trợ: %s, Zhipu chỉ hỗ trợ wav và pcm", p.ResponseFormat)
 }
 
-// TextToSpeechStream 流式语音合成实现
+// TextToSpeechStream triển khai tổng hợp giọng nói dạng streaming
 func (p *ZhipuTTSProvider) TextToSpeechStream(ctx context.Context, text string, sampleRate int, channels int, frameDuration int) (outputChan chan []byte, err error) {
 	startTs := time.Now().UnixMilli()
 
-	// 限制文本长度（智谱 API 最大 1024 字符）
+	// Giới hạn độ dài văn bản (API Zhipu tối đa 1024 ký tự)
 	if len(text) > 1024 {
 		text = text[:1024]
-		log.Warnf("文本长度超过1024字符，已截断")
+		log.Warnf("Độ dài văn bản vượt quá 1024 ký tự, đã bị cắt bớt")
 	}
 
-	// 流式时只支持 pcm和wav 格式
+	// Ở chế độ streaming chỉ hỗ trợ định dạng pcm và wav
 	responseFormat := p.ResponseFormat
 
-	// 创建请求体
+	// Tạo phần thân yêu cầu (request body)
 	reqBody := zhipuRequest{
 		Model:          p.Model,
 		Input:          text,
@@ -281,80 +281,80 @@ func (p *ZhipuTTSProvider) TextToSpeechStream(ctx context.Context, text string, 
 		ResponseFormat: responseFormat,
 		Speed:          p.Speed,
 		Volume:         p.Volume,
-		Stream:         true,           // 流式
-		EncodeFormat:   p.EncodeFormat, // 使用配置的编码格式
+		Stream:         true,           // Streaming
+		EncodeFormat:   p.EncodeFormat, // Sử dụng định dạng mã hóa đã cấu hình
 	}
 
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("序列化请求失败: %v", err)
+		return nil, fmt.Errorf("Tuần tự hóa (serialize) yêu cầu thất bại: %v", err)
 	}
 
-	// 创建HTTP请求
+	// Tạo yêu cầu HTTP
 	req, err := http.NewRequestWithContext(ctx, "POST", p.APIURL, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, fmt.Errorf("创建请求失败: %v", err)
+		return nil, fmt.Errorf("Tạo yêu cầu thất bại: %v", err)
 	}
 
-	// 设置请求头
+	// Thiết lập header cho yêu cầu
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.APIKey))
 
-	// 使用连接池创建客户端
+	// Tạo client bằng connection pool
 	client := getHTTPClient()
 
-	// 创建输出通道
+	// Tạo channel đầu ra
 	outputChan = make(chan []byte, 100)
 
-	// 启动goroutine处理流式响应
+	// Khởi chạy goroutine để xử lý phản hồi dạng streaming
 	go func() {
-		// 发送请求
+		// Gửi yêu cầu
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Errorf("发送智谱请求失败: %v", err)
+			log.Errorf("Gửi yêu cầu tới Zhipu thất bại: %v", err)
 			close(outputChan)
 			return
 		}
 		defer resp.Body.Close()
 
-		// 检查响应状态码
+		// Kiểm tra mã trạng thái phản hồi
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
-			log.Errorf("智谱 API请求失败，状态码: %d, 响应: %s", resp.StatusCode, string(body))
+			log.Errorf("Yêu cầu API Zhipu thất bại, mã trạng thái: %d, phản hồi: %s", resp.StatusCode, string(body))
 			close(outputChan)
 			return
 		}
 
-		// 检查 Content-Type 是否为 Event Stream
+		// Kiểm tra xem Content-Type có phải là Event Stream không
 		contentType := resp.Header.Get("Content-Type")
 		if !strings.Contains(contentType, "text/event-stream") {
-			log.Warnf("智谱 API返回的Content-Type不是text/event-stream: %s", contentType)
+			log.Warnf("Content-Type mà API Zhipu trả về không phải text/event-stream: %s", contentType)
 		}
 
-		// 流式时只支持 pcm 和 wav 格式
-		//log.Debugf("智谱 TTS 流式 responseFormat(请求): %s", responseFormat)
+		// Ở chế độ streaming chỉ hỗ trợ định dạng pcm và wav
+		//log.Debugf("responseFormat (yêu cầu) dạng streaming của Zhipu TTS: %s", responseFormat)
 		if responseFormat == "pcm" || responseFormat == "wav" {
-			// 创建管道，用于将解码后的二进制数据传递给音频解码器
+			// Tạo pipe để truyền dữ liệu nhị phân đã giải mã tới bộ giải mã âm thanh
 			pipeReader, pipeWriter := io.Pipe()
 
-			// 启动 goroutine 解析 Event Stream 并解码
+			// Khởi chạy goroutine để phân tích Event Stream và giải mã
 			go func() {
 				defer func() {
 					if err := pipeWriter.Close(); err != nil {
-						log.Debugf("关闭管道写入端失败: %v", err)
+						log.Debugf("Đóng đầu ghi của pipe thất bại: %v", err)
 					}
 				}()
 
-				// 调用独立的解析方法
+				// Gọi phương thức phân tích độc lập
 				if err := p.parseEventStream(ctx, resp.Body, pipeWriter, text); err != nil {
-					log.Errorf("解析 Event Stream 失败: %v", err)
+					log.Errorf("Phân tích Event Stream thất bại: %v", err)
 				}
 			}()
 
-			// 创建音频解码器，从管道读取解码后的二进制数据
+			// Tạo bộ giải mã âm thanh, đọc dữ liệu nhị phân đã giải mã từ pipe
 			decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, pipeReader, outputChan, frameDuration, responseFormat, sampleRate)
 			if err != nil {
-				log.Errorf("创建智谱音频解码器失败: %v", err)
+				log.Errorf("Tạo bộ giải mã âm thanh Zhipu thất bại: %v", err)
 				pipeReader.Close()
 				close(outputChan)
 				return
@@ -366,21 +366,21 @@ func (p *ZhipuTTSProvider) TextToSpeechStream(ctx context.Context, text string, 
 				})
 			}
 
-			// 启动解码过程
+			// Bắt đầu quá trình giải mã
 			if err := decoder.Run(startTs); err != nil {
-				log.Errorf("智谱音频解码失败: %v", err)
+				log.Errorf("Giải mã âm thanh Zhipu thất bại: %v", err)
 				return
 			}
 
 			select {
 			case <-ctx.Done():
-				log.Debugf("智谱 TTS流式合成取消, 文本: %s", text)
+				log.Debugf("Tổng hợp giọng nói streaming của Zhipu TTS đã bị hủy, văn bản: %s", text)
 				return
 			default:
-				log.Debugf("智谱 TTS耗时: 从输入至获取音频数据结束耗时: %d ms", time.Now().UnixMilli()-startTs)
+				log.Debugf("Thời gian xử lý Zhipu TTS: từ lúc nhập đến khi nhận xong dữ liệu âm thanh mất %d ms", time.Now().UnixMilli()-startTs)
 			}
 		} else {
-			log.Errorf("智谱流式输出仅支持 pcm 格式")
+			log.Errorf("Đầu ra streaming của Zhipu chỉ hỗ trợ định dạng pcm")
 			close(outputChan)
 		}
 	}()
@@ -388,33 +388,33 @@ func (p *ZhipuTTSProvider) TextToSpeechStream(ctx context.Context, text string, 
 	return outputChan, nil
 }
 
-// parseEventStream 使用 go-sse 解析智谱的 Event Stream 响应，解码数据并写入管道
-// ctx: 上下文，用于取消操作
-// reader: 响应体读取器
-// writer: 管道写入端，用于输出解码后的二进制数据
-// text: 原始文本，用于日志记录
+// parseEventStream sử dụng go-sse để phân tích phản hồi Event Stream của Zhipu, giải mã dữ liệu và ghi vào pipe
+// ctx: context, dùng để hủy thao tác
+// reader: bộ đọc phần thân phản hồi
+// writer: đầu ghi của pipe, dùng để xuất dữ liệu nhị phân đã giải mã
+// text: văn bản gốc, dùng để ghi log
 func (p *ZhipuTTSProvider) parseEventStream(ctx context.Context, reader io.Reader, writer *io.PipeWriter, text string) error {
-	// 配置 go-sse 的 ReadConfig，设置更大的 MaxEventSize 以处理长 token
-	// 智谱 TTS 返回的 base64 编码音频数据可能超过默认的 64KB 限制
+	// Cấu hình ReadConfig của go-sse, đặt MaxEventSize lớn hơn để xử lý token dài
+	// Dữ liệu âm thanh mã hóa base64 mà Zhipu TTS trả về có thể vượt quá giới hạn mặc định 64KB
 	readConfig := &sse.ReadConfig{
-		MaxEventSize: 4 * 1024 * 1024, // 4MB，足够处理大型 base64 编码的音频数据
+		MaxEventSize: 4 * 1024 * 1024, // 4MB, đủ để xử lý dữ liệu âm thanh mã hóa base64 có kích thước lớn
 	}
 	fadeTotalSamples := 0
 	fadeSamplesRemaining := -1
 
 	for ev, evErr := range sse.Read(reader, readConfig) {
 		if evErr != nil {
-			return fmt.Errorf("读取智谱 SSE 事件失败: %w", evErr)
+			return fmt.Errorf("Đọc sự kiện SSE của Zhipu thất bại: %w", evErr)
 		}
 
 		select {
 		case <-ctx.Done():
-			log.Debugf("智谱 TTS流式合成取消, 文本: %s", text)
+			log.Debugf("Tổng hợp giọng nói streaming của Zhipu TTS đã bị hủy, văn bản: %s", text)
 			return ctx.Err()
 		default:
 		}
 
-		// Event Stream 格式：
+		// Định dạng Event Stream:
 		// data: {"id":"...","choices":[{"delta":{"content":"base64_data"}}]}
 		// data: {"choices":[{"finish_reason":"stop"}]}
 
@@ -423,27 +423,27 @@ func (p *ZhipuTTSProvider) parseEventStream(ctx context.Context, reader io.Reade
 			continue
 		}
 
-		// 解析 JSON
+		// Phân tích JSON
 		var eventResp zhipuEventStreamResponse
 		if err := json.Unmarshal([]byte(dataValue), &eventResp); err != nil {
-			log.Warnf("解析智谱 Event Stream JSON 失败: %v, 数据: %s", err, previewString(dataValue, 200))
+			log.Warnf("Phân tích JSON Event Stream của Zhipu thất bại: %v, dữ liệu: %s", err, previewString(dataValue, 200))
 			continue
 		}
 
-		// 检查是否有 finish_reason，表示流结束
+		// Kiểm tra xem có finish_reason không, biểu thị luồng đã kết thúc
 		for _, choice := range eventResp.Choices {
 			if choice.FinishReason == "stop" {
-				log.Debugf("收到 finish_reason: stop，Event Stream 结束")
+				log.Debugf("Nhận được finish_reason: stop, Event Stream kết thúc")
 				return nil
 			}
 		}
 
-		// 提取每个 choice 的 content 字段并独立处理
+		// Trích xuất trường content của từng choice và xử lý độc lập
 		for _, choice := range eventResp.Choices {
 			if choice.Delta.Content != "" {
 				decodedData, err := p.decodeAudioContent(choice.Delta.Content)
 				if err != nil {
-					return fmt.Errorf("处理 content 失败: %v", err)
+					return fmt.Errorf("Xử lý content thất bại: %v", err)
 				}
 
 				returnFormat := strings.TrimSpace(choice.Delta.ReturnFormat)
@@ -464,7 +464,7 @@ func (p *ZhipuTTSProvider) parseEventStream(ctx context.Context, reader io.Reade
 
 				if len(decodedData) > 0 {
 					if _, err := writer.Write(decodedData); err != nil {
-						return fmt.Errorf("写入管道失败: %v", err)
+						return fmt.Errorf("Ghi vào pipe thất bại: %v", err)
 					}
 				}
 			}
@@ -474,7 +474,7 @@ func (p *ZhipuTTSProvider) parseEventStream(ctx context.Context, reader io.Reade
 	return nil
 }
 
-// previewString 返回字符串的前 n 个字符用于日志
+// previewString trả về n ký tự đầu tiên của chuỗi để dùng cho việc ghi log
 func previewString(s string, n int) string {
 	if len(s) <= n {
 		return s
@@ -482,14 +482,14 @@ func previewString(s string, n int) string {
 	return s[:n]
 }
 
-// decodeAudioContent 解码单个 content 字段
-// content: base64 或 hex 编码的音频数据字符串
+// decodeAudioContent giải mã một trường content đơn lẻ
+// content: chuỗi dữ liệu âm thanh được mã hóa base64 hoặc hex
 func (p *ZhipuTTSProvider) decodeAudioContent(content string) ([]byte, error) {
 	if content == "" {
 		return nil, nil
 	}
 
-	// 根据 encode_format 解码
+	// Giải mã theo encode_format
 	var decodedData []byte
 	var decodeErr error
 
@@ -499,12 +499,12 @@ func (p *ZhipuTTSProvider) decodeAudioContent(content string) ([]byte, error) {
 	case "hex":
 		decodedData, decodeErr = hex.DecodeString(content)
 	default:
-		log.Warnf("未知的编码格式: %s，使用 base64", p.EncodeFormat)
+		log.Warnf("Định dạng mã hóa không xác định: %s, sử dụng base64", p.EncodeFormat)
 		decodedData, decodeErr = base64.StdEncoding.DecodeString(content)
 	}
 
 	if decodeErr != nil {
-		return nil, fmt.Errorf("解码音频数据失败: %v, 数据长度: %d", decodeErr, len(content))
+		return nil, fmt.Errorf("Giải mã dữ liệu âm thanh thất bại: %v, độ dài dữ liệu: %d", decodeErr, len(content))
 	}
 
 	return decodedData, nil
@@ -552,21 +552,21 @@ func applyPCM16MonoLeadingFadeInInPlace(data []byte, totalSamples int, remaining
 	}
 }
 
-// SetVoice 设置音色参数
+// SetVoice thiết lập tham số âm sắc (voice)
 func (p *ZhipuTTSProvider) SetVoice(voiceConfig map[string]interface{}) error {
 	if voice, ok := voiceConfig["voice"].(string); ok && voice != "" {
 		p.Voice = voice
 		return nil
 	}
-	return fmt.Errorf("无效的音色配置: 缺少 voice")
+	return fmt.Errorf("Cấu hình âm sắc không hợp lệ: thiếu voice")
 }
 
-// Close 关闭资源（无状态 Provider，无需关闭）
+// Close đóng tài nguyên (Provider không trạng thái, không cần đóng)
 func (p *ZhipuTTSProvider) Close() error {
 	return nil
 }
 
-// IsValid 检查资源是否有效
+// IsValid kiểm tra tài nguyên có hợp lệ hay không
 func (p *ZhipuTTSProvider) IsValid() bool {
 	return p != nil
 }

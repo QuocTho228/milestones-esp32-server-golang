@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	// 解析命令行参数
+	// Phân tích các tham số dòng lệnh
 	configFile := flag.String("c", defaultConfigFilePath, "Đường dẫn tệp cấu hình")
 	managerEnable := flag.Bool("manager-enable", defaultManagerEnable, "Có bật manager nhúng hay không")
 	managerConfig := flag.String("manager-config", "", "Đường dẫn đến tệp cấu hình của manager. Không bắt buộc khi bật, mặc định là manager/backend/config/config.json")
@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	// 先启动 manager，再 Init，否则 Init 里 updateConfigFromAPI 会一直连不上 manager 导致卡死
+	// Khởi động trình quản lý trước, sau đó chạy Init; nếu không, hàm updateConfigFromAPI trong Init sẽ không thể kết nối với trình quản lý và khiến tiến trình bị treo.
 	if *managerEnable {
 		StartManagerHTTP(*managerConfig)
 	}
@@ -43,7 +43,7 @@ func main() {
 		return
 	}
 
-	// 根据配置启动 pprof 服务
+	// Khởi động dịch vụ pprof theo cấu hình đã thiết lập.
 	if viper.GetBool("server.pprof.enable") {
 		pprofPort := viper.GetInt("server.pprof.port")
 		go func() {
@@ -57,11 +57,11 @@ func main() {
 		log.Info("Dịch vụ pprof bị vô hiệu hóa")
 	}
 
-	// 创建服务器
+	// Tạo máy chủ
 	appInstance := server.NewApp()
 
 	var lock sync.RWMutex
-	// 注册 system_config 热更：用 viper 当前配置与推送配置对比，仅当内容变更时合并并触发热更
+	// Đăng ký cập nhật nóng cho system_config: so sánh cấu hình hiện tại của Viper với cấu hình được đẩy lên, chỉ hợp nhất và kích hoạt cập nhật nóng khi nội dung thay đổi.
 	user_config.RegisterManagerSystemConfigHandler(func(data map[string]interface{}) {
 		lock.Lock()
 		defer lock.Unlock()
@@ -129,7 +129,7 @@ func main() {
 	})
 	appInstance.Run()
 
-	// 阻塞监听退出信号
+	// Chặn và lắng nghe tín hiệu thoát ra.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -138,7 +138,7 @@ func main() {
 
 	log.Info("Đang tắt máy chủ...")
 
-	// 停止周期性配置更新服务
+	// Dừng dịch vụ cập nhật cấu hình định kỳ
 	StopPeriodicConfigUpdate()
 	if *managerEnable {
 		StopManagerHTTP()

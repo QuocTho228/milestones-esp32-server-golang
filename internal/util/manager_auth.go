@@ -9,10 +9,10 @@ import (
 const DefaultManagerAuthToken = "milestones_admin_secret_key"
 const DefaultManagerEndpointAuthToken = "milestones_mcp_openclaw_secret_key"
 
-// GetManagerAuthToken 获取主程序与控制台之间通用的内部调用鉴权 Token。
-// 优先级：
+// GetManagerAuthToken lấy Token xác thực nội bộ dùng chung giữa chương trình chính và console.
+// Thứ tự ưu tiên:
 // 1. manager.auth_token
-// 2. 默认值（两端保持一致）
+// 2. Giá trị mặc định (hai bên phải nhất quán)
 func GetManagerAuthToken() string {
 	if token := strings.TrimSpace(viper.GetString("manager.auth_token")); token != "" {
 		return token
@@ -20,10 +20,10 @@ func GetManagerAuthToken() string {
 	return DefaultManagerAuthToken
 }
 
-// GetManagerEndpointAuthToken 获取 MCP/OpenClaw 端点 JWT 的签名/校验 Token。
-// 优先级：
+// GetManagerEndpointAuthToken lấy Token ký/xác thực JWT cho endpoint MCP/OpenClaw.
+// Thứ tự ưu tiên:
 // 1. manager.endpoint_auth_token
-// 2. 默认值（需与控制台保持一致）
+// 2. Giá trị mặc định (cần nhất quán với console)
 func GetManagerEndpointAuthToken() string {
 	if token := strings.TrimSpace(viper.GetString("manager.endpoint_auth_token")); token != "" {
 		return token

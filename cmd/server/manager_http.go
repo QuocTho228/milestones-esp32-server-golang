@@ -22,17 +22,17 @@ const (
 )
 
 var (
-	managerHTTPServer *http.Server // 本进程内嵌的 manager HTTP 服务句柄，用于优雅关闭
-	managerDB         *gorm.DB     // manager 使用的 DB，退出时关闭
+	managerHTTPServer *http.Server // Handle của dịch vụ HTTP manager được nhúng trong tiến trình này, dùng để tắt (shutdown) một cách an toàn
+	managerDB         *gorm.DB     // DB mà manager sử dụng, sẽ được đóng khi thoát chương trình
 )
 
-// StartManagerHTTP 在本进程内启动 manager 的 HTTP 服务（双端口）。是否调用由 main 根据 -manager-enable 决定。
-// configPath：manager 配置文件路径，空则使用默认路径
+// StartManagerHTTP khởi động dịch vụ HTTP của manager ngay trong tiến trình này (hai cổng). Việc có gọi hàm này hay không do main quyết định dựa trên tham số -manager-enable.
+// configPath: đường dẫn tệp cấu hình của manager, nếu để trống sẽ dùng đường dẫn mặc định
 func StartManagerHTTP(configPath string) {
 	if configPath == "" {
 		configPath = defaultManagerConfigPath
 	}
-	log.Infof("正在启动内嵌 manager HTTP 服务，配置文件: %s", configPath)
+	log.Infof("Đang khởi động dịch vụ HTTP manager được nhúng sẵn, tệp cấu hình: %s", configPath)
 
 	cfg := mbconfig.LoadWithPath(configPath)
 	port := cfg.Server.Port
@@ -43,7 +43,7 @@ func StartManagerHTTP(configPath string) {
 
 	db := database.Init(cfg.Database)
 	if db == nil {
-		log.Warn("manager 数据库初始化失败，跳过启动 manager HTTP")
+		log.Warn("Khởi tạo cơ sở dữ liệu của manager thất bại, bỏ qua việc khởi động manager HTTP")
 		return
 	}
 	managerDB = db
@@ -60,23 +60,23 @@ func StartManagerHTTP(configPath string) {
 	}
 
 	go func() {
-		log.Infof("manager HTTP 服务启动在端口: %s", port)
+		log.Infof("Dịch vụ HTTP manager đã khởi động tại cổng: %s", port)
 		if err := managerHTTPServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("manager HTTP 服务异常退出: %v", err)
+			log.Errorf("Dịch vụ HTTP manager thoát bất thường: %v", err)
 		}
 	}()
 }
 
-// StopManagerHTTP 优雅关闭本进程内嵌的 manager HTTP 服务并关闭数据库连接
+// StopManagerHTTP tắt (shutdown) một cách an toàn dịch vụ HTTP manager được nhúng trong tiến trình này và đóng kết nối cơ sở dữ liệu
 func StopManagerHTTP() {
 	if managerHTTPServer != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := managerHTTPServer.Shutdown(ctx); err != nil {
-			log.Warnf("manager HTTP 关闭超时或异常: %v", err)
+			log.Warnf("Đóng dịch vụ HTTP manager bị timeout hoặc gặp lỗi: %v", err)
 		}
 		managerHTTPServer = nil
-		log.Info("manager HTTP 服务已关闭")
+		log.Info("Dịch vụ HTTP manager đã được đóng")
 	}
 	if managerDB != nil {
 		database.Close(managerDB)

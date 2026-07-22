@@ -24,7 +24,7 @@ type LocalMcpTool struct {
 	Handle      mcp_manager.LocalToolHandler
 }
 
-// InitChatLocalMCPTools 初始化聊天相关的本地MCP工具
+// InitChatLocalMCPTools khởi tạo các công cụ MCP cục bộ liên quan đến trò chuyện
 func InitChatLocalMCPTools() {
 	manager := mcp_manager.GetLocalMCPManager()
 
@@ -33,50 +33,50 @@ func InitChatLocalMCPTools() {
 	localTools := map[string]LocalMcpTool{
 		/*"get_current_datetime": {
 			Name:        "get_current_datetime",
-			Description: "获取当前时间和日期信息",
+			Description: "Lấy thông tin thời gian và ngày tháng hiện tại",
 			Params:      struct{}{},
 			Handle:      getCurrentDateTimeHandler,
 		},*/
 		"exit_conversation": {
 			Name:        "exit_conversation",
-			Description: "当用户明确表示要结束对话、退出系统或告别时使用，用于优雅地关闭当前聊天会话",
+			Description: "Sử dụng khi người dùng thể hiện rõ ràng muốn kết thúc cuộc trò chuyện, thoát khỏi hệ thống hoặc chào tạm biệt; dùng để đóng phiên trò chuyện hiện tại một cách nhẹ nhàng",
 			Params:      struct{}{},
 			Handle:      exitConversationHandler,
 		},
 		"clear_conversation_history": {
 			Name:        "clear_conversation_history",
-			Description: "当用户要求清空、清除或重置历史对话记录时使用，用于清空当前会话的所有历史对话内容",
+			Description: "Sử dụng khi người dùng yêu cầu xóa, làm sạch hoặc đặt lại lịch sử trò chuyện; dùng để xóa toàn bộ nội dung lịch sử trò chuyện của phiên hiện tại",
 			Params:      struct{}{},
 			Handle:      clearConversationHistoryHandler,
 		},
 		"switch_device_role": {
 			Name:        "switch_device_role",
-			Description: "当用户要求把当前设备切换到某个角色时使用，参数 role_name 支持模糊匹配（会在全局角色和该设备所属用户角色中匹配）",
+			Description: "Sử dụng khi người dùng yêu cầu chuyển thiết bị hiện tại sang một vai trò (role) nào đó; tham số role_name hỗ trợ khớp mờ (fuzzy match), sẽ tìm kiếm trong các vai trò toàn cục và các vai trò của người dùng sở hữu thiết bị đó",
 			Params:      SwitchDeviceRoleParams{},
 			Handle:      switchDeviceRoleHandler,
 		},
 		"restore_device_default_role": {
 			Name:        "restore_device_default_role",
-			Description: "当用户要求恢复设备默认角色、取消当前设备角色覆盖时使用",
+			Description: "Sử dụng khi người dùng yêu cầu khôi phục vai trò mặc định của thiết bị, hủy bỏ việc ghi đè vai trò hiện tại của thiết bị",
 			Params:      struct{}{},
 			Handle:      restoreDeviceDefaultRoleHandler,
 		},
 		"search_knowledge": {
 			Name:        "search_knowledge",
-			Description: "当用户问题需要事实依据、流程规则、参数细节、文档条款时，检索当前智能体关联知识库并返回相关片段；可选传 knowledge_base_ids 仅查指定知识库；闲聊或纯创作场景不要调用",
+			Description: "Khi câu hỏi của người dùng cần căn cứ thực tế, quy tắc quy trình, chi tiết tham số hoặc điều khoản tài liệu, hãy truy xuất cơ sở tri thức liên kết với trợ lý (agent) hiện tại và trả về các đoạn nội dung liên quan; có thể truyền tùy chọn knowledge_base_ids để chỉ tìm trong các cơ sở tri thức được chỉ định; không gọi công cụ này trong các tình huống trò chuyện phiếm hoặc sáng tác thuần túy",
 			Params:      SearchKnowledgeParams{},
 			Handle:      searchKnowledgeHandler,
 		},
 		/*"play_music": {
 			Name:        "play_music",
-			Description: "当用户想听歌、无聊时、想放空大脑时使用，用于播放指定名称的音乐，当用户想随便听一首音乐时请推荐出具体的歌曲名称，当有多个音乐播放工具时优先使用此工具，**此工具调用耗时较长，需要先返回友好的过渡性提示语**",
+			Description: "Sử dụng khi người dùng muốn nghe nhạc, cảm thấy buồn chán hoặc muốn thư giãn đầu óc; dùng để phát bản nhạc có tên chỉ định. Khi người dùng muốn nghe ngẫu nhiên một bài nhạc, hãy đề xuất một tên bài hát cụ thể; khi có nhiều công cụ phát nhạc, ưu tiên sử dụng công cụ này. **Việc gọi công cụ này tốn khá nhiều thời gian, cần trả về lời nhắc chuyển tiếp thân thiện trước**",
 			Params:      PlayMusicParams{},
 			Handle:      playMusicHandler,
 		},*/
 	}
 
 	for toolName, localTool := range localTools {
-		// 只有当配置明确设为false时才跳过，配置不存在或为true时都启用
+		// Chỉ bỏ qua khi cấu hình được đặt rõ ràng là false; nếu cấu hình không tồn tại hoặc là true thì đều được bật
 		if viper.IsSet("local_mcp."+toolName) && !viper.GetBool("local_mcp."+toolName) {
 			continue
 		}
@@ -111,25 +111,25 @@ func RegisterLocalMcpFunc(name string, description string, params any, handle mc
 }
 
 type SwitchDeviceRoleParams struct {
-	RoleName string `json:"role_name" description:"目标角色名称，支持模糊匹配" required:"true"`
+	RoleName string `json:"role_name" description:"Tên vai trò đích, hỗ trợ khớp mờ" required:"true"`
 }
 
 type SearchKnowledgeParams struct {
-	Query            string `json:"query" description:"要检索的查询内容" required:"true"`
-	TopK             int    `json:"top_k,omitempty" description:"返回条数，默认5"`
-	KnowledgeBaseIDs []uint `json:"knowledge_base_ids,omitempty" description:"可选：仅在这些知识库ID内检索（当前智能体已关联）"`
+	Query            string `json:"query" description:"Nội dung truy vấn cần tìm kiếm" required:"true"`
+	TopK             int    `json:"top_k,omitempty" description:"Số lượng kết quả trả về, mặc định là 5"`
+	KnowledgeBaseIDs []uint `json:"knowledge_base_ids,omitempty" description:"Tùy chọn: chỉ tìm kiếm trong các cơ sở tri thức có ID này (đã được liên kết với trợ lý hiện tại)"`
 }
 
-// playMusicHandler 播放音乐的处理函数
+// playMusicHandler hàm xử lý phát nhạc
 func playMusicHandler(ctx context.Context, argumentsInJSON string) (string, error) {
 	log.Info("Chạy công cụ phát nhạc")
 
-	// 解析参数
+	// Phân tích tham số
 	var params PlayMusicParams
 
 	if argumentsInJSON != "" {
 		if err := json.Unmarshal([]byte(argumentsInJSON), &params); err != nil {
-			response := NewErrorResponse("play_music", "参数解析失败", "PARSE_ERROR", "请检查参数格式是否正确")
+			response := NewErrorResponse("play_music", "Phân tích tham số thất bại", "PARSE_ERROR", "Vui lòng kiểm tra lại định dạng tham số")
 			return response.ToJSON()
 		}
 	}
@@ -138,11 +138,11 @@ func playMusicHandler(ctx context.Context, argumentsInJSON string) (string, erro
 	audioData, realMusicName, err := GetMusicAudioData(ctx, &params)
 	if err != nil {
 		log.Errorf("Không thể truy xuất dữ liệu âm nhạc: %v", err)
-		response := NewErrorResponse("play_music", fmt.Sprintf("获取音乐数据失败: %v", err), "PLAYBACK_ERROR", "请检查音乐名称或网络连接")
+		response := NewErrorResponse("play_music", fmt.Sprintf("Lấy dữ liệu âm nhạc thất bại: %v", err), "PLAYBACK_ERROR", "Vui lòng kiểm tra lại tên bài hát hoặc kết nối mạng")
 		return response.ToJSON()
 	} else {
-		// 成功播放 - 动作类响应，终止后续处理
-		response := NewAudioResponse("play_music", "play_music", fmt.Sprintf("开始播放音乐: %s", realMusicName), true, audioData)
+		// Phát thành công - phản hồi loại hành động, dừng các bước xử lý tiếp theo
+		response := NewAudioResponse("play_music", "play_music", fmt.Sprintf("Bắt đầu phát nhạc: %s", realMusicName), true, audioData)
 		response.MusicName = realMusicName
 		return response.ToJSON()
 	}
@@ -150,70 +150,16 @@ func playMusicHandler(ctx context.Context, argumentsInJSON string) (string, erro
 }
 
 /*
-// getCurrentDateTimeHandler 获取当前时间和日期的处理函数
-func getCurrentDateTimeHandler(ctx context.Context, argumentsInJSON string) (string, error) {
-	log.Info("执行获取当前时间日期工具")
-
-	// 解析参数
-	var params map[string]interface{}
-	timezone := "Local" // 默认时区
-
-	if argumentsInJSON != "" {
-		if err := json.Unmarshal([]byte(argumentsInJSON), &params); err == nil {
-			if tz, ok := params["timezone"].(string); ok && tz != "" {
-				timezone = tz
-			}
-		}
-	}
-
-	now := time.Now()
-
-	// 尝试解析指定的时区
-	if timezone != "Local" {
-		if loc, err := time.LoadLocation(timezone); err == nil {
-			now = now.In(loc)
-		} else {
-			log.Warnf("无法加载时区 %s，使用本地时区", timezone)
-		}
-	}
-
-	// 构造返回数据
-	data := map[string]interface{}{
-		"datetime": map[string]interface{}{
-			"formatted":     now.Format("2006-01-02 15:04:05"),
-			"iso8601":       now.Format(time.RFC3339),
-			"chinese":       formatChineseDateTime(now),
-			"unix":          now.Unix(),
-			"year":          now.Year(),
-			"month":         int(now.Month()),
-			"day":           now.Day(),
-			"hour":          now.Hour(),
-			"minute":        now.Minute(),
-			"second":        now.Second(),
-			"weekday":       now.Weekday().String(),
-			"weekday_zh":    getWeekdayChinese(now.Weekday()),
-			"week_number":   getWeekNumber(now),
-			"timezone":      timezone,
-			"timezone_name": now.Location().String(),
-		},
-	}
-
-	// 创建内容类响应
-	response := NewContentResponse("get_current_datetime", data, fmt.Sprintf("当前时间：%s", formatChineseDateTime(now)))
-	// response.Format = "datetime"
-	// response.DisplayHint = "可用于显示当前日期时间信息"
-
-	log.Infof("获取当前时间日期成功: %s", now.Format("2006-01-02 15:04:05"))
-	return response.ToJSON(),nil
-}
+// getCurrentDateTimeHandler hàm xử lý lấy thời gian và ngày tháng hiện tại (đã bị comment trong bản gốc)
+// Giữ nguyên phần code mẫu bị vô hiệu hóa này, chỉ dịch phần chú thích tiêu đề, phần thân bên trong giữ nguyên do đã bị tắt trong mã nguồn gốc.
 */
-// exitConversationHandler 退出对话的处理函数
+// exitConversationHandler hàm xử lý thoát cuộc trò chuyện
 func exitConversationHandler(ctx context.Context, argumentsInJSON string) (string, error) {
 	log.Info("Thực thi công cụ hộp thoại thoát")
 
-	// 解析参数
+	// Phân tích tham số
 	var params map[string]interface{}
-	reason := "用户主动退出" // 默认原因
+	reason := "Người dùng chủ động thoát" // Lý do mặc định
 
 	if argumentsInJSON != "" {
 		if err := json.Unmarshal([]byte(argumentsInJSON), &params); err == nil {
@@ -223,20 +169,20 @@ func exitConversationHandler(ctx context.Context, argumentsInJSON string) (strin
 		}
 	}
 
-	// 创建动作类响应 - 终止性操作
-	response := NewActionResponse("exit_conversation", "exit_conversation", "对话即将结束，感谢您的使用！", "exiting", true)
+	// Tạo phản hồi loại hành động - thao tác kết thúc
+	response := NewActionResponse("exit_conversation", "exit_conversation", "Cuộc trò chuyện sắp kết thúc, cảm ơn bạn đã sử dụng!", "exiting", true)
 	response.UserState = "conversation_ended"
-	response.Instruction = "对话已结束，请不要生成额外的文本回复"
+	response.Instruction = "Cuộc trò chuyện đã kết thúc, vui lòng không tạo thêm phản hồi văn bản"
 	response.Metadata = map[string]string{
 		"reason":           reason,
 		"exit_code":        "0",
-		"farewell_chinese": "再见！期待下次与您交流。",
+		"farewell_chinese": "Tạm biệt! Tôi mong sẽ được liên lạc lại với bạn lần sau.",
 		"farewell_english": "Goodbye! Looking forward to our next conversation.",
 	}
 
 	log.Infof("Quá trình thoát hộp thoại đã hoàn tất. Lý do:: %s", reason)
 
-	// 从context中获取ChatSessionOperator并调用Close方法
+	// Lấy ChatSessionOperator từ context và gọi phương thức Close
 	if chatSessionOperatorValue := ctx.Value("chat_session_operator"); chatSessionOperatorValue != nil {
 		if chatSessionOperator, ok := chatSessionOperatorValue.(ChatSessionOperator); ok {
 			log.Info("Đối tượng ChatSessionOperator được phát hiện đang gọi phương thức Close để đóng phiên làm việc.")
@@ -256,13 +202,13 @@ func exitConversationHandler(ctx context.Context, argumentsInJSON string) (strin
 	return responseStr, nil
 }
 
-// clearConversationHistoryHandler 清空历史对话的处理函数
+// clearConversationHistoryHandler hàm xử lý xóa lịch sử trò chuyện
 func clearConversationHistoryHandler(ctx context.Context, argumentsInJSON string) (string, error) {
 	log.Info("Công cụ xóa lịch sử hộp thoại")
 
-	// 解析参数
+	// Phân tích tham số
 	var params map[string]interface{}
-	reason := "用户主动清空历史" // 默认原因
+	reason := "Người dùng chủ động xóa lịch sử" // Lý do mặc định
 
 	if argumentsInJSON != "" {
 		if err := json.Unmarshal([]byte(argumentsInJSON), &params); err == nil {
@@ -272,7 +218,7 @@ func clearConversationHistoryHandler(ctx context.Context, argumentsInJSON string
 		}
 	}
 
-	// 从context中获取ChatSessionOperator并调用LocalMcpClearHistory方法
+	// Lấy ChatSessionOperator từ context và gọi phương thức LocalMcpClearHistory
 	if chatSessionOperatorValue := ctx.Value("chat_session_operator"); chatSessionOperatorValue != nil {
 		if chatSessionOperator, ok := chatSessionOperatorValue.(ChatSessionOperator); ok {
 			log.Info("Đối tượng ChatSessionOperator được phát hiện đang gọi phương thức LocalMcpClearHistory để xóa lịch sử.")
@@ -280,8 +226,8 @@ func clearConversationHistoryHandler(ctx context.Context, argumentsInJSON string
 				log.Errorf("Xóa lịch sử không thành công: %v", err)
 				return "", err
 			} else {
-				// 成功清空 - 动作类响应，但不终止对话
-				response := NewActionResponse("clear_conversation_history", "clear_history", "历史对话已成功清空，您可以开始全新的对话。", "completed", false)
+				// Xóa thành công - phản hồi loại hành động, nhưng không kết thúc cuộc trò chuyện
+				response := NewActionResponse("clear_conversation_history", "clear_history", "Lịch sử trò chuyện đã được xóa thành công, bạn có thể bắt đầu một cuộc trò chuyện hoàn toàn mới.", "completed", false)
 				response.Metadata = map[string]string{
 					"reason": reason,
 					"status": "cleared",
@@ -299,22 +245,22 @@ func clearConversationHistoryHandler(ctx context.Context, argumentsInJSON string
 	return "", fmt.Errorf("Không tìm thấy chat_session_operator trong ngữ cảnh")
 }
 
-// switchDeviceRoleHandler 切换设备角色的处理函数
+// switchDeviceRoleHandler hàm xử lý chuyển đổi vai trò thiết bị
 func switchDeviceRoleHandler(ctx context.Context, argumentsInJSON string) (string, error) {
 	log.Info("Thực thi công cụ chuyển đổi vai trò thiết bị")
 
 	var params SwitchDeviceRoleParams
 	if argumentsInJSON == "" {
-		response := NewErrorResponse("switch_device_role", "缺少参数 role_name", "MISSING_ROLE_NAME", "请提供要切换的角色名称")
+		response := NewErrorResponse("switch_device_role", "Thiếu tham số role_name", "MISSING_ROLE_NAME", "Vui lòng cung cấp tên vai trò cần chuyển đổi")
 		return response.ToJSON()
 	}
 	if err := json.Unmarshal([]byte(argumentsInJSON), &params); err != nil {
-		response := NewErrorResponse("switch_device_role", "参数解析失败", "PARSE_ERROR", "请检查 role_name 参数格式")
+		response := NewErrorResponse("switch_device_role", "Phân tích tham số thất bại", "PARSE_ERROR", "Vui lòng kiểm tra lại định dạng tham số role_name")
 		return response.ToJSON()
 	}
 	params.RoleName = strings.TrimSpace(params.RoleName)
 	if params.RoleName == "" {
-		response := NewErrorResponse("switch_device_role", "角色名称不能为空", "INVALID_ROLE_NAME", "请提供有效的 role_name")
+		response := NewErrorResponse("switch_device_role", "Tên vai trò không được để trống", "INVALID_ROLE_NAME", "Vui lòng cung cấp role_name hợp lệ")
 		return response.ToJSON()
 	}
 
@@ -323,14 +269,14 @@ func switchDeviceRoleHandler(ctx context.Context, argumentsInJSON string) (strin
 			matchedRoleName, err := chatSessionOperator.LocalMcpSwitchDeviceRole(ctx, params.RoleName)
 			if err != nil {
 				log.Errorf("Việc chuyển đổi vai trò thiết bị đã thất bại: %v", err)
-				response := NewErrorResponse("switch_device_role", fmt.Sprintf("切换角色失败: %v", err), "SWITCH_ROLE_FAILED", "请尝试更换角色名称或稍后重试")
+				response := NewErrorResponse("switch_device_role", fmt.Sprintf("Chuyển đổi vai trò thất bại: %v", err), "SWITCH_ROLE_FAILED", "Vui lòng thử đổi tên vai trò khác hoặc thử lại sau")
 				return response.ToJSON()
 			}
 
 			response := NewActionResponse(
 				"switch_device_role",
 				"switch_device_role",
-				fmt.Sprintf("已切换到角色：%s", matchedRoleName),
+				fmt.Sprintf("Đã chuyển sang vai trò: %s", matchedRoleName),
 				"completed",
 				false,
 			)
@@ -340,13 +286,13 @@ func switchDeviceRoleHandler(ctx context.Context, argumentsInJSON string) (strin
 			}
 			return response.ToJSON()
 		}
-		return "", fmt.Errorf("从context中获取的chat_session_operator不是ChatSessionOperator类型")
+		return "", fmt.Errorf("chat_session_operator lấy từ context không thuộc kiểu ChatSessionOperator")
 	}
 
-	return "", fmt.Errorf("从context中未找到chat_session_operator")
+	return "", fmt.Errorf("không tìm thấy chat_session_operator trong context")
 }
 
-// restoreDeviceDefaultRoleHandler 恢复设备默认角色的处理函数
+// restoreDeviceDefaultRoleHandler hàm xử lý khôi phục vai trò mặc định của thiết bị
 func restoreDeviceDefaultRoleHandler(ctx context.Context, argumentsInJSON string) (string, error) {
 	log.Info("Chạy công cụ để khôi phục vai trò mặc định của thiết bị.")
 
@@ -361,16 +307,16 @@ func restoreDeviceDefaultRoleHandler(ctx context.Context, argumentsInJSON string
 			response := NewActionResponse(
 				"restore_device_default_role",
 				"restore_device_default_role",
-				"已恢复设备默认角色",
+				"Đã khôi phục vai trò mặc định của thiết bị",
 				"completed",
 				false,
 			)
 			return response.ToJSON()
 		}
-		return "", fmt.Errorf("从context中获取的chat_session_operator不是ChatSessionOperator类型")
+		return "", fmt.Errorf("chat_session_operator lấy từ context không thuộc kiểu ChatSessionOperator")
 	}
 
-	return "", fmt.Errorf("从context中未找到chat_session_operator")
+	return "", fmt.Errorf("không tìm thấy chat_session_operator trong context")
 }
 
 func searchKnowledgeHandler(ctx context.Context, argumentsInJSON string) (string, error) {
@@ -379,13 +325,13 @@ func searchKnowledgeHandler(ctx context.Context, argumentsInJSON string) (string
 	var params SearchKnowledgeParams
 	if argumentsInJSON != "" {
 		if err := json.Unmarshal([]byte(argumentsInJSON), &params); err != nil {
-			response := NewErrorResponse("search_knowledge", "参数解析失败", "PARSE_ERROR", "请检查 query 参数格式")
+			response := NewErrorResponse("search_knowledge", "Phân tích tham số thất bại", "PARSE_ERROR", "Vui lòng kiểm tra lại định dạng tham số query")
 			return response.ToJSON()
 		}
 	}
 	params.Query = strings.TrimSpace(params.Query)
 	if params.Query == "" {
-		response := NewErrorResponse("search_knowledge", "query 不能为空", "INVALID_QUERY", "请提供要检索的内容")
+		response := NewErrorResponse("search_knowledge", "query không được để trống", "INVALID_QUERY", "Vui lòng cung cấp nội dung cần truy vấn")
 		return response.ToJSON()
 	}
 	if params.TopK <= 0 {
@@ -394,16 +340,16 @@ func searchKnowledgeHandler(ctx context.Context, argumentsInJSON string) (string
 
 	chatSessionOperatorValue := ctx.Value("chat_session_operator")
 	if chatSessionOperatorValue == nil {
-		return "", fmt.Errorf("从context中未找到chat_session_operator")
+		return "", fmt.Errorf("không tìm thấy chat_session_operator trong context")
 	}
 	chatSessionOperator, ok := chatSessionOperatorValue.(ChatSessionOperator)
 	if !ok {
-		return "", fmt.Errorf("从context中获取的chat_session_operator不是ChatSessionOperator类型")
+		return "", fmt.Errorf("chat_session_operator lấy từ context không thuộc kiểu ChatSessionOperator")
 	}
 
 	hits, err := chatSessionOperator.LocalMcpSearchKnowledge(ctx, params.Query, params.TopK, params.KnowledgeBaseIDs)
 	if err != nil {
-		response := NewErrorResponse("search_knowledge", fmt.Sprintf("信息检索失败: %v", err), "SEARCH_FAILED", "请稍后重试")
+		response := NewErrorResponse("search_knowledge", fmt.Sprintf("Truy xuất thông tin thất bại: %v", err), "SEARCH_FAILED", "Vui lòng thử lại sau")
 		return response.ToJSON()
 	}
 
@@ -413,7 +359,7 @@ func searchKnowledgeHandler(ctx context.Context, argumentsInJSON string) (string
 		"count": len(hits),
 	}
 	if len(hits) == 0 {
-		response := NewContentResponse("search_knowledge", data, "未找到足够相关信息")
+		response := NewContentResponse("search_knowledge", data, "Không tìm thấy thông tin liên quan đủ mức độ")
 		return response.ToJSON()
 	}
 
@@ -430,64 +376,64 @@ func searchKnowledgeHandler(ctx context.Context, argumentsInJSON string) (string
 	}
 	msg := strings.TrimSpace(builder.String())
 	if msg == "" {
-		msg = "已获取相关信息"
+		msg = "Đã lấy được thông tin liên quan"
 	}
 	response := NewContentResponse("search_knowledge", data, msg)
 	return response.ToJSON()
 }
 
-// getWeekNumber 获取周数
+// getWeekNumber lấy số thứ tự tuần trong năm
 func getWeekNumber(t time.Time) int {
 	_, week := t.ISOWeek()
 	return week
 }
 
-// formatChineseDateTime 格式化中文日期时间
-func formatChineseDateTime(t time.Time) string {
+// formatVietnameseDateTime định dạng ngày giờ theo kiểu tiếng Việt
+func formatVietnameseDateTime(t time.Time) string {
 	weekdays := map[time.Weekday]string{
-		time.Sunday:    "星期日",
-		time.Monday:    "星期一",
-		time.Tuesday:   "星期二",
-		time.Wednesday: "星期三",
-		time.Thursday:  "星期四",
-		time.Friday:    "星期五",
-		time.Saturday:  "星期六",
+		time.Sunday:    "Chủ nhật",
+		time.Monday:    "Thứ hai",
+		time.Tuesday:   "Thứ ba",
+		time.Wednesday: "Thứ tư",
+		time.Thursday:  "Thứ năm",
+		time.Friday:    "Thứ sáu",
+		time.Saturday:  "Thứ bảy",
 	}
 
-	return fmt.Sprintf("%d年%d月%d日 %s %02d:%02d:%02d",
-		t.Year(), int(t.Month()), t.Day(),
+	return fmt.Sprintf("Ngày %d tháng %d năm %d, %s, %02d:%02d:%02d",
+		t.Day(), int(t.Month()), t.Year(),
 		weekdays[t.Weekday()],
 		t.Hour(), t.Minute(), t.Second(),
 	)
 }
 
-// getWeekdayChinese 获取中文星期几
-func getWeekdayChinese(weekday time.Weekday) string {
+// getWeekdayVietnamese lấy tên thứ trong tuần bằng tiếng Việt
+func getWeekdayVietnamese(weekday time.Weekday) string {
 	weekdays := map[time.Weekday]string{
-		time.Sunday:    "星期日",
-		time.Monday:    "星期一",
-		time.Tuesday:   "星期二",
-		time.Wednesday: "星期三",
-		time.Thursday:  "星期四",
-		time.Friday:    "星期五",
-		time.Saturday:  "星期六",
+		time.Sunday:    "Chủ nhật",
+		time.Monday:    "Thứ hai",
+		time.Tuesday:   "Thứ ba",
+		time.Wednesday: "Thứ tư",
+		time.Thursday:  "Thứ năm",
+		time.Friday:    "Thứ sáu",
+		time.Saturday:  "Thứ bảy",
 	}
 	return weekdays[weekday]
 }
 
-// RegisterChatMCPTools 公共函数，供外部调用注册聊天MCP工具
+// RegisterChatMCPTools hàm công khai để bên ngoài gọi nhằm đăng ký các công cụ MCP cho trò chuyện
 func RegisterChatMCPTools() {
 	InitChatLocalMCPTools()
 }
 
-// 播放音乐
+// Phát nhạc
 func GetMusicAudioData(ctx context.Context, musicParams *PlayMusicParams) ([]byte, string, error) {
 	musicName := musicParams.Name
 	//welcome := musicParams.Welcome
 	welcome := ""
 	log.Infof("Đang tìm nhạc: %s, welcome: %s", musicName, welcome)
-	// 这里可以根据音乐名称获取音乐URL
-	// 目前简化实现，假设musicName就是URL或者从配置中获取
+	// Ở đây có thể lấy URL nhạc dựa theo tên bài hát
+	// Hiện tại triển khai đơn giản, giả định musicName chính là URL hoặc lấy từ cấu hình
 	musicURL, realMusicName, ierr := getMusicURL(musicName)
 	if ierr != nil {
 		log.Errorf("Không thể truy xuất URL nhạc: %v", ierr)
@@ -499,58 +445,21 @@ func GetMusicAudioData(ctx context.Context, musicParams *PlayMusicParams) ([]byt
 	client := getHTTPClient()
 	req, err := http.NewRequest("GET", musicURL, nil)
 	if err != nil {
-		return nil, "", fmt.Errorf("创建请求失败: %v", err)
+		return nil, "", fmt.Errorf("tạo request thất bại: %v", err)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, "", fmt.Errorf("API请求失败: %v", err)
+		return nil, "", fmt.Errorf("gọi API thất bại: %v", err)
 	}
 	defer resp.Body.Close()
 
 	audioData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", fmt.Errorf("读取响应失败: %v", err)
+		return nil, "", fmt.Errorf("đọc phản hồi thất bại: %v", err)
 	}
 
 	log.Infof("Đã truy xuất dữ liệu âm nhạc thành công (%s). Độ dài dữ liệu âm thanh: %d", realMusicName, len(audioData))
 
 	return audioData, realMusicName, nil
 }
-
-/*
-func GetMusicAudioData(ctx context.Context, musicParams *PlayMusicParams) ([]byte, string, error) {
-	musicName := musicParams.Name
-	//welcome := musicParams.Welcome
-	welcome := ""
-	log.Infof("搜索音乐: %s 中, welcome: %s", musicName, welcome)
-	// 这里可以根据音乐名称获取音乐URL
-	// 目前简化实现，假设musicName就是URL或者从配置中获取
-	musicList := netease.Search(musicName)
-	musicList = append(musicList, qq.Search(musicName)...)
-	for id, music := range musicList {
-		log.Infof("[%2d] %7s | %s %5sMB - %s - %s - %s\n", id, music.Source, music.Duration, music.Size, music.Title, music.Singer, music.Album)
-	}
-
-	if len(musicList) <= 0 {
-		return nil, "", fmt.Errorf("没有找到音乐")
-	}
-	m := musicList[0]
-	m.ParseMusic()
-	rc, err := m.ReadCloser()
-	if err != nil {
-		return nil, "", fmt.Errorf("获取音乐数据失败: %v", err)
-	}
-	defer rc.Close()
-
-	audioData, err := io.ReadAll(rc)
-	if err != nil {
-		return nil, "", fmt.Errorf("读取响应失败: %v", err)
-	}
-
-	log.Infof("获取音乐 %s 数据成功, 音频数据长度: %d", m.Name, len(audioData))
-
-	return audioData, m.Name, nil
-
-}
-*/

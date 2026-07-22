@@ -1,53 +1,61 @@
-# WebRTC VAD 资源池实现
+# Hiện thực Resource Pool cho WebRTC VAD
 
-这个实现为 WebRTC VAD (Voice Activity Detection) 提供了资源池管理功能，用于提高并发场景下的性能和资源利用率。
+Đây là hiện thực quản lý resource pool (bể tài nguyên) cho WebRTC VAD (Voice Activity Detection - Phát hiện hoạt động giọng nói), giúp cải thiện hiệu năng và mức độ sử dụng tài nguyên trong các tình huống xử lý đồng thời (concurrency).
 
-## 主要组件
+## Các thành phần chính
 
 ### 1. WebRTCVAD
-基础的 VAD 实现，现在实现了 `Resource` 接口：
-- `IsValid()`: 检查资源是否有效
-- `Close()`: 关闭并释放资源
-- 线程安全的操作
+
+Hiện thực VAD cơ bản, hiện đã hiện thực interface `Resource`:
+
+- `IsValid()`: kiểm tra resource có hợp lệ hay không
+- `Close()`: đóng và giải phóng resource
+- Các thao tác an toàn với đa luồng (thread-safe)
 
 ### 2. WebRTCVADFactory
-资源工厂，实现了 `ResourceFactory` 接口：
-- `Create()`: 创建新的 VAD 实例
-- `Validate()`: 验证资源有效性
-- `Reset()`: 重置资源状态
+
+Factory (nhà máy tạo instance) resource, hiện thực interface `ResourceFactory`:
+
+- `Create()`: tạo thực thể VAD mới
+- `Validate()`: kiểm tra tính hợp lệ của resource
+- `Reset()`: đặt lại trạng thái resource
 
 ### 3. WebRTCVADPool
-VAD 资源池管理器：
-- `AcquireVAD()`: 获取 VAD 实例
-- `ReleaseVAD()`: 释放 VAD 实例
-- `Stats()`: 获取统计信息
-- `Close()`: 关闭资源池
+
+Bộ quản lý resource pool cho VAD:
+
+- `AcquireVAD()`: lấy một thực thể VAD
+- `ReleaseVAD()`: giải phóng thực thể VAD
+- `Stats()`: lấy thông tin thống kê
+- `Close()`: đóng resource pool
 
 ### 4. VADManager
-高级封装，提供便捷的使用接口：
-- `ProcessAudio()`: 处理单个音频数据
-- `ProcessAudioBatch()`: 批量处理音频数据
-- `WithVAD()`: 使用回调函数处理 VAD
 
-## 使用方法
+Lớp bọc (wrapper) cấp cao, cung cấp interface sử dụng tiện lợi:
 
-### 基本使用
+- `ProcessAudio()`: xử lý một đoạn dữ liệu audio
+- `ProcessAudioBatch()`: xử lý hàng loạt dữ liệu audio
+- `WithVAD()`: sử dụng callback để xử lý VAD
+
+## Cách sử dụng
+
+### Sử dụng cơ bản
 
 ```go
-// 创建 VAD 配置
+// Tạo cấu hình VAD
 config := WebRTCVADConfig{
     SampleRate: 16000,
-    Mode:       2, // 中等敏感度
+    Mode:       2, // Độ nhạy trung bình
 }
 
-// 创建 VAD 管理器
+// Tạo VAD manager
 manager, err := NewVADManager(config)
 if err != nil {
     log.Fatal(err)
 }
 defer manager.Close()
 
-// 处理音频数据
+// Xử lý dữ liệu audio
 audioData := make([]float32, 320) // 16kHz, 20ms
 isActive, err := manager.ProcessAudio(audioData)
 if err != nil {
@@ -60,22 +68,22 @@ if isActive {
 }
 ```
 
-### 高级使用 - 直接使用资源池
+### Sử dụng nâng cao - Dùng trực tiếp resource pool
 
 ```go
-// 创建资源池
+// Tạo resource pool
 vadConfig := WebRTCVADConfig{
     SampleRate: 16000,
     Mode:       2,
 }
 
 poolConfig := &util.PoolConfig{
-    MaxSize:          5,               // 最大实例数
-    MinSize:          1,               // 预创建实例数
-    MaxIdle:          3,               // 最大空闲实例数
-    AcquireTimeout:   5 * time.Second, // 获取超时
-    IdleTimeout:      2 * time.Minute, // 空闲超时
-    ValidateOnBorrow: true,            // 获取时验证
+    MaxSize:          5,               // Số thực thể tối đa
+    MinSize:          1,               // Số thực thể được tạo sẵn
+    MaxIdle:          3,               // Số thực thể rảnh (idle) tối đa
+    AcquireTimeout:   5 * time.Second, // Thời gian timeout khi lấy resource
+    IdleTimeout:      2 * time.Minute, // Thời gian timeout khi rảnh
+    ValidateOnBorrow: true,            // Kiểm tra khi lấy resource
 }
 
 pool, err := NewWebRTCVADPool(vadConfig, poolConfig)
@@ -84,20 +92,20 @@ if err != nil {
 }
 defer pool.Close()
 
-// 获取 VAD 实例
+// Lấy thực thể VAD
 vad, err := pool.AcquireVAD()
 if err != nil {
     log.Fatal(err)
 }
 
-// 使用 VAD
+// Sử dụng VAD
 isActive, err := vad.IsVAD(audioData)
 
-// 释放 VAD 实例
+// Giải phóng thực thể VAD
 pool.ReleaseVAD(vad)
 ```
 
-### 并发使用
+### Sử dụng đồng thời (concurrency)
 
 ```go
 manager, err := NewVADManager(config)
@@ -106,53 +114,55 @@ if err != nil {
 }
 defer manager.Close()
 
-// 多个 goroutine 并发处理
+// Nhiều goroutine xử lý đồng thời
 for i := 0; i < numWorkers; i++ {
     go func(workerID int) {
-        audioData := generateAudioData() // 生成音频数据
-        
+        audioData := generateAudioData() // Tạo dữ liệu audio
+
         active, err := manager.ProcessAudio(audioData)
         if err != nil {
             log.Printf("Worker %d failed: %v", workerID, err)
             return
         }
-        
+
         fmt.Printf("Worker %d: active = %v\n", workerID, active)
     }(i)
 }
 ```
 
-## 配置参数
+## Tham số cấu hình
 
 ### WebRTCVADConfig
-- `SampleRate`: 采样率 (8000, 16000, 32000, 48000)
-- `Mode`: VAD 敏感度模式 (0: 最不敏感, 3: 最敏感)
+
+- `SampleRate`: tốc độ lấy mẫu (8000, 16000, 32000, 48000)
+- `Mode`: chế độ độ nhạy của VAD (0: kém nhạy nhất, 3: nhạy nhất)
 
 ### PoolConfig
-- `MaxSize`: 最大资源数量
-- `MinSize`: 最小资源数量（预创建）
-- `MaxIdle`: 最大空闲资源数量
-- `AcquireTimeout`: 获取资源超时时间
-- `IdleTimeout`: 资源空闲超时时间
-- `ValidateOnBorrow`: 获取时是否验证资源
-- `ValidateOnReturn`: 归还时是否验证资源
 
-## 优势
+- `MaxSize`: số lượng resource tối đa
+- `MinSize`: số lượng resource tối thiểu (được tạo sẵn)
+- `MaxIdle`: số lượng resource rảnh (idle) tối đa
+- `AcquireTimeout`: thời gian timeout khi lấy resource
+- `IdleTimeout`: thời gian timeout khi resource ở trạng thái rảnh
+- `ValidateOnBorrow`: có kiểm tra resource khi lấy hay không
+- `ValidateOnReturn`: có kiểm tra resource khi trả về hay không
 
-1. **资源复用**: 避免频繁创建和销毁 VAD 实例
-2. **并发安全**: 支持多个 goroutine 并发使用
-3. **自动管理**: 自动清理空闲超时的资源
-4. **性能监控**: 提供详细的统计信息
-5. **配置灵活**: 支持自定义池大小和超时参数
+## Ưu điểm
 
-## 性能统计
+1. **Tái sử dụng resource**: tránh việc tạo và hủy thực thể VAD liên tục
+2. **An toàn khi đồng thời**: hỗ trợ nhiều goroutine sử dụng cùng lúc
+3. **Quản lý tự động**: tự động dọn dẹp các resource rảnh quá thời gian timeout
+4. **Giám sát hiệu năng**: cung cấp thông tin thống kê chi tiết
+5. **Cấu hình linh hoạt**: hỗ trợ tùy chỉnh kích thước pool và các tham số timeout
 
-使用 `GetStats()` 方法获取资源池统计信息：
+## Thống kê hiệu năng
+
+Sử dụng phương thức `GetStats()` để lấy thông tin thống kê của resource pool:
 
 ```go
 stats := manager.GetStats()
 fmt.Printf("Pool stats: %+v\n", stats)
-// 输出示例:
+// Ví dụ đầu ra:
 // {
 //   "total_resources": 3,
 //   "available_resources": 2,
@@ -164,38 +174,42 @@ fmt.Printf("Pool stats: %+v\n", stats)
 // }
 ```
 
-## 错误处理
+## Xử lý lỗi
 
-主要的错误类型：
-- 获取超时：`acquire timeout after 5s`
-- 资源池已关闭：`pool is closed`
-- 无效资源类型：`invalid resource type`
-- VAD 初始化失败：`failed to initialize WebRTC VAD`
+Các loại lỗi chính:
 
-## 最佳实践
+- Timeout khi lấy resource: `acquire timeout after 5s`
+- Resource pool đã đóng: `pool is closed`
+- Kiểu resource không hợp lệ: `invalid resource type`
+- Khởi tạo VAD thất bại: `failed to initialize WebRTC VAD`
 
-1. **合理设置池大小**: 根据并发需求设置 `MaxSize`
-2. **及时释放资源**: 使用 `defer` 确保资源被释放
-3. **监控统计信息**: 定期检查池的使用情况
-4. **优雅关闭**: 程序退出时调用 `Close()` 方法
-5. **错误处理**: 处理获取超时等异常情况
+## Thực hành tốt nhất
 
-## 示例代码
+1. **Thiết lập kích thước pool hợp lý**: dựa theo nhu cầu xử lý đồng thời để thiết lập `MaxSize`
+2. **Giải phóng resource kịp thời**: dùng `defer` để đảm bảo resource được giải phóng
+3. **Giám sát thông tin thống kê**: thường xuyên kiểm tra tình trạng sử dụng của pool
+4. **Đóng một cách an toàn (graceful shutdown)**: gọi phương thức `Close()` khi chương trình thoát
+5. **Xử lý lỗi**: xử lý các trường hợp ngoại lệ như timeout khi lấy resource
 
-查看 `example_usage.go` 文件中的完整示例：
-- 基本使用示例
-- 批量处理示例
-- 回调函数使用示例
-- 并发使用示例
+## Mã nguồn ví dụ
 
-## 测试
+Xem file `example_usage.go` để có ví dụ đầy đủ:
 
-运行测试：
+- Ví dụ sử dụng cơ bản
+- Ví dụ xử lý hàng loạt
+- Ví dụ sử dụng callback function
+- Ví dụ sử dụng đồng thời
+
+## Kiểm thử (Testing)
+
+Chạy kiểm thử:
+
 ```bash
 go test -v ./internal/domain/vad/webrtc_vad/
 ```
 
-运行性能测试：
+Chạy kiểm thử hiệu năng (benchmark):
+
 ```bash
 go test -bench=. ./internal/domain/vad/webrtc_vad/
-``` 
+```

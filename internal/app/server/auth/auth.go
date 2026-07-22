@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// ClientSession 表示一个客户端会话
+// ClientSession đại diện cho một phiên làm việc của client
 type ClientSession struct {
 	ID        string
 	DeviceID  string
@@ -17,11 +17,11 @@ type ClientSession struct {
 	LastSeen  time.Time
 }
 
-// AuthManager 管理认证和会话
+// AuthManager quản lý việc xác thực và các phiên làm việc
 type AuthManager struct {
 	sessions map[string]*ClientSession
 	mutex    sync.RWMutex
-	// 令牌映射
+	// Bảng ánh xạ token
 	tokens map[string]string // token -> deviceID
 }
 
@@ -36,7 +36,7 @@ func A() *AuthManager {
 	return authManager
 }
 
-// NewAuthManager 创建新的认证管理器
+// NewAuthManager tạo một AuthManager (trình quản lý xác thực) mới
 func NewAuthManager() *AuthManager {
 	return &AuthManager{
 		sessions: make(map[string]*ClientSession),
@@ -44,9 +44,9 @@ func NewAuthManager() *AuthManager {
 	}
 }
 
-// CreateSession 创建新的会话
+// CreateSession tạo một phiên làm việc mới
 func (am *AuthManager) CreateSession(deviceID string) (*ClientSession, error) {
-	// 生成随机会话ID
+	// Sinh ID phiên làm việc ngẫu nhiên
 	sessionID, err := generateClientSessionID()
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (am *AuthManager) CreateSession(deviceID string) (*ClientSession, error) {
 	return session, nil
 }
 
-// EnsureSession 确保给定会话ID存在；若 preferredID 为空则创建新会话
+// EnsureSession đảm bảo phiên làm việc với ID cho trước tồn tại; nếu preferredID rỗng thì tạo phiên mới
 func (am *AuthManager) EnsureSession(deviceID string, preferredID string) (*ClientSession, error) {
 	preferredID = strings.TrimSpace(preferredID)
 	if preferredID == "" {
@@ -96,17 +96,17 @@ func (am *AuthManager) EnsureSession(deviceID string, preferredID string) (*Clie
 	return session, nil
 }
 
-// GetSession 获取会话
+// GetSession lấy thông tin phiên làm việc
 func (am *AuthManager) GetSession(sessionID string) (*ClientSession, error) {
 	am.mutex.RLock()
 	session, exists := am.sessions[sessionID]
 	am.mutex.RUnlock()
 
 	if !exists {
-		return nil, errors.New("会话不存在")
+		return nil, errors.New("phiên làm việc không tồn tại")
 	}
 
-	// 更新最后访问时间
+	// Cập nhật thời gian truy cập gần nhất
 	am.mutex.Lock()
 	session.LastSeen = time.Now()
 	am.mutex.Unlock()
@@ -114,14 +114,14 @@ func (am *AuthManager) GetSession(sessionID string) (*ClientSession, error) {
 	return session, nil
 }
 
-// RemoveSession 移除会话
+// RemoveSession xóa bỏ phiên làm việc
 func (am *AuthManager) RemoveSession(sessionID string) {
 	am.mutex.Lock()
 	delete(am.sessions, sessionID)
 	am.mutex.Unlock()
 }
 
-// CleanupSessions 清理过期会话
+// CleanupSessions dọn dẹp các phiên làm việc đã hết hạn
 func (am *AuthManager) CleanupSessions(maxAge time.Duration) {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
@@ -134,7 +134,7 @@ func (am *AuthManager) CleanupSessions(maxAge time.Duration) {
 	}
 }
 
-// generateClientSessionID 生成随机会话ID
+// generateClientSessionID sinh ID phiên làm việc ngẫu nhiên
 func generateClientSessionID() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -143,10 +143,10 @@ func generateClientSessionID() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-// ValidateToken 验证令牌
+// ValidateToken xác thực token
 func (am *AuthManager) ValidateToken(token string) bool {
 	return true
-	// 移除 "Bearer " 前缀
+	// Loại bỏ tiền tố "Bearer "
 	if len(token) > 7 && token[:7] == "Bearer " {
 		token = token[7:]
 	}
@@ -158,9 +158,9 @@ func (am *AuthManager) ValidateToken(token string) bool {
 	return exists
 }
 
-// RegisterToken 注册令牌
+// RegisterToken đăng ký token
 func (am *AuthManager) RegisterToken(token string, deviceID string) {
-	// 移除 "Bearer " 前缀
+	// Loại bỏ tiền tố "Bearer "
 	if len(token) > 7 && token[:7] == "Bearer " {
 		token = token[7:]
 	}
@@ -170,9 +170,9 @@ func (am *AuthManager) RegisterToken(token string, deviceID string) {
 	am.mutex.Unlock()
 }
 
-// RemoveToken 移除令牌
+// RemoveToken xóa bỏ token
 func (am *AuthManager) RemoveToken(token string) {
-	// 移除 "Bearer " 前缀
+	// Loại bỏ tiền tố "Bearer "
 	if len(token) > 7 && token[:7] == "Bearer " {
 		token = token[7:]
 	}

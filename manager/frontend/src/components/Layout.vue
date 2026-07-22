@@ -54,7 +54,7 @@
 
             <el-menu-item v-if="!authStore.isAdmin" index="/user/knowledge-bases">
               <el-icon><Document /></el-icon>
-              <span>Kho kiến thức của tôi</span>
+              <span>Kho tri thức của tôi</span>
             </el-menu-item>
 
             <el-sub-menu v-if="authStore.isAdmin" index="/admin/service-config">
@@ -86,7 +86,7 @@
               <el-menu-item index="/admin/tts-config">TTS</el-menu-item>
               <el-menu-item index="/admin/vision-config">Vision</el-menu-item>
               <el-menu-item index="/admin/memory-config">Memory</el-menu-item>
-              <el-menu-item index="/admin/knowledge-search-config">Kho kiến thức</el-menu-item>
+              <el-menu-item index="/admin/knowledge-search-config">Kho tri thức</el-menu-item>
             </el-sub-menu>
 
             <el-menu-item v-if="authStore.isAdmin" index="/voice-clones">

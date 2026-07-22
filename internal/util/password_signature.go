@@ -9,66 +9,66 @@ import (
 	"strings"
 )
 
-// GeneratePasswordSignature 生成密码签名
-// 基于 clientId + '|' + username 和签名密钥生成HMAC-SHA256签名
+// GeneratePasswordSignature tạo chữ ký mật khẩu
+// Dựa trên clientId + '|' + username và khóa ký để tạo chữ ký HMAC-SHA256
 func GeneratePasswordSignature(data, key string) string {
-	// 使用HMAC-SHA256生成签名
+	// Sử dụng HMAC-SHA256 để tạo chữ ký
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(data))
 	signature := h.Sum(nil)
 
-	// 返回base64编码的签名
+	// Trả về chữ ký đã mã hóa base64
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-// ValidateMqttCredentials 验证MQTT凭据
-// 根据提供的JavaScript验证逻辑实现
+// ValidateMqttCredentials xác thực thông tin đăng nhập MQTT
+// Được triển khai dựa trên logic xác thực JavaScript đã cung cấp
 func ValidateMqttCredentials(clientId, username, password, signatureKey string) (*MqttCredentialInfo, error) {
-	// 验证签名密钥
+	// Kiểm tra khóa ký
 	if signatureKey == "" {
-		return nil, fmt.Errorf("缺少签名密钥配置")
+		return nil, fmt.Errorf("thiếu cấu hình khóa ký")
 	}
 
-	// 验证clientId
+	// Kiểm tra clientId
 	if clientId == "" {
-		return nil, fmt.Errorf("clientId必须是非空字符串")
+		return nil, fmt.Errorf("clientId phải là chuỗi không rỗng")
 	}
 
-	// 验证clientId格式（必须包含@@@分隔符）
+	// Kiểm tra định dạng clientId (phải chứa dấu phân cách @@@)
 	clientIdParts := strings.Split(clientId, "@@@")
 	if len(clientIdParts) != 3 {
-		return nil, fmt.Errorf("clientId格式错误，必须包含@@@分隔符")
+		return nil, fmt.Errorf("định dạng clientId sai, phải chứa dấu phân cách @@@")
 	}
 
-	// 验证username
+	// Kiểm tra username
 	if username == "" {
-		return nil, fmt.Errorf("username必须是非空字符串")
+		return nil, fmt.Errorf("username phải là chuỗi không rỗng")
 	}
 
-	// 尝试解码username（应该是base64编码的JSON）
+	// Thử giải mã username (phải là JSON được mã hóa base64)
 	var userData map[string]interface{}
 	decodedUsername, err := base64.StdEncoding.DecodeString(username)
 	if err != nil {
-		return nil, fmt.Errorf("username不是有效的base64编码: %v", err)
+		return nil, fmt.Errorf("username không phải là chuỗi được mã hóa base64 hợp lệ: %v", err)
 	}
 
 	if err := json.Unmarshal(decodedUsername, &userData); err != nil {
-		return nil, fmt.Errorf("username不是有效的base64编码JSON: %v", err)
+		return nil, fmt.Errorf("username không phải là JSON mã hóa base64 hợp lệ: %v", err)
 	}
 
-	// 验证密码签名
+	// Kiểm tra chữ ký mật khẩu
 	signatureData := clientId + "|" + username
 	expectedSignature := GeneratePasswordSignature(signatureData, signatureKey)
 	if password != expectedSignature {
-		return nil, fmt.Errorf("密码签名验证失败")
+		return nil, fmt.Errorf("xác thực chữ ký mật khẩu thất bại")
 	}
 
-	// 解析clientId中的信息
+	// Phân tích thông tin trong clientId
 	groupId := clientIdParts[0]
 	macAddress := strings.ReplaceAll(clientIdParts[1], "_", ":")
 	uuid := clientIdParts[2]
 
-	// 如果验证成功，返回解析后的有用信息
+	// Nếu xác thực thành công, trả về thông tin hữu ích đã phân tích
 	return &MqttCredentialInfo{
 		GroupId:    groupId,
 		MacAddress: macAddress,
@@ -77,7 +77,7 @@ func ValidateMqttCredentials(clientId, username, password, signatureKey string) 
 	}, nil
 }
 
-// MqttCredentialInfo MQTT凭据信息
+// MqttCredentialInfo thông tin đăng nhập MQTT
 type MqttCredentialInfo struct {
 	GroupId    string                 `json:"groupId"`
 	MacAddress string                 `json:"macAddress"`
@@ -85,13 +85,13 @@ type MqttCredentialInfo struct {
 	UserData   map[string]interface{} `json:"userData"`
 }
 
-// GenerateMqttCredentials 生成MQTT凭据
-// 用于OTA接口生成MQTT连接信息
+// GenerateMqttCredentials tạo thông tin đăng nhập MQTT
+// Dùng cho API OTA để tạo thông tin kết nối MQTT
 func GenerateMqttCredentials(deviceId, clientId, ip, signatureKey string) (*MqttCredentials, error) {
-	// 处理deviceId（替换冒号为下划线）
+	// Xử lý deviceId (thay dấu hai chấm bằng dấu gạch dưới)
 	deviceId = strings.ReplaceAll(deviceId, ":", "_")
 
-	// 构建用户名数据（包含IP信息）
+	// Xây dựng dữ liệu username (bao gồm thông tin IP)
 	userName := struct {
 		Ip string `json:"ip"`
 	}{
@@ -99,21 +99,21 @@ func GenerateMqttCredentials(deviceId, clientId, ip, signatureKey string) (*Mqtt
 	}
 	userNameJson, err := json.Marshal(userName)
 	if err != nil {
-		return nil, fmt.Errorf("用户名序列化失败: %v", err)
+		return nil, fmt.Errorf("chuyển đổi username sang JSON thất bại: %v", err)
 	}
 	base64UserName := base64.StdEncoding.EncodeToString(userNameJson)
 
-	// 构建clientId，格式：GID_test@@@deviceId@@@clientId
+	// Xây dựng clientId, định dạng: GID_test@@@deviceId@@@clientId
 	mqttClientId := fmt.Sprintf("GID_test@@@%s@@@%s", deviceId, clientId)
 
-	// 生成密码签名
+	// Tạo chữ ký mật khẩu
 	var pwd string
 	if signatureKey != "" {
-		// 使用签名密钥生成密码
+		// Sử dụng khóa ký để tạo mật khẩu
 		signatureData := mqttClientId + "|" + base64UserName
 		pwd = GeneratePasswordSignature(signatureData, signatureKey)
 	} else {
-		// 如果没有配置签名密钥，使用原来的逻辑作为fallback
+		// Nếu không cấu hình khóa ký, dùng logic cũ làm phương án dự phòng
 		pwd = Sha256Digest([]byte(mqttClientId))
 	}
 
@@ -124,7 +124,7 @@ func GenerateMqttCredentials(deviceId, clientId, ip, signatureKey string) (*Mqtt
 	}, nil
 }
 
-// MqttCredentials MQTT凭据
+// MqttCredentials thông tin đăng nhập MQTT
 type MqttCredentials struct {
 	ClientId string `json:"client_id"`
 	Username string `json:"username"`

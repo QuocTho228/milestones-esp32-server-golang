@@ -16,19 +16,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// 常量定义
+// Định nghĩa hằng số
 const (
 	wsURL = "wss://api.minimaxi.com/ws/v1/t2a_v2"
 )
 
-// 全局WebSocket Dialer
+// WebSocket Dialer toàn cục
 var wsDialer = websocket.Dialer{
-	ReadBufferSize:   16384, // 16KB 读取缓冲区
-	WriteBufferSize:  16384, // 16KB 写入缓冲区
+	ReadBufferSize:   16384, // Bộ đệm đọc 16KB
+	WriteBufferSize:  16384, // Bộ đệm ghi 16KB
 	HandshakeTimeout: 45 * time.Second,
 }
 
-// MinimaxTTSProvider Minimax TTS提供者
+// MinimaxTTSProvider Provider TTS của Minimax
 type MinimaxTTSProvider struct {
 	APIKey     string
 	Model      string
@@ -41,14 +41,14 @@ type MinimaxTTSProvider struct {
 	Format     string
 	Channel    int
 
-	// 连接管理
+	// Quản lý kết nối
 	conn      *websocket.Conn
 	connMutex sync.RWMutex
-	// 发送锁，确保同一时间只有一个请求在使用连接
+	// Khóa gửi (send lock), đảm bảo tại một thời điểm chỉ có một yêu cầu đang sử dụng kết nối
 	sendMutex sync.Mutex
 }
 
-// WebSocket 消息结构
+// Cấu trúc thông điệp WebSocket
 type minimaxMessage struct {
 	Event           string        `json:"event,omitempty"`
 	Model           string        `json:"model,omitempty"`
@@ -105,7 +105,7 @@ type minimaxData struct {
 	Audio string `json:"audio"`
 }
 
-// NewMinimaxTTSProvider 创建新的Minimax TTS提供者
+// NewMinimaxTTSProvider tạo mới một Provider TTS của Minimax
 func NewMinimaxTTSProvider(config map[string]interface{}) *MinimaxTTSProvider {
 	apiKey, _ := config["api_key"].(string)
 	model, _ := config["model"].(string)
@@ -121,7 +121,7 @@ func NewMinimaxTTSProvider(config map[string]interface{}) *MinimaxTTSProvider {
 	format, _ := config["format"].(string)
 	channel, _ := config["channel"].(float64)
 
-	// 设置默认值
+	// Thiết lập giá trị mặc định
 	if model == "" {
 		model = "speech-2.8-hd"
 	}
@@ -161,9 +161,9 @@ func NewMinimaxTTSProvider(config map[string]interface{}) *MinimaxTTSProvider {
 	}
 }
 
-// TextToSpeech 一次性合成（暂不支持，使用流式实现）
+// TextToSpeech tổng hợp một lần (hiện chưa hỗ trợ, sử dụng phương án triển khai dạng stream)
 func (p *MinimaxTTSProvider) TextToSpeech(ctx context.Context, text string, sampleRate int, channels int, frameDuration int) ([][]byte, error) {
-	// Minimax 主要支持流式，这里可以收集流式数据后返回
+	// Minimax chủ yếu hỗ trợ dạng stream, ở đây thu thập dữ liệu stream rồi trả về
 	outputChan, err := p.TextToSpeechStream(ctx, text, sampleRate, channels, frameDuration)
 	if err != nil {
 		return nil, err
@@ -177,47 +177,48 @@ func (p *MinimaxTTSProvider) TextToSpeech(ctx context.Context, text string, samp
 	return frames, nil
 }
 
-// TextToSpeechStream 流式语音合成实现
+// TextToSpeechStream triển khai tổng hợp giọng nói dạng stream (luồng)
 func (p *MinimaxTTSProvider) TextToSpeechStream(ctx context.Context, text string, sampleRate int, channels int, frameDuration int) (outputChan chan []byte, err error) {
 	startTs := time.Now().UnixMilli()
 
-	// 使用发送锁保护，确保同一时间只有一个请求在使用连接
+	// Sử dụng send lock để bảo vệ, đảm bảo tại một thời điểm chỉ có một yêu cầu đang sử dụng kết nối
 	p.sendMutex.Lock()
-	// 注意：不在函数返回时释放锁，而是在 goroutine 完成时释放
+	// Lưu ý: không giải phóng khóa khi hàm return, mà giải phóng khi goroutine hoàn tất
 
-	// 获取连接（复用或创建）
+	// Lấy kết nối (tái sử dụng hoặc tạo mới)
 	conn, err := p.getConnection(ctx)
 	if err != nil {
 		p.sendMutex.Unlock()
-		return nil, fmt.Errorf("获取WebSocket连接失败: %v", err)
+		return nil, fmt.Errorf("lấy kết nối WebSocket thất bại: %v", err)
 	}
 
-	// 创建输出通道
+	// Tạo channel đầu ra
 	outputChan = make(chan []byte, 100)
 
-	// 创建管道用于音频解码
+	// Tạo pipe dùng cho việc giải mã âm thanh
 	pipeReader, pipeWriter := io.Pipe()
 
-	// 启动音频解码器 goroutine
+	// Khởi chạy goroutine cho bộ giải mã âm thanh
 	go func() {
 		decoder, err := util.CreateAudioDecoderWithSampleRate(ctx, pipeReader, outputChan, frameDuration, p.Format, sampleRate)
 		if err != nil {
-			log.Errorf("创建音频解码器失败: %v", err)
+			log.Errorf("Lỗi khi tạo bộ giải mã âm thanh: %v", err)
 			pipeReader.Close()
 			close(outputChan)
 			return
 		}
 
 		if err := decoder.Run(startTs); err != nil {
-			log.Errorf("音频解码失败: %v", err)
+			log.Errorf("Giải mã âm thanh thất bại: %v", err)
 		}
 	}()
 
-	// 使用 WaitGroup 等待读取 goroutine 完成
+	// Sử dụng WaitGroup để chờ goroutine đọc hoàn tất
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	// 启动读取和处理 goroutine；锁在此 goroutine 内统一由 defer 释放，确保无论正常结束、错误或 panic 都会释放
+	// Khởi chạy goroutine đọc và xử lý; khóa sẽ được giải phóng thống nhất bằng defer trong goroutine này,
+	// đảm bảo dù kết thúc bình thường, gặp lỗi, hay panic thì khóa vẫn được giải phóng
 	go func() {
 		defer wg.Done()
 		defer p.sendMutex.Unlock()
@@ -229,18 +230,18 @@ func (p *MinimaxTTSProvider) TextToSpeechStream(ctx context.Context, text string
 		p.processStreamTTS(ctx, conn, text, pipeWriter)
 	}()
 
-	// 在后台等待 goroutine 完成并释放锁
+	// Chạy nền chờ goroutine hoàn tất rồi giải phóng khóa
 	go func() {
 		wg.Wait()
-		log.Debugf("Minimax TTS流式合成完成，耗时: %d ms", time.Now().UnixMilli()-startTs)
+		log.Debugf("Tổng hợp giọng nói dạng stream của Minimax TTS hoàn tất, thời gian xử lý: %d ms", time.Now().UnixMilli()-startTs)
 	}()
 
 	return outputChan, nil
 }
 
-// processStreamTTS 处理流式TTS合成流程
+// processStreamTTS xử lý quy trình tổng hợp TTS dạng stream
 func (p *MinimaxTTSProvider) processStreamTTS(ctx context.Context, conn *websocket.Conn, text string, pipeWriter *io.PipeWriter) {
-	// 发送任务开始消息
+	// Gửi thông điệp bắt đầu tác vụ
 	startMsg := minimaxMessage{
 		Event: "task_start",
 		Model: p.Model,
@@ -260,108 +261,108 @@ func (p *MinimaxTTSProvider) processStreamTTS(ctx context.Context, conn *websock
 		ContinuousSound: false,
 	}
 
-	log.Debugf("minimax 发送任务开始消息: model=%s, voice=%s, format=%s", p.Model, p.Voice, p.Format)
+	log.Debugf("minimax gửi thông điệp bắt đầu tác vụ: model=%s, voice=%s, format=%s", p.Model, p.Voice, p.Format)
 	if err := p.sendMessage(conn, startMsg); err != nil {
-		log.Errorf("发送任务开始消息失败: %v", err)
+		log.Errorf("Gửi thông điệp bắt đầu tác vụ thất bại: %v", err)
 		p.clearConnection()
 		return
 	}
 
-	// 等待任务开始确认
+	// Chờ xác nhận bắt đầu tác vụ
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 	msg, err := p.readMessage(conn)
 	if err != nil {
-		// 检查是否是超时错误
+		// Kiểm tra xem có phải lỗi timeout hay không
 		if netErr, ok := err.(interface{ Timeout() bool }); ok && netErr.Timeout() {
-			log.Errorf("读取任务开始确认超时（10秒内未收到响应）")
+			log.Errorf("Hết thời gian chờ xác nhận bắt đầu tác vụ (không nhận được phản hồi trong 10 giây)")
 		} else {
-			log.Errorf("读取任务开始确认失败: %v", err)
+			log.Errorf("Đọc xác nhận bắt đầu tác vụ thất bại: %v", err)
 		}
 		p.clearConnection()
 		return
 	}
 
-	log.Debugf("收到任务开始确认消息: %+v", msg)
+	log.Debugf("Nhận được thông điệp xác nhận bắt đầu tác vụ: %+v", msg)
 
 	if msg.Event != "task_started" {
-		log.Errorf("任务开始失败，期望 'task_started'，收到: event=%s, 完整消息=%+v", msg.Event, msg)
+		log.Errorf("Bắt đầu tác vụ thất bại, kỳ vọng 'task_started', nhận được: event=%s, thông điệp đầy đủ=%+v", msg.Event, msg)
 		if msg.BaseResp != nil && msg.BaseResp.StatusCode != 0 {
-			log.Errorf("错误详情: status_code=%d, status_msg=%s", msg.BaseResp.StatusCode, msg.BaseResp.StatusMsg)
+			log.Errorf("Chi tiết lỗi: status_code=%d, status_msg=%s", msg.BaseResp.StatusCode, msg.BaseResp.StatusMsg)
 		}
 		p.clearConnection()
 		return
 	}
-	// 重置读取超时
+	// Đặt lại thời gian chờ đọc
 	conn.SetReadDeadline(time.Time{})
 
-	log.Debugf("任务开始确认成功")
+	log.Debugf("Xác nhận bắt đầu tác vụ thành công")
 
-	// 发送文本消息
+	// Gửi thông điệp văn bản
 	continueMsg := minimaxMessage{
 		Event: "task_continue",
 		Text:  text,
 	}
 
 	if err := p.sendMessage(conn, continueMsg); err != nil {
-		log.Errorf("发送文本消息失败: %v", err)
+		log.Errorf("Gửi thông điệp văn bản thất bại: %v", err)
 		p.clearConnection()
 		return
 	}
 
-	// 读取音频数据
+	// Đọc dữ liệu âm thanh
 	chunkCount := 0
 	for {
 		select {
 		case <-ctx.Done():
-			log.Debugf("Minimax TTS流式合成取消, 文本: %s", text)
-			// 发送任务结束消息
+			log.Debugf("Tổng hợp giọng nói dạng stream của Minimax TTS đã bị hủy, văn bản: %s", text)
+			// Gửi thông điệp kết thúc tác vụ
 			finishMsg := minimaxMessage{Event: "task_finish"}
 			p.sendMessage(conn, finishMsg)
 
-			// 根据文档，服务器收到 task_finish 后会关闭 WebSocket 连接
-			// 尝试读取 task_finished 响应（如果服务器发送的话）
+			// Theo tài liệu, sau khi server nhận được task_finish sẽ đóng kết nối WebSocket
+			// Thử đọc phản hồi task_finished (nếu server có gửi)
 			conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 			if finishResp, err := p.readMessage(conn); err == nil {
-				log.Debugf("收到任务结束确认: event=%s, 完整消息=%+v", finishResp.Event, finishResp)
+				log.Debugf("Nhận được xác nhận kết thúc tác vụ: event=%s, thông điệp đầy đủ=%+v", finishResp.Event, finishResp)
 			} else {
-				// 连接可能已经关闭，这是正常行为
+				// Kết nối có thể đã bị đóng, đây là hành vi bình thường
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Debugf("服务器已关闭连接（正常行为）")
+					log.Debugf("Server đã đóng kết nối (hành vi bình thường)")
 					if closeErr, ok := err.(*websocket.CloseError); ok {
-						log.Debugf("关闭帧详情: code=%d, text=%s", closeErr.Code, closeErr.Text)
+						log.Debugf("Chi tiết close frame: code=%d, text=%s", closeErr.Code, closeErr.Text)
 					}
 				} else {
-					log.Debugf("读取任务结束确认失败: %v", err)
+					log.Debugf("Đọc xác nhận kết thúc tác vụ thất bại: %v", err)
 					if closeErr, ok := err.(*websocket.CloseError); ok {
-						log.Debugf("关闭帧详情: code=%d, text=%s", closeErr.Code, closeErr.Text)
+						log.Debugf("Chi tiết close frame: code=%d, text=%s", closeErr.Code, closeErr.Text)
 					}
 				}
 			}
 
-			// 清空连接状态，因为服务器已经关闭了连接
+			// Xóa trạng thái kết nối vì server đã đóng kết nối
 			p.clearConnection()
 			return
 		default:
 		}
 
-		// 设置读取超时
+		// Thiết lập thời gian chờ đọc
 		conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 
 		msg, err := p.readMessage(conn)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Errorf("读取WebSocket消息失败: %v", err)
-				// 尝试获取关闭帧信息
+				log.Errorf("Đọc thông điệp WebSocket thất bại: %v", err)
+				// Thử lấy thông tin close frame
 				if closeErr, ok := err.(*websocket.CloseError); ok {
-					log.Errorf("WebSocket关闭帧详情: code=%d, text=%s", closeErr.Code, closeErr.Text)
+					log.Errorf("Chi tiết close frame của WebSocket: code=%d, text=%s", closeErr.Code, closeErr.Text)
 				}
 				p.clearConnection()
 				return
 			}
-			// 正常关闭或读取错误
-			log.Debugf("WebSocket连接关闭或读取错误: %v", err)
+			// Đóng bình thường hoặc lỗi khi đọc
+			log.Debugf("Kết nối WebSocket đã đóng hoặc lỗi khi đọc: %v", err)
 			if closeErr, ok := err.(*websocket.CloseError); ok {
-				log.Debugf("WebSocket关闭帧详情: code=%d, text=%s", closeErr.Code, closeErr.Text)
+				log.Debugf("Chi tiết close frame của WebSocket: code=%d, text=%s", closeErr.Code, closeErr.Text)
 			}
 			return
 		}
@@ -370,53 +371,53 @@ func (p *MinimaxTTSProvider) processStreamTTS(ctx context.Context, conn *websock
 			log.Errorf("BaseResp: status_code=%d, status_msg=%s", msg.BaseResp.StatusCode, msg.BaseResp.StatusMsg)
 		}
 
-		// 检查是否有错误消息
+		// Kiểm tra xem có thông điệp lỗi hay không
 		if msg.Event == "error" || msg.Event == "task_error" {
-			log.Errorf("收到错误消息: %+v", msg)
+			log.Errorf("Nhận được thông điệp lỗi: %+v", msg)
 			if msg.BaseResp != nil && msg.BaseResp.StatusCode != 0 {
-				log.Errorf("错误详情: status_code=%d, status_msg=%s", msg.BaseResp.StatusCode, msg.BaseResp.StatusMsg)
+				log.Errorf("Chi tiết lỗi: status_code=%d, status_msg=%s", msg.BaseResp.StatusCode, msg.BaseResp.StatusMsg)
 			}
 			p.clearConnection()
 			return
 		}
 
-		// 处理音频数据
+		// Xử lý dữ liệu âm thanh
 		if msg.Data != nil && msg.Data.Audio != "" {
 			chunkCount++
 
-			// 将 hex 编码的音频数据转换为二进制
+			// Chuyển dữ liệu âm thanh mã hóa hex sang dạng nhị phân
 			audioBytes, err := hex.DecodeString(msg.Data.Audio)
 			if err != nil {
-				log.Errorf("解码音频数据失败: %v", err)
+				log.Errorf("Giải mã dữ liệu âm thanh thất bại: %v", err)
 				continue
 			}
 
-			// 写入管道供解码器处理
+			// Ghi vào pipe để bộ giải mã xử lý
 			if _, err := pipeWriter.Write(audioBytes); err != nil {
-				log.Errorf("写入音频数据到管道失败: %v", err)
+				log.Errorf("Ghi dữ liệu âm thanh vào pipe thất bại: %v", err)
 				p.clearConnection()
 				return
 			}
 		}
 
-		// 检查是否完成
+		// Kiểm tra xem đã hoàn tất chưa
 		if msg.IsFinal {
-			log.Debugf("收到最后一个音频片段，共%d个片段", chunkCount)
-			// 发送任务结束消息
+			log.Debugf("Nhận được đoạn âm thanh cuối cùng, tổng cộng %d đoạn", chunkCount)
+			// Gửi thông điệp kết thúc tác vụ
 			finishMsg := minimaxMessage{Event: "task_finish"}
 			p.sendMessage(conn, finishMsg)
 
-			// 清空连接状态，因为服务器已经关闭了连接
-			// 下次使用时需要创建新连接
+			// Xóa trạng thái kết nối vì server đã đóng kết nối
+			// Lần sử dụng tiếp theo cần tạo kết nối mới
 			p.clearConnection()
 			return
 		}
 	}
 }
 
-// getConnection 获取连接，如果不存在则创建
+// getConnection lấy kết nối, nếu chưa có thì tạo mới
 func (p *MinimaxTTSProvider) getConnection(ctx context.Context) (*websocket.Conn, error) {
-	// 先尝试读取现有连接
+	// Thử đọc kết nối hiện có trước
 	p.connMutex.RLock()
 	conn := p.conn
 	p.connMutex.RUnlock()
@@ -425,67 +426,67 @@ func (p *MinimaxTTSProvider) getConnection(ctx context.Context) (*websocket.Conn
 		return conn, nil
 	}
 
-	// 需要创建新连接
+	// Cần tạo kết nối mới
 	p.connMutex.Lock()
 	defer p.connMutex.Unlock()
 
-	// 双重检查，可能其他 goroutine 已经创建了连接
+	// Kiểm tra lại lần nữa (double-check), có thể goroutine khác đã tạo kết nối
 	if p.conn != nil {
 		return p.conn, nil
 	}
 
-	// 创建HTTP头
+	// Tạo HTTP header
 	header := http.Header{}
 	header.Set("Authorization", fmt.Sprintf("Bearer %s", p.APIKey))
 
-	// 创建新连接
+	// Tạo kết nối mới
 	conn, resp, err := wsDialer.DialContext(ctx, wsURL, header)
 	if err != nil {
 		if resp != nil {
-			log.Errorf("WebSocket连接失败，状态码: %d", resp.StatusCode)
+			log.Errorf("Kết nối WebSocket thất bại, mã trạng thái: %d", resp.StatusCode)
 		}
-		return nil, fmt.Errorf("WebSocket连接失败: %v", err)
+		return nil, fmt.Errorf("kết nối WebSocket thất bại: %v", err)
 	}
 
-	// 设置消息读取限制
-	conn.SetReadLimit(1024 * 1024) // 1MB 最大消息大小
+	// Thiết lập giới hạn đọc thông điệp
+	conn.SetReadLimit(1024 * 1024) // Kích thước thông điệp tối đa 1MB
 
-	// 设置保持连接
+	// Thiết lập giữ kết nối (keep-alive)
 	conn.SetPingHandler(func(appData string) error {
 		return conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(1*time.Second))
 	})
 
-	// 等待连接成功消息
+	// Chờ thông điệp xác nhận kết nối thành công
 	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	_, message, err := conn.ReadMessage()
 	if err != nil {
 		conn.Close()
-		return nil, fmt.Errorf("读取连接确认消息失败: %v", err)
+		return nil, fmt.Errorf("đọc thông điệp xác nhận kết nối thất bại: %v", err)
 	}
 
-	log.Debugf("收到连接确认消息（原始）: %s", string(message))
+	log.Debugf("Nhận được thông điệp xác nhận kết nối (dữ liệu gốc): %s", string(message))
 
 	var connectMsg minimaxResp
 	if err := json.Unmarshal(message, &connectMsg); err != nil {
 		conn.Close()
-		log.Errorf("解析连接确认消息失败，原始消息: %s, 错误: %v", string(message), err)
-		return nil, fmt.Errorf("解析连接确认消息失败: %v", err)
+		log.Errorf("Phân tích thông điệp xác nhận kết nối thất bại, thông điệp gốc: %s, lỗi: %v", string(message), err)
+		return nil, fmt.Errorf("phân tích thông điệp xác nhận kết nối thất bại: %v", err)
 	}
 
-	log.Debugf("收到连接确认消息（解析后）: %+v", connectMsg)
+	log.Debugf("Nhận được thông điệp xác nhận kết nối (đã phân tích): %+v", connectMsg)
 
 	if connectMsg.Event != "connected_success" {
 		conn.Close()
-		log.Errorf("连接失败，期望 'connected_success'，收到: %+v", connectMsg)
-		return nil, fmt.Errorf("连接失败，收到: %+v", connectMsg)
+		log.Errorf("Kết nối thất bại, kỳ vọng 'connected_success', nhận được: %+v", connectMsg)
+		return nil, fmt.Errorf("kết nối thất bại, nhận được: %+v", connectMsg)
 	}
 
 	p.conn = conn
-	log.Infof("Minimax WebSocket 连接已建立")
+	log.Infof("Kết nối WebSocket của Minimax đã được thiết lập")
 	return conn, nil
 }
 
-// clearConnection 清空连接（用于断线重连）
+// clearConnection xóa kết nối (dùng khi mất kết nối cần kết nối lại)
 func (p *MinimaxTTSProvider) clearConnection() {
 	p.connMutex.Lock()
 	defer p.connMutex.Unlock()
@@ -493,59 +494,59 @@ func (p *MinimaxTTSProvider) clearConnection() {
 	if p.conn != nil {
 		p.conn.Close()
 		p.conn = nil
-		log.Infof("Minimax WebSocket 连接已清空，等待下次重连")
+		log.Infof("Kết nối WebSocket của Minimax đã được xóa, chờ kết nối lại lần sau")
 	}
 }
 
-// sendMessage 发送JSON消息
+// sendMessage gửi thông điệp JSON
 func (p *MinimaxTTSProvider) sendMessage(conn *websocket.Conn, msg minimaxMessage) error {
 	p.connMutex.RLock()
 	defer p.connMutex.RUnlock()
 
 	if conn == nil {
-		return fmt.Errorf("连接已关闭")
+		return fmt.Errorf("kết nối đã đóng")
 	}
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		return fmt.Errorf("序列化消息失败: %v", err)
+		return fmt.Errorf("lỗi khi tuần tự hóa (serialize) thông điệp: %v", err)
 	}
 
-	log.Debugf("minimax 发送消息: %s", string(data))
+	log.Debugf("minimax gửi thông điệp: %s", string(data))
 
 	return conn.WriteMessage(websocket.TextMessage, data)
 }
 
-// readMessage 读取JSON消息
+// readMessage đọc thông điệp JSON
 func (p *MinimaxTTSProvider) readMessage(conn *websocket.Conn) (*minimaxResp, error) {
 	messageType, message, err := conn.ReadMessage()
 	if err != nil {
 		return nil, err
 	}
 	_ = messageType
-	//log.Debugf("minimax 读取到WebSocket消息: type=%d, 原始内容长度=%d, 内容=%s", messageType, len(message), string(message))
+	//log.Debugf("minimax đã nhận được tin nhắn WebSocket: type=%d, độ dài nội dung gốc=%d, nội dung=%s", messageType, len(message), string(message))
 
 	var msg minimaxResp
 	if err := json.Unmarshal(message, &msg); err != nil {
-		log.Errorf("解析消息失败，原始消息: %s, 错误: %v", string(message), err)
-		return nil, fmt.Errorf("解析消息失败: %v", err)
+		log.Errorf("Phân tích thông điệp thất bại, thông điệp gốc: %s, lỗi: %v", string(message), err)
+		return nil, fmt.Errorf("phân tích thông điệp thất bại: %v", err)
 	}
 
 	return &msg, nil
 }
 
-// SetVoice 设置音色参数
+// SetVoice thiết lập tham số giọng nói
 func (p *MinimaxTTSProvider) SetVoice(voiceConfig map[string]interface{}) error {
 	return nil
 }
 
-// Close 关闭资源，释放连接
+// Close đóng tài nguyên, giải phóng kết nối
 func (p *MinimaxTTSProvider) Close() error {
 	p.clearConnection()
 	return nil
 }
 
-// IsValid 检查资源是否有效
+// IsValid kiểm tra tài nguyên có hợp lệ hay không
 func (p *MinimaxTTSProvider) IsValid() bool {
 	p.connMutex.RLock()
 	conn := p.conn

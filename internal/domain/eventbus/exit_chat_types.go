@@ -6,20 +6,20 @@ import (
 	. "milestones-esp32-server-golang/internal/data/client"
 )
 
-// ExitChatEvent 退出聊天事件
+// ExitChatEvent Sự kiện thoát chat
 type ExitChatEvent struct {
-	// 客户端状态
+	// Trạng thái client
 	ClientState *ClientState
 
-	// 退出原因
-	Reason string // "用户主动退出"、"工具调用退出"、"超时退出" 等
+	// Lý do thoát
+	Reason string // "Người dùng chủ động thoát", "Thoát do gọi công cụ (tool call)", "Thoát do quá thời gian chờ (timeout)", v.v.
 
-	// 退出触发方式
-	TriggerType string // "exit_words"（退出词检测）、"tool_call"（工具调用）、"timeout"（超时）等
+	// Cách thức kích hoạt việc thoát
+	TriggerType string // "exit_words" (phát hiện từ khóa thoát), "tool_call" (gọi công cụ), "timeout" (quá thời gian chờ), v.v.
 
-	// 用户输入的原始文本（如果有）
+	// Văn bản gốc do người dùng nhập (nếu có)
 	UserText string
 
-	// 时间戳
+	// Dấu thời gian (timestamp)
 	Timestamp time.Time
 }

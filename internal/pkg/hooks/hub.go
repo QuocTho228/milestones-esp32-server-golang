@@ -137,20 +137,20 @@ func (e *AsyncExecutor) Submit(task func()) bool {
 		return false
 	}
 
-	// 队列满时根据配置处理
+	// Xử lý theo cấu hình khi hàng đợi đã đầy.
 	if e.cfg.QueueSize > 0 && len(e.queue) >= e.cfg.QueueSize {
 		if e.cfg.DropWhenFull {
 			return false
 		}
-		// DropWhenFull=false 时，阻塞等待队列有机会消费
-		// 使用超时避免永久阻塞
+		// Khi DropWhenFull=false, chặn và chờ cho đến khi hàng đợi có thể tiếp tục xử lý.
+		// Sử dụng thời gian chờ để tránh bị chặn vô thời hạn.
 		waitCtx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		for len(e.queue) >= e.cfg.QueueSize && waitCtx.Err() == nil {
 			e.cond.Wait()
 		}
 		if waitCtx.Err() != nil {
-			// 超时则丢弃
+			/// Loại bỏ nếu hết thời gian chờ.
 			return false
 		}
 	}
@@ -275,7 +275,7 @@ func (h *Hub) setPluginEnabled(name string, enabled bool) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	// 遍历 syncHandlers 查找并更新
+	// Duyệt qua syncHandlers để tìm và cập nhật.
 	for event, handlers := range h.syncHandlers {
 		for i := range handlers {
 			if handlers[i].meta.Name == name {
@@ -286,7 +286,7 @@ func (h *Hub) setPluginEnabled(name string, enabled bool) {
 		}
 	}
 
-	// 遍历 asyncHandlers 查找并更新
+	// Duyệt qua asyncHandlers để tìm và cập nhật.
 	for event, handlers := range h.asyncHandlers {
 		for i := range handlers {
 			if handlers[i].meta.Name == name {
@@ -443,10 +443,10 @@ func (h *Hub) RegisterSyncMeta(event string, meta PluginMeta, handler SyncHandle
 	}
 	meta.Kind = PluginKindInterceptor
 	meta.Stage = event
-	// 默认为启用状态
+	// Mặc định ở trạng thái bật.
 	enabled := meta.Enabled
 	if !meta.Enabled {
-		// 通过 Enabled 字段控制，默认 true
+		// Điều khiển thông qua trường Enabled, mặc định là true.
 		enabled = true
 	}
 	h.recordPluginMeta(meta)
@@ -473,7 +473,7 @@ func (h *Hub) RegisterAsyncMeta(event string, meta PluginMeta, handler AsyncHand
 	}
 	meta.Kind = PluginKindObserver
 	meta.Stage = event
-	// 默认为启用状态
+	// Mặc định ở trạng thái bật.
 	enabled := meta.Enabled
 	if !meta.Enabled {
 		enabled = true

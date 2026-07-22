@@ -271,8 +271,7 @@ ota:
       endpoint: 'www.youdomain.cn'
 
 # Danh sách từ đánh thức (wake word)
-wakeup_words: ['小智', '小知', '你好小智']
-# (Ghi chú của người dịch: các từ đánh thức mẫu bằng tiếng Trung, có thể thay bằng từ đánh thức tiếng Việt tùy ý)
+wakeup_words: ['Xin chào Milestones', 'Hey Milestones']
 
 # Cấu hình kết nối đa giao thức MCP
 mcp:

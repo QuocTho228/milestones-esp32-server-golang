@@ -5,19 +5,19 @@ import (
 	"milestones/manager/backend/models"
 )
 
-// ConfigAdapter 配置适配器
+// ConfigAdapter adapter cấu hình
 type ConfigAdapter struct {
 	GormConfigStorage ConfigStorage
 }
 
-// NewConfigAdapter 创建配置适配器
+// NewConfigAdapter tạo mới adapter cấu hình
 func NewConfigAdapter(configStorage ConfigStorage) *ConfigAdapter {
 	return &ConfigAdapter{
 		GormConfigStorage: configStorage,
 	}
 }
 
-// 通用配置适配器方法
+// Các phương thức adapter cấu hình dùng chung
 func (a *ConfigAdapter) CreateConfig(ctx context.Context, config *models.Config) error {
 	return a.GormConfigStorage.CreateConfig(ctx, config)
 }
@@ -50,7 +50,7 @@ func (a *ConfigAdapter) SetDefaultConfig(ctx context.Context, configType string,
 	return a.GormConfigStorage.SetDefaultConfig(ctx, configType, id)
 }
 
-// GlobalRole配置适配器方法
+// Các phương thức adapter cấu hình GlobalRole
 func (a *ConfigAdapter) CreateGlobalRole(ctx context.Context, role *models.GlobalRole) error {
 	return a.GormConfigStorage.CreateGlobalRole(ctx, role)
 }

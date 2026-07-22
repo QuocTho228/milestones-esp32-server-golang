@@ -12,27 +12,27 @@ import (
 )
 
 const (
-	// DefaultSampleRate WebRTC VAD 支持的采样率 (8000, 16000, 32000, 48000)
+	// DefaultSampleRate tốc độ lấy mẫu mà WebRTC VAD hỗ trợ (8000, 16000, 32000, 48000)
 	DefaultSampleRate = 16000
-	// DefaultMode VAD 敏感度模式 (0: 最不敏感, 3: 最敏感)
+	// DefaultMode mức độ nhạy của VAD (0: kém nhạy nhất, 3: nhạy nhất)
 	DefaultMode = 2
-	// FrameDuration 帧持续时间 (ms)，WebRTC VAD 支持 10ms, 20ms, 30ms
+	// FrameDuration thời lượng mỗi khung (ms), WebRTC VAD hỗ trợ 10ms, 20ms, 30ms
 	FrameDuration = 20
 )
 
-// WebRTCVAD WebRTC VAD 实现，现在实现了 Resource 接口
+// WebRTCVAD hiện thực WebRTC VAD, hiện đã hiện thực interface Resource
 type WebRTCVAD struct {
 	webrtcVad      *webrtcvad.VAD
-	sampleRate     int          // 采样率
-	mode           int          // VAD 模式
-	frameSize      int          // 每帧采样数
-	frameSizeBytes int          // 每帧字节数
-	initialized    bool         // 是否已初始化
-	lastUsed       time.Time    // 最后使用时间
-	mu             sync.RWMutex // 读写锁
+	sampleRate     int          // Tốc độ lấy mẫu
+	mode           int          // Chế độ VAD
+	frameSize      int          // Số mẫu mỗi khung
+	frameSizeBytes int          // Số byte mỗi khung
+	initialized    bool         // Đã khởi tạo hay chưa
+	lastUsed       time.Time    // Thời điểm sử dụng gần nhất
+	mu             sync.RWMutex // Khóa đọc/ghi
 }
 
-// AcquireVAD 创建并返回 WebRTC VAD 实例（由全局资源池管理）
+// AcquireVAD tạo và trả về thực thể WebRTC VAD (được quản lý bởi resource pool toàn cục)
 func AcquireVAD(config map[string]interface{}) (inter.VAD, error) {
 	vadConfig := getVadConfigFromMap(config)
 
@@ -42,7 +42,7 @@ func AcquireVAD(config map[string]interface{}) (inter.VAD, error) {
 		lastUsed:   time.Now(),
 	}
 
-	// 初始化实例
+	// Khởi tạo thực thể
 	if err := vad.init(); err != nil {
 		return nil, fmt.Errorf("failed to initialize WebRTC VAD: %w", err)
 	}
@@ -50,7 +50,7 @@ func AcquireVAD(config map[string]interface{}) (inter.VAD, error) {
 	return vad, nil
 }
 
-// ReleaseVAD 释放 VAD 实例
+// ReleaseVAD giải phóng thực thể VAD
 func ReleaseVAD(vad inter.VAD) error {
 	if vad != nil {
 		return vad.Close()
@@ -58,7 +58,7 @@ func ReleaseVAD(vad inter.VAD) error {
 	return nil
 }
 
-// NewWebRTCVAD 创建新的 WebRTC VAD 实例
+// NewWebRTCVAD tạo mới một thực thể WebRTC VAD
 func NewWebRTCVAD() inter.VAD {
 	return &WebRTCVAD{
 		sampleRate: DefaultSampleRate,
@@ -67,7 +67,7 @@ func NewWebRTCVAD() inter.VAD {
 	}
 }
 
-// NewWebRTCVADWithConfig 使用指定配置创建 WebRTC VAD 实例
+// NewWebRTCVADWithConfig tạo thực thể WebRTC VAD với cấu hình chỉ định
 func NewWebRTCVADWithConfig(sampleRate, mode int) (inter.VAD, error) {
 	if !isValidSampleRate(sampleRate) {
 		return nil, fmt.Errorf("unsupported sample rate: %d, supported rates: 8000, 16000, 32000, 48000", sampleRate)
@@ -90,7 +90,7 @@ func NewWebRTCVADWithConfig(sampleRate, mode int) (inter.VAD, error) {
 	return vad, nil
 }
 
-// init 初始化 WebRTC VAD
+// init khởi tạo WebRTC VAD
 func (w *WebRTCVAD) init() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -99,11 +99,11 @@ func (w *WebRTCVAD) init() error {
 		return nil
 	}
 
-	// 计算帧大小
+	// Tính kích thước khung
 	w.frameSize = w.sampleRate / 1000 * FrameDuration
-	w.frameSizeBytes = w.frameSize * 2 // 16-bit PCM
+	w.frameSizeBytes = w.frameSize * 2 // PCM 16-bit
 
-	// 创建 VAD 实例
+	// Tạo thực thể VAD
 	var err error
 	w.webrtcVad, err = webrtcvad.New()
 	if w.webrtcVad == nil {
@@ -125,7 +125,7 @@ func (w *WebRTCVAD) IsVAD(pcmData []float32) (bool, error) {
 	return w.isVad(pcmData, w.sampleRate, w.frameSize)
 }
 
-// IsVAD 检测音频数据中的语音活动
+// isVad phát hiện hoạt động giọng nói trong dữ liệu audio
 func (w *WebRTCVAD) isVad(pcmData []float32, sampleRate int, frameSize int) (bool, error) {
 	if len(pcmData) == 0 {
 		return false, nil
@@ -133,19 +133,19 @@ func (w *WebRTCVAD) isVad(pcmData []float32, sampleRate int, frameSize int) (boo
 
 	//log.Debugf("isVad, pcmData len: %d, frameSize: %d", len(pcmData), frameSize)
 
-	// 更新最后使用时间
+	// Cập nhật thời điểm sử dụng gần nhất
 	w.lastUsed = time.Now()
 
 	//pcmBytes := pcmData
-	// 将 float32 数据转换为 int16 PCM 数据
+	// Chuyển dữ liệu float32 sang dữ liệu PCM int16
 	pcmBytes := w.float32ToPCMBytes(pcmData)
 
-	// 如果数据长度不够一帧，返回 false
+	// Nếu độ dài dữ liệu không đủ một khung, trả về false
 	if len(pcmBytes) < frameSize {
 		return false, nil
 	}
 
-	// 处理多帧数据，取最后一帧的结果
+	// Xử lý dữ liệu nhiều khung, lấy kết quả của khung cuối cùng
 	var isActive bool
 	var err error
 
@@ -173,12 +173,12 @@ func (w *WebRTCVAD) IsVADExt(pcmData []float32, sampleRate int, frameSize int) (
 	return w.isVad(pcmData, sampleRate, frameSize)
 }
 
-// Reset 重置检测器状态
+// Reset đặt lại trạng thái bộ phát hiện
 func (w *WebRTCVAD) Reset() error {
 	return nil
 }
 
-// Close 关闭并释放资源 (实现 Resource 接口)
+// Close đóng và giải phóng resource (hiện thực interface Resource)
 func (w *WebRTCVAD) Close() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -190,7 +190,7 @@ func (w *WebRTCVAD) Close() error {
 	return nil
 }
 
-// IsValid 检查资源是否有效 (实现 Resource 接口)
+// IsValid kiểm tra resource có hợp lệ hay không (hiện thực interface Resource)
 func (w *WebRTCVAD) IsValid() bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -198,12 +198,12 @@ func (w *WebRTCVAD) IsValid() bool {
 	return w.initialized && w.webrtcVad != nil
 }
 
-// float32ToPCMBytes 将 float32 数组转换为 16-bit PCM 字节数组
+// float32ToPCMBytes chuyển mảng float32 sang mảng byte PCM 16-bit
 func (w *WebRTCVAD) float32ToPCMBytes(samples []float32) []byte {
 	pcmBytes := make([]byte, len(samples)*2)
 
 	for i, sample := range samples {
-		// 将 float32 (-1.0 到 1.0) 转换为 int16 (-32768 到 32767)
+		// Chuyển float32 (-1.0 đến 1.0) sang int16 (-32768 đến 32767)
 		var intSample int16
 		if sample > 1.0 {
 			intSample = 32767
@@ -213,14 +213,14 @@ func (w *WebRTCVAD) float32ToPCMBytes(samples []float32) []byte {
 			intSample = int16(sample * 32767)
 		}
 
-		// 小端序写入字节数组
+		// Ghi vào mảng byte theo thứ tự little-endian
 		binary.LittleEndian.PutUint16(pcmBytes[i*2:], uint16(intSample))
 	}
 
 	return pcmBytes
 }
 
-// isValidSampleRate 检查采样率是否被 WebRTC VAD 支持
+// isValidSampleRate kiểm tra tốc độ lấy mẫu có được WebRTC VAD hỗ trợ hay không
 func isValidSampleRate(sampleRate int) bool {
 	validRates := []int{8000, 16000, 32000, 48000}
 	for _, rate := range validRates {
@@ -231,7 +231,7 @@ func isValidSampleRate(sampleRate int) bool {
 	return false
 }
 
-// SetMode 设置 VAD 敏感度模式
+// SetMode thiết lập chế độ nhạy của VAD
 func (w *WebRTCVAD) SetMode(mode int) error {
 	if mode < 0 || mode > 3 {
 		return fmt.Errorf("invalid VAD mode: %d, must be 0-3", mode)
@@ -249,7 +249,7 @@ func (w *WebRTCVAD) SetMode(mode int) error {
 	return nil
 }
 
-// SetSampleRate 设置采样率
+// SetSampleRate thiết lập tốc độ lấy mẫu
 func (w *WebRTCVAD) SetSampleRate(sampleRate int) error {
 	if !isValidSampleRate(sampleRate) {
 		return fmt.Errorf("unsupported sample rate: %d, supported rates: 8000, 16000, 32000, 48000", sampleRate)
@@ -258,7 +258,7 @@ func (w *WebRTCVAD) SetSampleRate(sampleRate int) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	// 如果已经初始化，需要重新初始化
+	// Nếu đã khởi tạo thì cần khởi tạo lại
 	if w.initialized {
 		w.Close()
 	}
@@ -267,21 +267,21 @@ func (w *WebRTCVAD) SetSampleRate(sampleRate int) error {
 	return nil
 }
 
-// GetSampleRate 获取当前采样率
+// GetSampleRate lấy tốc độ lấy mẫu hiện tại
 func (w *WebRTCVAD) GetSampleRate() int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.sampleRate
 }
 
-// GetMode 获取当前 VAD 模式
+// GetMode lấy chế độ VAD hiện tại
 func (w *WebRTCVAD) GetMode() int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.mode
 }
 
-// GetLastUsed 获取最后使用时间
+// GetLastUsed lấy thời điểm sử dụng gần nhất
 func (w *WebRTCVAD) GetLastUsed() time.Time {
 	w.mu.RLock()
 	defer w.mu.RUnlock()

@@ -18,12 +18,12 @@ import (
 func OpusToWav(opusData [][]byte, sampleRate int, channels int, fileName string) ([][]int16, error) {
 	opusDecoder, err := opus.NewDecoder(sampleRate, channels)
 	if err != nil {
-		return nil, fmt.Errorf("创建Opus解码器失败: %v", err)
+		return nil, fmt.Errorf("tạo bộ giải mã Opus thất bại: %v", err)
 	}
 
 	wavOut, err := os.Create(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("创建WAV文件失败: %v", err)
+		return nil, fmt.Errorf("tạo file WAV thất bại: %v", err)
 	}
 
 	pcmDataList := make([][]int16, 0)
@@ -32,7 +32,7 @@ func OpusToWav(opusData [][]byte, sampleRate int, channels int, fileName string)
 	wavEncoder := wav.NewEncoder(wavOut, sampleRate, 16, channels, 1)
 	wavBuffer := audio.IntBuffer{
 		Format: &audio.Format{
-			NumChannels: channels, // 使用传入的通道数
+			NumChannels: channels, // Sử dụng số kênh (channels) được truyền vào
 			SampleRate:  sampleRate,
 		},
 		SourceBitDepth: 16,
@@ -42,7 +42,7 @@ func OpusToWav(opusData [][]byte, sampleRate int, channels int, fileName string)
 	for _, frame := range opusData {
 		n, err := opusDecoder.Decode(frame, pcmBuffer)
 		if err != nil {
-			return nil, fmt.Errorf("解码失败: %v", err)
+			return nil, fmt.Errorf("giải mã thất bại: %v", err)
 		}
 		copyData := make([]int16, len(pcmBuffer[:n]))
 		copy(copyData, pcmBuffer[:n])
@@ -50,16 +50,16 @@ func OpusToWav(opusData [][]byte, sampleRate int, channels int, fileName string)
 
 		//fmt.Println("pcmData len: ", len(copyData))
 
-		// 将PCM数据转换为int格式
+		// Chuyển đổi dữ liệu PCM sang định dạng int
 		for i := 0; i < len(copyData); i++ {
 			wavBuffer.Data = append(wavBuffer.Data, int(copyData[i]))
 		}
 	}
 
-	// 写入WAV文件
+	// Ghi vào file WAV
 	err = wavEncoder.Write(&wavBuffer)
 	if err != nil {
-		return nil, fmt.Errorf("写入WAV文件失败: %v", err)
+		return nil, fmt.Errorf("ghi file WAV thất bại: %v", err)
 	}
 
 	wavEncoder.Close()
@@ -68,18 +68,18 @@ func OpusToWav(opusData [][]byte, sampleRate int, channels int, fileName string)
 }
 
 func initLog() error {
-	// 使用标准输出而不是文件
+	// Sử dụng đầu ra chuẩn (stdout) thay vì ghi vào file
 	logrus.SetOutput(os.Stdout)
 
-	// 禁用默认的调用者报告，使用自定义的caller字段
+	// Tắt báo cáo caller mặc định, sử dụng field caller tùy chỉnh
 	logrus.SetReportCaller(false)
 	logrus.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05.000", //时间格式化，添加毫秒
-		ForceColors:     true,                      // 启用颜色输出
+		TimestampFormat: "2006-01-02 15:04:05.000", // Định dạng thời gian, thêm phần mili giây
+		ForceColors:     true,                      // Bật hiển thị màu sắc
 	})
 	logLevel, _ := logrus.ParseLevel(viper.GetString("log.level"))
 	if logLevel == 0 {
-		logLevel = logrus.DebugLevel // 默认设置为Debug级别
+		logLevel = logrus.DebugLevel // Mặc định thiết lập ở mức Debug
 	}
 	logrus.SetLevel(logLevel)
 	return nil
@@ -140,16 +140,20 @@ func TestMilestonesProviderUnsupportedSetVoiceAndLifecycle(t *testing.T) {
 
 func TestTextToSpeechStream(t *testing.T) {
 	if os.Getenv("RUN_MILESTONES_TEST") != "1" {
-		t.Skip("跳过小智在线 TTS 测试，设置 RUN_MILESTONES_TEST=1 以启用")
+		t.Skip("Bỏ qua bài test TTS trực tuyến của Milestones, đặt RUN_MILESTONES_TEST=1 để bật")
 	}
 
-	//初始化log日志输出至标准输出
+	// Khởi tạo log, xuất ra đầu ra chuẩn (stdout)
 	//initLog()
 	provider := NewMilestonesProvider(map[string]interface{}{
 		"server_addr": "wss://api.tenclass.net/milestones/v1/",
 		"device_id":   "ba:8f:17:de:94:94",
 	})
 
+	// LƯU Ý: Danh sách văn bản test dưới đây được giữ nguyên bằng tiếng Trung vì đây là
+	// dữ liệu đầu vào thực tế dùng để kiểm thử engine TTS tiếng Trung (Milestones).
+	// Nếu dịch sang tiếng Việt, bài test sẽ không còn kiểm tra đúng chức năng
+	// chuyển văn bản tiếng Trung thành giọng nói như thiết kế ban đầu.
 	textList := []string{
 		"你好，小智TTS单元测试",
 		"讲个笑话",
@@ -165,20 +169,20 @@ func TestTextToSpeechStream(t *testing.T) {
 
 	workqueue.ParallelizeUntil(context.Background(), 3, len(textList), func(piece int) {
 		text := textList[piece]
-		fmt.Println("开始 speech text: ", text)
+		fmt.Println("Bắt đầu speech text: ", text)
 		ch, err := provider.TextToSpeechStream(context.Background(), text, 16000, 1, 20)
 		if err != nil {
-			fmt.Println("TextToSpeechStream 连接失败: ", err)
+			fmt.Println("TextToSpeechStream kết nối thất bại: ", err)
 			return
 		}
 		opusDataList := [][]byte{}
 		for frame := range ch {
 			opusDataList = append(opusDataList, frame)
 			if len(frame) == 0 {
-				t.Error("收到空音频帧")
+				t.Error("nhận được khung âm thanh rỗng")
 			}
 		}
-		fmt.Printf("text: %s, 收到 %d 个音频帧\n", text, len(opusDataList))
+		fmt.Printf("text: %s, đã nhận %d khung âm thanh\n", text, len(opusDataList))
 	})
 
 	/*

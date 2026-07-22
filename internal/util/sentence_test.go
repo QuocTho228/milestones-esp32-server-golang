@@ -2,6 +2,8 @@ package util
 
 import "testing"
 
+// CẢNH BÁO: chuỗi văn bản tiếng Trung dùng làm dữ liệu đầu vào kiểm thử bên dưới
+// KHÔNG được dịch sang tiếng Việt — xem ghi chú cảnh báo cuối phản hồi.
 func TestExtractSmartSentencesKeepsTimeTogether(t *testing.T) {
 	text := "根据系统时间，现在是2026年3月20日 星期五 02:37:04。"
 

@@ -6,7 +6,7 @@ import (
 	"milestones-esp32-server-golang/internal/domain/speaker"
 )
 
-// SpeakerManager 声纹识别管理器（包装 SpeakerProvider）
+// SpeakerManager Trình quản lý nhận diện vân giọng nói (voiceprint) (bọc SpeakerProvider)
 type SpeakerManager struct {
 	provider speaker.SpeakerProvider
 }
@@ -15,40 +15,40 @@ type peekableSpeakerProvider interface {
 	PeekAndIdentify(ctx context.Context, requestID string) (*speaker.IdentifyResult, bool, error)
 }
 
-// NewSpeakerManager 创建声纹管理器
+// NewSpeakerManager Tạo trình quản lý vân giọng nói
 func NewSpeakerManager(provider speaker.SpeakerProvider) *SpeakerManager {
 	return &SpeakerManager{
 		provider: provider,
 	}
 }
 
-// StartStreaming 启动流式识别
+// StartStreaming Khởi động nhận diện dạng streaming
 func (sm *SpeakerManager) StartStreaming(ctx context.Context, sampleRate int, agentId string) error {
 	return sm.provider.StartStreaming(ctx, sampleRate, agentId)
 }
 
-// SendAudioChunk 发送音频块
+// SendAudioChunk Gửi một khối (chunk) audio
 func (sm *SpeakerManager) SendAudioChunk(ctx context.Context, pcmData []float32) error {
 	return sm.provider.SendAudioChunk(ctx, pcmData)
 }
 
-// FinishAndIdentify 完成识别并获取结果
+// FinishAndIdentify Hoàn tất nhận diện và lấy kết quả
 func (sm *SpeakerManager) FinishAndIdentify(ctx context.Context) (*speaker.IdentifyResult, error) {
 	return sm.provider.FinishAndIdentify(ctx)
 }
 
-// Close 关闭声纹管理器
+// Close Đóng trình quản lý vân giọng nói
 func (sm *SpeakerManager) Close() error {
 	return sm.provider.Close()
 }
 
-// IsActive 检查是否处于激活状态
+// IsActive Kiểm tra xem có đang ở trạng thái hoạt động không
 func (sm *SpeakerManager) IsActive() bool {
 	return sm.provider.IsActive()
 }
 
-// PeekAndIdentify 获取声纹中间识别结果（不结束当前轮次）
-// 返回: 识别结果, 是否被服务端防抖, 错误
+// PeekAndIdentify Lấy kết quả nhận diện vân giọng nói tạm thời (không kết thúc lượt hiện tại)
+// Trả về: kết quả nhận diện, có bị server chống dội (debounce) hay không, lỗi
 func (sm *SpeakerManager) PeekAndIdentify(ctx context.Context, requestID string) (*speaker.IdentifyResult, bool, error) {
 	if sm == nil || sm.provider == nil {
 		return nil, false, nil

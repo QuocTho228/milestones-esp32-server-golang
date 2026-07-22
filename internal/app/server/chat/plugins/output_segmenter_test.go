@@ -15,7 +15,7 @@ func TestOutputSegmenterFlushesOnEnd(t *testing.T) {
 
 	out, err := transformer.Transform(streamtransform.Item{
 		Kind: streamtransform.ItemKindTextDelta,
-		Text: "你好，世界",
+		Text: "Xin chào, thế giới",
 	})
 	if err != nil {
 		t.Fatalf("Transform() error = %v", err)
@@ -23,8 +23,8 @@ func TestOutputSegmenterFlushesOnEnd(t *testing.T) {
 	if len(out.Items) != 1 {
 		t.Fatalf("len(out.Items) = %d, want 1", len(out.Items))
 	}
-	if got := out.Items[0].Text; got != "你好，" {
-		t.Fatalf("out.Items[0].Text = %q, want %q", got, "你好，")
+	if got := out.Items[0].Text; got != "Xin chào," {
+		t.Fatalf("out.Items[0].Text = %q, want %q", got, "Xin chào,")
 	}
 	if out.Items[0].IsEnd {
 		t.Fatalf("out.Items[0].IsEnd = true, want false")
@@ -40,8 +40,8 @@ func TestOutputSegmenterFlushesOnEnd(t *testing.T) {
 	if len(out.Items) != 1 {
 		t.Fatalf("len(out.Items) = %d, want 1", len(out.Items))
 	}
-	if got := out.Items[0].Text; got != "世界" {
-		t.Fatalf("out.Items[0].Text = %q, want %q", got, "世界")
+	if got := out.Items[0].Text; got != " thế giới" {
+		t.Fatalf("out.Items[0].Text = %q, want %q", got, " thế giới")
 	}
 	if !out.Items[0].IsEnd {
 		t.Fatalf("out.Items[0].IsEnd = false, want true")
@@ -56,7 +56,7 @@ func TestOutputSegmenterEmitsEmptyEndWhenNoRemainder(t *testing.T) {
 
 	out, err := transformer.Transform(streamtransform.Item{
 		Kind: streamtransform.ItemKindTextDelta,
-		Text: "你好。",
+		Text: "Xin chào.",
 	})
 	if err != nil {
 		t.Fatalf("Transform() error = %v", err)
@@ -64,8 +64,8 @@ func TestOutputSegmenterEmitsEmptyEndWhenNoRemainder(t *testing.T) {
 	if len(out.Items) != 1 {
 		t.Fatalf("len(out.Items) = %d, want 1", len(out.Items))
 	}
-	if got := out.Items[0].Text; got != "你好。" {
-		t.Fatalf("out.Items[0].Text = %q, want %q", got, "你好。")
+	if got := out.Items[0].Text; got != "Xin chào." {
+		t.Fatalf("out.Items[0].Text = %q, want %q", got, "Xin chào.")
 	}
 
 	out, err = transformer.Transform(streamtransform.Item{
@@ -94,7 +94,7 @@ func TestOutputSegmenterFlushesBufferedTextBeforeToolCalls(t *testing.T) {
 
 	out, err := transformer.Transform(streamtransform.Item{
 		Kind: streamtransform.ItemKindTextDelta,
-		Text: "半句文本",
+		Text: "Nửa câu chưa xong",
 	})
 	if err != nil {
 		t.Fatalf("Transform() error = %v", err)
@@ -118,8 +118,8 @@ func TestOutputSegmenterFlushesBufferedTextBeforeToolCalls(t *testing.T) {
 	if out.Items[0].Kind != streamtransform.ItemKindTextSegment {
 		t.Fatalf("out.Items[0].Kind = %q, want %q", out.Items[0].Kind, streamtransform.ItemKindTextSegment)
 	}
-	if got := out.Items[0].Text; got != "半句文本" {
-		t.Fatalf("out.Items[0].Text = %q, want %q", got, "半句文本")
+	if got := out.Items[0].Text; got != "Nửa câu chưa xong" {
+		t.Fatalf("out.Items[0].Text = %q, want %q", got, "Nửa câu chưa xong")
 	}
 
 	out, err = transformer.Transform(streamtransform.Item{
@@ -167,7 +167,7 @@ func TestOutputSegmenterAggregatesToolCallsUntilBoundary(t *testing.T) {
 
 	out, err := transformer.Transform(streamtransform.Item{
 		Kind: streamtransform.ItemKindTextDelta,
-		Text: "继续回复。",
+		Text: "Tiếp tục trả lời.",
 	})
 	if err != nil {
 		t.Fatalf("Transform() error = %v", err)
@@ -184,7 +184,7 @@ func TestOutputSegmenterAggregatesToolCallsUntilBoundary(t *testing.T) {
 	if out.Items[1].Kind != streamtransform.ItemKindTextSegment {
 		t.Fatalf("out.Items[1].Kind = %q, want %q", out.Items[1].Kind, streamtransform.ItemKindTextSegment)
 	}
-	if got := out.Items[1].Text; got != "继续回复。" {
-		t.Fatalf("out.Items[1].Text = %q, want %q", got, "继续回复。")
+	if got := out.Items[1].Text; got != "Tiếp tục trả lời." {
+		t.Fatalf("out.Items[1].Text = %q, want %q", got, "Tiếp tục trả lời.")
 	}
 }

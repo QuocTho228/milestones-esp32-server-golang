@@ -13,23 +13,23 @@ import (
 	"gopkg.in/hraban/opus.v2"
 )
 
-// readCloserWrapper 为 bytes.Reader 提供 Close 方法以实现 ReadCloser 接口
+// readCloserWrapper cung cấp phương thức Close cho bytes.Reader để hiện thực interface ReadCloser
 type readCloserWrapper struct {
 	*bytes.Reader
 }
 
-// Close 实现 io.Closer 接口
+// Close hiện thực interface io.Closer
 func (r *readCloserWrapper) Close() error {
 	return nil
 }
 
-// newReadCloserWrapper 创建一个新的 ReadCloser 包装
+// newReadCloserWrapper tạo một ReadCloser wrapper mới
 func newReadCloserWrapper(data []byte) *readCloserWrapper {
 	return &readCloserWrapper{bytes.NewReader(data)}
 }
 
-// WavToOpus 将WAV音频数据转换为标准Opus格式
-// 返回Opus帧的切片集合，每个切片是一个Opus编码帧
+// WavToOpus chuyển đổi dữ liệu audio WAV sang định dạng Opus chuẩn
+// Trả về tập hợp các slice khung Opus, mỗi slice là một khung được mã hóa Opus
 func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]byte, error) {
 
 	sd, err := speech.NewDetector(speech.DetectorConfig{
@@ -43,20 +43,20 @@ func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]b
 		log.Fatalf("failed to create speech detector: %s", err)
 	}
 
-	// 创建WAV解码器
+	// Tạo bộ giải mã WAV
 	wavReader := bytes.NewReader(wavData)
 	wavDecoder := wav.NewDecoder(wavReader)
 	if !wavDecoder.IsValidFile() {
-		return nil, fmt.Errorf("无效的WAV文件")
+		return nil, fmt.Errorf("file WAV không hợp lệ")
 	}
 
-	// 读取WAV文件信息
+	// Đọc thông tin file WAV
 	wavDecoder.ReadInfo()
 	format := wavDecoder.Format()
 	wavSampleRate := int(format.SampleRate)
 	wavChannels := int(format.NumChannels)
 
-	// 如果提供的参数与文件参数不一致，使用文件中的参数
+	// Nếu tham số truyền vào không khớp với tham số của file, dùng tham số trong file
 	if sampleRate == 0 {
 		sampleRate = wavSampleRate
 	}
@@ -64,83 +64,85 @@ func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]b
 		channels = wavChannels
 	}
 
-	//打印wavDecoder信息
-	fmt.Println("WAV格式:", format)
+	// In thông tin wavDecoder
+	fmt.Println("Định dạng WAV:", format)
 
 	enc, err := opus.NewEncoder(sampleRate, channels, opus.AppAudio)
 	if err != nil {
-		return nil, fmt.Errorf("创建Opus编码器失败: %v", err)
+		return nil, fmt.Errorf("tạo bộ mã hóa Opus thất bại: %v", err)
 	}
 
+	// Lưu ý: thông báo lỗi bên dưới trong bản gốc ghi nhầm là "tạo bộ mã hóa" dù đang tạo bộ GIẢI mã (decoder).
+	// Đây là lỗi có sẵn trong code gốc, được giữ nguyên logic, chỉ dịch nội dung.
 	dec, err := opus.NewDecoder(sampleRate, channels)
 	if err != nil {
-		return nil, fmt.Errorf("创建Opus编码器失败: %v", err)
+		return nil, fmt.Errorf("tạo bộ mã hóa Opus thất bại: %v", err)
 	}
 
-	// 设置比特率
+	// Thiết lập bitrate
 	if bitRate > 0 {
 		if err := enc.SetBitrate(bitRate); err != nil {
-			return nil, fmt.Errorf("设置比特率失败: %v", err)
+			return nil, fmt.Errorf("thiết lập bitrate thất bại: %v", err)
 		}
 	}
 
-	// 创建输出帧切片数组
+	// Tạo mảng slice khung đầu ra
 	opusFrames := make([][]byte, 0)
 
 	perFrameDuration := 60
-	// PCM缓冲区 - Opus帧大小(60ms)
+	// Buffer PCM - kích thước khung Opus (60ms)
 	frameSize := sampleRate * perFrameDuration / 1000
 	pcmBuffer := make([]int16, frameSize*channels)
 	pcmBufferFloat32 := make([]float32, frameSize*channels)
-	opusBuffer := make([]byte, 1000) // 足够大的缓冲区存储编码后的数据
+	opusBuffer := make([]byte, 1000) // Buffer đủ lớn để lưu dữ liệu đã mã hóa
 
-	// 读取音频缓冲区
+	// Đọc buffer audio
 	audioBuf := &audio.IntBuffer{Data: make([]int, frameSize*channels), Format: format}
 
-	fmt.Println("开始转换...")
+	fmt.Println("Bắt đầu chuyển đổi...")
 
 	pcmAllData := make([]float32, 0)
 	for {
-		// 读取WAV数据
+		// Đọc dữ liệu WAV
 		n, err := wavDecoder.PCMBuffer(audioBuf)
 		if err == io.EOF || n == 0 {
 			break
 		}
 		if err != nil {
-			return nil, fmt.Errorf("读取WAV数据失败: %v", err)
+			return nil, fmt.Errorf("đọc dữ liệu WAV thất bại: %v", err)
 		}
 
-		// 将int转换为int16
+		// Chuyển int sang int16
 		for i := 0; i < len(audioBuf.Data); i++ {
 			if i < len(pcmBuffer) {
 				pcmBuffer[i] = int16(audioBuf.Data[i])
 			}
 		}
 
-		// 编码为Opus格式
+		// Mã hóa sang định dạng Opus
 		n, err = enc.Encode(pcmBuffer, opusBuffer)
 		if err != nil {
-			return nil, fmt.Errorf("编码失败: %v", err)
+			return nil, fmt.Errorf("mã hóa thất bại: %v", err)
 		}
 
-		// 将当前帧复制到新的切片中并添加到帧数组
+		// Sao chép khung hiện tại vào slice mới và thêm vào mảng khung
 		frameData := make([]byte, n)
 		copy(frameData, opusBuffer[:n])
 		opusFrames = append(opusFrames, frameData)
 
-		//将opus解码至pcm
+		// Giải mã Opus về PCM
 		n, err = dec.DecodeFloat32(frameData, pcmBufferFloat32)
 		if err != nil {
-			return nil, fmt.Errorf("解码失败: %v", err)
+			return nil, fmt.Errorf("giải mã thất bại: %v", err)
 		}
 
-		fmt.Printf("pcmBufferFloat32 len: %d\n", len(pcmBufferFloat32[:n]))
+		fmt.Printf("độ dài pcmBufferFloat32: %d\n", len(pcmBufferFloat32[:n]))
 
 		segments, err := sd.Detect(pcmBufferFloat32[:n])
 		if err != nil {
 			//log.Fatalf("Detect failed: %s", err)
 		}
-		fmt.Printf("detect voice: %v\n", segments)
+		fmt.Printf("phát hiện giọng nói: %v\n", segments)
 
 		pcmAllData = append(pcmAllData, pcmBufferFloat32[:n]...)
 	}
@@ -149,9 +151,9 @@ func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]b
 	if err != nil {
 		log.Fatalf("Detect failed: %s", err)
 	}
-	fmt.Printf("detect voice: %v\n", segments)
+	fmt.Printf("phát hiện giọng nói: %v\n", segments)
 
-	//将frameData输出至test.opus
+	// Ghi frameData ra file test.opus
 	opusFile, err := os.OpenFile("output.opus", os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("failed to create opus file: %s", err)
@@ -160,7 +162,7 @@ func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]b
 	opusFile.Close()
 
 	/*
-		//将pcm数据输出至test.pcm
+		// Ghi dữ liệu pcm ra file test.pcm
 		pcmFile, err := os.OpenFile("test.pcm", os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatalf("failed to create pcm file: %s", err)
@@ -169,15 +171,15 @@ func WavToOpus(wavData []byte, sampleRate int, channels int, bitRate int) ([][]b
 		defer pcmFile.Close()
 		dec, err := opus.NewDecoder(sampleRate, channels)
 		if err != nil {
-			return nil, fmt.Errorf("创建Opus解码器失败: %v", err)
+			return nil, fmt.Errorf("tạo bộ giải mã Opus thất bại: %v", err)
 		}
 
 		pcmBuffer = make([]int16, 10240)
 		for _, data := range opusFrames {
-			//将opus数据decode成pcm
+			// Giải mã dữ liệu opus thành pcm
 			n, err := dec.Decode(data, pcmBuffer)
 			if err != nil {
-				return nil, fmt.Errorf("解码失败: %v", err)
+				return nil, fmt.Errorf("giải mã thất bại: %v", err)
 			}
 			frameData := make([]int16, len(pcmBuffer)*2)
 			copy(frameData, pcmBuffer[:n])
@@ -201,24 +203,24 @@ func main() {
 	}
 	defer f.Close()
 
-	//读取文件全部内容
+	// Đọc toàn bộ nội dung file
 	mp3Data, err := io.ReadAll(f)
 	if err != nil {
 		log.Fatalf("failed to read mp3 file: %s", err)
 	}
 
-	//将mp3转换为opus
+	// Chuyển đổi mp3 sang opus
 	opusData, err := WavToOpus(mp3Data, 16000, 1, 0)
 	if err != nil {
 		log.Fatalf("failed to convert mp3 to opus: %s", err)
 	}
 
-	//打印opus数据
+	// In dữ liệu opus
 	fmt.Printf("opusData: %d\n", len(opusData))
 
-	//将Opus数据decode成pcm
+	// Giải mã dữ liệu Opus thành pcm
 
-	//将所有数据输出至test.opus
+	// Ghi tất cả dữ liệu ra file test.opus
 	/*opusFile, err := os.OpenFile("test.opus", os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("failed to create opus file: %s", err)

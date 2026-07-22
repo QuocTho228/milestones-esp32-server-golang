@@ -7,36 +7,36 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-// AddMessageEvent 统一的消息添加事件
+// AddMessageEvent Sự kiện thêm tin nhắn thống nhất
 type AddMessageEvent struct {
-	// 客户端状态
+	// Trạng thái client
 	ClientState *ClientState
 
-	// 消息内容（统一使用 schema.Message）
-	// schema.Message 是标准的 LLM 消息格式，包含：
-	// - Role: 消息角色（User/Assistant/System/Tool）
-	// - Content: 消息文本内容
-	// - ToolCalls: 工具调用列表（可选）
-	// - ToolCallID: 工具调用ID（Tool 角色使用）
+	// Nội dung tin nhắn (thống nhất sử dụng schema.Message)
+	// schema.Message là định dạng tin nhắn LLM chuẩn, bao gồm:
+	// - Role: Vai trò của tin nhắn (User/Assistant/System/Tool)
+	// - Content: Nội dung văn bản của tin nhắn
+	// - ToolCalls: Danh sách lời gọi công cụ (tool call) (tùy chọn)
+	// - ToolCallID: ID của lời gọi công cụ (dùng cho vai trò Tool)
 	Msg schema.Message
 
-	// 消息ID（用于关联两阶段保存）
+	// ID tin nhắn (dùng để liên kết việc lưu theo 2 giai đoạn)
 	MessageID string
 
-	// 音频数据（可选，不属于 schema.Message 标准格式）
-	// 第一阶段：AudioData = nil（仅保存文本）
-	// 第二阶段：AudioData != nil（更新音频）
-	AudioData [][]byte // TTS/ASR 音频帧数组（Opus格式或PCM格式）
-	AudioSize int      // 音频大小（字节）
+	// Dữ liệu âm thanh (tùy chọn, không thuộc định dạng chuẩn của schema.Message)
+	// Giai đoạn 1: AudioData = nil (chỉ lưu văn bản)
+	// Giai đoạn 2: AudioData != nil (cập nhật âm thanh)
+	AudioData [][]byte // Mảng khung âm thanh TTS/ASR (định dạng Opus hoặc PCM)
+	AudioSize int      // Kích thước âm thanh (byte)
 
-	// 音频格式信息（不属于 schema.Message 标准格式）
-	SampleRate int // 采样率
-	Channels   int // 通道数
+	// Thông tin định dạng âm thanh (không thuộc định dạng chuẩn của schema.Message)
+	SampleRate int // Tần số lấy mẫu (sample rate)
+	Channels   int // Số kênh (channel)
 
-	// 元数据（不属于 schema.Message 标准格式）
+	// Metadata (không thuộc định dạng chuẩn của schema.Message)
 	Timestamp   time.Time
-	TTSDuration int // TTS 耗时（毫秒）
+	TTSDuration int // Thời gian xử lý TTS (mili giây)
 
-	// 阶段标识
-	IsUpdate bool // true=更新音频，false=新增消息
+	// Đánh dấu giai đoạn
+	IsUpdate bool // true = cập nhật âm thanh, false = thêm tin nhắn mới
 }

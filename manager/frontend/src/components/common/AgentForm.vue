@@ -49,7 +49,7 @@
       />
     </el-form-item>
 
-    <el-form-item label="Kho kiến thức liên kết" prop="knowledge_base_ids">
+    <el-form-item label="Kho tri thức liên kết" prop="knowledge_base_ids">
       <el-select
         v-model="form.knowledge_base_ids"
         multiple
@@ -57,7 +57,7 @@
         collapse-tags
         collapse-tags-tooltip
         clearable
-        placeholder="Chọn kho kiến thức muốn liên kết"
+        placeholder="Chọn kho tri thức muốn liên kết"
         style="width: 100%"
         :loading="loading.knowledgeBases"
         :disabled="isAdmin && !form.user_id"
@@ -65,7 +65,7 @@
         <el-option
           v-for="kb in knowledgeBases"
           :key="kb.id"
-          :label="kb.name || `Kho kiến thức #${kb.id}`"
+          :label="kb.name || `Kho tri thức #${kb.id}`"
           :value="kb.id"
         />
       </el-select>

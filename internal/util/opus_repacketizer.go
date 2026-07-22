@@ -20,7 +20,7 @@ type opusRepacketizer struct {
 func newOpusRepacketizer() (*opusRepacketizer, error) {
 	ptr := C.opus_repacketizer_create()
 	if ptr == nil {
-		return nil, fmt.Errorf("创建 Opus repacketizer 失败")
+		return nil, fmt.Errorf("tạo Opus repacketizer thất bại")
 	}
 	return &opusRepacketizer{ptr: ptr}, nil
 }
@@ -49,10 +49,10 @@ func (r *opusRepacketizer) nbFrames() int {
 
 func (r *opusRepacketizer) cat(packet []byte) error {
 	if r == nil || r.ptr == nil {
-		return fmt.Errorf("Opus repacketizer 未初始化")
+		return fmt.Errorf("Opus repacketizer chưa được khởi tạo")
 	}
 	if len(packet) == 0 {
-		return fmt.Errorf("Opus packet 不能为空")
+		return fmt.Errorf("packet Opus không được để trống")
 	}
 	code := C.opus_repacketizer_cat(
 		r.ptr,
@@ -71,18 +71,18 @@ func (r *opusRepacketizer) out() ([]byte, error) {
 
 func (r *opusRepacketizer) outRange(begin int, end int) ([]byte, error) {
 	if r == nil || r.ptr == nil {
-		return nil, fmt.Errorf("Opus repacketizer 未初始化")
+		return nil, fmt.Errorf("Opus repacketizer chưa được khởi tạo")
 	}
 	if begin < 0 || end < begin {
-		return nil, fmt.Errorf("非法 repacketizer range: begin=%d end=%d", begin, end)
+		return nil, fmt.Errorf("range repacketizer không hợp lệ: begin=%d end=%d", begin, end)
 	}
 
 	maxFrames := end - begin
 	if maxFrames <= 0 {
-		return nil, fmt.Errorf("repacketizer range 不能为空")
+		return nil, fmt.Errorf("range repacketizer không được để trống")
 	}
 
-	// 1277 是单帧理论最大包长，120ms 上限下这里的缓冲足够覆盖输出。
+	// 1277 là độ dài tối đa lý thuyết của một khung đơn, với giới hạn 120ms thì buffer ở đây đủ để bao phủ đầu ra.
 	buf := make([]byte, 1277*maxFrames)
 	outLen := C.opus_repacketizer_out_range(
 		r.ptr,

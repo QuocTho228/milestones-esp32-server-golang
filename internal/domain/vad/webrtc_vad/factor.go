@@ -6,18 +6,18 @@ import (
 	"milestones-esp32-server-golang/internal/util"
 )
 
-// WebRTCVADConfig WebRTC VAD 配置
+// WebRTCVADConfig cấu hình WebRTC VAD
 type WebRTCVADConfig struct {
 	SampleRate int
 	Mode       int
 }
 
-// WebRTCVADFactory WebRTC VAD 工厂，实现 ResourceFactory 接口
+// WebRTCVADFactory factory (nhà máy tạo instance) cho WebRTC VAD, hiện thực interface ResourceFactory
 type WebRTCVADFactory struct {
 	config WebRTCVADConfig
 }
 
-// NewWebRTCVADFactory 创建WebRTC VAD工厂
+// NewWebRTCVADFactory tạo factory WebRTC VAD
 func NewWebRTCVADFactory(config WebRTCVADConfig) *WebRTCVADFactory {
 	if config.SampleRate == 0 {
 		config.SampleRate = DefaultSampleRate
@@ -31,7 +31,7 @@ func NewWebRTCVADFactory(config WebRTCVADConfig) *WebRTCVADFactory {
 	}
 }
 
-// Create 创建新的WebRTC VAD资源实例
+// Create tạo mới một thực thể resource WebRTC VAD
 func (f *WebRTCVADFactory) Create() (util.Resource, error) {
 	vad := &WebRTCVAD{
 		sampleRate: f.config.SampleRate,
@@ -39,7 +39,7 @@ func (f *WebRTCVADFactory) Create() (util.Resource, error) {
 		lastUsed:   time.Now(),
 	}
 
-	// 初始化实例
+	// Khởi tạo thực thể
 	if err := vad.init(); err != nil {
 		return nil, fmt.Errorf("failed to initialize WebRTC VAD: %w", err)
 	}
@@ -47,7 +47,7 @@ func (f *WebRTCVADFactory) Create() (util.Resource, error) {
 	return vad, nil
 }
 
-// Validate 验证资源是否有效
+// Validate kiểm tra resource có hợp lệ hay không
 func (f *WebRTCVADFactory) Validate(resource util.Resource) bool {
 	vad, ok := resource.(*WebRTCVAD)
 	if !ok {
@@ -56,7 +56,7 @@ func (f *WebRTCVADFactory) Validate(resource util.Resource) bool {
 	return vad.IsValid()
 }
 
-// Reset 重置资源状态
+// Reset đặt lại trạng thái resource
 func (f *WebRTCVADFactory) Reset(resource util.Resource) error {
 	vad, ok := resource.(*WebRTCVAD)
 	if !ok {
