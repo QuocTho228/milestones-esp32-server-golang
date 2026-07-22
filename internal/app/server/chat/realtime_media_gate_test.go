@@ -13,14 +13,14 @@ func TestDetectRealtimeMcpAudioControlAction(t *testing.T) {
 		text string
 		want string
 	}{
-		{text: "给我继续播放", want: "resume"},
-		{text: "先暂停一下。", want: "pause"},
-		{text: "停止播放吧", want: "stop"},
-		{text: "下一首", want: "next"},
-		{text: "上一首", want: "prev"},
-		{text: "播放歌单里的歌曲", want: "play_playlist"},
-		{text: "把当前播放加入歌单", want: "enqueue_current"},
-		{text: "帮我讲个笑话", want: ""},
+		{text: "cho tôi tiếp tục phát", want: "resume"},
+		{text: "tạm dừng một chút.", want: "pause"},
+		{text: "dừng phát nhé", want: "stop"},
+		{text: "bài tiếp theo", want: "next"},
+		{text: "bài trước", want: "prev"},
+		{text: "phát các bài trong danh sách phát", want: "play_playlist"},
+		{text: "thêm bài đang phát vào danh sách nghe", want: "enqueue_current"},
+		{text: "kể cho tôi nghe một câu chuyện cười", want: ""},
 	}
 
 	for _, tc := range cases {
@@ -36,11 +36,11 @@ func TestIsRealtimeMcpAudioExitCommand(t *testing.T) {
 		text string
 		want bool
 	}{
-		{text: "再见", want: true},
-		{text: "那就退出对话", want: true},
-		{text: "拜拜啦", want: true},
-		{text: "继续播放", want: false},
-		{text: "今天天气怎么样", want: false},
+		{text: "tạm biệt", want: true},
+		{text: "vậy thì thoát cuộc trò chuyện", want: true},
+		{text: "bye bye nhé", want: true},
+		{text: "tiếp tục phát", want: false},
+		{text: "hôm nay thời tiết thế nào", want: false},
 	}
 
 	for _, tc := range cases {
@@ -97,7 +97,7 @@ func TestTryHandleRealtimeMcpAudioASRAllowsNormalChatWhenPlaybackPaused(t *testi
 	runtime.state.CurrentSourceType = MediaSourceTypeMCPResource
 	runtime.mu.Unlock()
 
-	handled, err := session.tryHandleRealtimeMcpAudioASR(context.Background(), "你在干什么")
+	handled, err := session.tryHandleRealtimeMcpAudioASR(context.Background(), "bạn đang làm gì vậy")
 	if err != nil {
 		t.Fatalf("tryHandleRealtimeMcpAudioASR returned error: %v", err)
 	}
@@ -121,7 +121,7 @@ func TestTryHandleRealtimeMcpAudioASRSwallowsNormalChatWhenPlaybackActive(t *tes
 	runtime.state.CurrentSourceType = MediaSourceTypeMCPResource
 	runtime.mu.Unlock()
 
-	handled, err := session.tryHandleRealtimeMcpAudioASR(context.Background(), "你在干什么")
+	handled, err := session.tryHandleRealtimeMcpAudioASR(context.Background(), "bạn đang làm gì vậy")
 	if err != nil {
 		t.Fatalf("tryHandleRealtimeMcpAudioASR returned error: %v", err)
 	}

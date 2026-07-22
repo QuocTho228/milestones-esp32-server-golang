@@ -12,13 +12,13 @@ const (
 	RetryReasonAliyunQwen3ConnectionClosed    = "aliyun_qwen3_connection_closed"
 )
 
-// StreamingResult 流式识别结果
+// StreamingResult: Kết quả nhận dạng theo luồng.
 type StreamingResult struct {
-	Text        string // 识别的文本
-	IsFinal     bool   // 是否为最终结果
-	Error       error  // 错误信息
-	AsrType     string // asr 类型
-	Mode        string // 模式
-	EmptyReason string // 空结果原因，仅在 Text 为空时用于区分上游空结果/空转
-	RetryReason string // 可恢复错误原因，仅在需要释放当前资源并重试时使用
+	Text        string // Văn bản được nhận dạng.
+	IsFinal     bool   // Có phải kết quả cuối cùng hay không.
+	Error       error  // Thông tin lỗi.
+	AsrType     string // Loại ASR.
+	Mode        string // Chế độ.
+	EmptyReason string // Lý do kết quả rỗng; chỉ dùng khi Text rỗng để phân biệt kết quả rỗng từ phía nguồn hoặc do xử lý không tạo ra kết quả.
+	RetryReason string // Lý do có thể thử lại; chỉ dùng khi cần giải phóng tài nguyên hiện tại và thực hiện lại.
 }

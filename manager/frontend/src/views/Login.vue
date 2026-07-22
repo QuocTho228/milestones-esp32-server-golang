@@ -12,13 +12,13 @@
         <p class="login-eyebrow">MILESTONES CONTROL CENTER</p>
         <h1>Milestones AI Go</h1>
         <p>
-          Quản lý thống nhất các tác nhân, giọng nói, cơ sở kiến ​​thức và quyền truy cập dịch vụ cho phép các thiết bị,
+          Quản lý thống nhất các tác nhân, giọng nói, cơ sở tri ​​thức và quyền truy cập dịch vụ cho phép các thiết bị,
           mô hình và khả năng giọng nói chạy cộng tác trong cùng một môi trường làm việc.
         </p>
         <div class="login-meta">
-          <span class="apple-chip is-primary">Điều phối tác nhân thông minh</span>
+          <span class="apple-chip is-primary">Điều phối tác nhân AI</span>
           <span class="apple-chip">Truy cập thiết bị</span>
-          <span class="apple-chip">Nhận dạng giọng nói và kho kiến thức</span>
+          <span class="apple-chip">Nhận dạng giọng nói và kho tri thức</span>
           <span class="apple-chip">MCP / OpenClaw</span>
           <span class="apple-chip">Gọi MCP</span>
           <span class="apple-chip">Chủ động gửi giọng nói</span>

@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Storage MySQL存储实现
+// Storage: Triển khai cơ chế lưu trữ bằng MySQL.
 type Storage struct {
 	DB     *gorm.DB
 	config *Config
 }
 
-// NewStorage 创建MySQL存储实例
+// NewStorage: Tạo một đối tượng lưu trữ MySQL.
 func NewStorage(config *Config) (*Storage, error) {
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
@@ -40,7 +40,7 @@ func NewStorage(config *Config) (*Storage, error) {
 	return s, nil
 }
 
-// Connect 连接数据库
+// Connect: Kết nối đến cơ sở dữ liệu.
 func (s *Storage) Connect() error {
 	dsn := s.config.DSN()
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -53,7 +53,7 @@ func (s *Storage) Connect() error {
 	return nil
 }
 
-// configureConnectionPool 配置连接池
+// configureConnectionPool: Cấu hình nhóm kết nối.
 func (s *Storage) configureConnectionPool() {
 	if s.DB == nil {
 		return

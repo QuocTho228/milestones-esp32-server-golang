@@ -13,15 +13,15 @@ import (
 
 const validateTimeout = 25 * time.Second
 
-// ValidateMCPConfigMap 对传入的 mcp 配置执行连接级预检（initialize + tools/list）。
+// ValidateMCPConfigMap Thực hiện kiểm tra sơ bộ ở cấp độ kết nối (initialize + tools/list) cho cấu hình mcp truyền vào.
 func ValidateMCPConfigMap(mcpConfig map[string]interface{}) error {
 	if mcpConfig == nil {
-		return fmt.Errorf("mcp 配置为空")
+		return fmt.Errorf("cấu hình mcp trống")
 	}
 
 	global := asAnyMap(mcpConfig["global"])
 	if global == nil {
-		return fmt.Errorf("mcp.global 配置缺失")
+		return fmt.Errorf("thiếu cấu hình mcp.global")
 	}
 
 	enabled := toBool(global["enabled"])
@@ -31,19 +31,19 @@ func ValidateMCPConfigMap(mcpConfig map[string]interface{}) error {
 
 	servers, err := decodeServerConfigs(global["servers"])
 	if err != nil {
-		return fmt.Errorf("解析 mcp.global.servers 失败: %w", err)
+		return fmt.Errorf("phân tích mcp.global.servers thất bại: %w", err)
 	}
 	if len(servers) == 0 {
-		return fmt.Errorf("mcp.global.enabled=true 但 servers 为空")
+		return fmt.Errorf("mcp.global.enabled=true nhưng servers trống")
 	}
 
 	return ValidateServerConfigs(servers)
 }
 
-// ValidateServerConfigs 校验服务器配置可用性。
+// ValidateServerConfigs Kiểm tra tính khả dụng của cấu hình server.
 func ValidateServerConfigs(serverConfigs []MCPServerConfig) error {
 	if len(serverConfigs) == 0 {
-		return fmt.Errorf("未提供任何MCP服务器配置")
+		return fmt.Errorf("chưa cung cấp bất kỳ cấu hình server MCP nào")
 	}
 
 	errs := make([]string, 0)
@@ -59,7 +59,7 @@ func ValidateServerConfigs(serverConfigs []MCPServerConfig) error {
 	}
 
 	if enabledCount == 0 {
-		return fmt.Errorf("没有启用的MCP服务器")
+		return fmt.Errorf("không có server MCP nào được bật")
 	}
 	if len(errs) > 0 {
 		return fmt.Errorf("%s", strings.Join(errs, "; "))
@@ -80,7 +80,7 @@ func validateSingleServer(config MCPServerConfig) error {
 	defer mcpClient.Close()
 
 	if err := mcpClient.Start(ctx); err != nil {
-		return fmt.Errorf("启动失败(%s): %w", endpoint, err)
+		return fmt.Errorf("khởi động thất bại(%s): %w", endpoint, err)
 	}
 
 	initReq := mcpgo.InitializeRequest{
@@ -97,11 +97,11 @@ func validateSingleServer(config MCPServerConfig) error {
 	}
 
 	if _, err := mcpClient.Initialize(ctx, initReq); err != nil {
-		return fmt.Errorf("initialize 失败: %w", err)
+		return fmt.Errorf("initialize thất bại: %w", err)
 	}
 
 	if _, err := mcpClient.ListTools(ctx, mcpgo.ListToolsRequest{}); err != nil {
-		return fmt.Errorf("tools/list 失败: %w", err)
+		return fmt.Errorf("tools/list thất bại: %w", err)
 	}
 
 	return nil

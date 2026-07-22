@@ -6,21 +6,21 @@ import (
 )
 
 func TestParseOpenClawWarmupPlanObjects(t *testing.T) {
-	got := parseOpenClawWarmupPlan(`[{"text":"我先看一下天气。"},{"text":"天气情况我继续跟进。"},{"text":"这个问题我还在处理。"},{"text":"天气结果还在路上。"},{"text":"我继续盯着天气。"},{"text":"这边继续核对天气。"},{"text":"天气数据还在更新。"},{"text":"我继续盯着最新预报。"},{"text":"这边还在做最后确认。"},{"text":"结果一到就告诉你。"},{"text":"我再看一眼天气。"}]`)
+	got := parseOpenClawWarmupPlan(`[{"text":"Để tôi xem đã"},{"text":"Vẫn theo dõi đây"},{"text":"Việc này tôi lo"},{"text":"Kết quả đang tới"},{"text":"Tôi vẫn đang xem"},{"text":"Đang kiểm tra nè"},{"text":"Đang xác nhận nè"},{"text":"Số liệu sắp có"},{"text":"Tôi vẫn đang chờ"},{"text":"Xong sẽ báo ngay"},{"text":"Tôi xem lại chút"}]`)
 
 	if len(got) != openClawWarmupPlanSize {
 		t.Fatalf("unexpected plan size: got %d want %d", len(got), openClawWarmupPlanSize)
 	}
-	if got[0] != "我先看一下天气。" {
+	if got[0] != "Để tôi xem đã" {
 		t.Fatalf("unexpected first line: %q", got[0])
 	}
-	if got[4] != "我继续盯着天气。" {
+	if got[4] != "Tôi vẫn đang xem" {
 		t.Fatalf("unexpected last line: %q", got[4])
 	}
-	if got[9] != "结果一到就告诉你。" {
+	if got[9] != "Xong sẽ báo ngay" {
 		t.Fatalf("unexpected tenth line: %q", got[9])
 	}
-	if got[10] != "我再看一眼天气。" {
+	if got[10] != "Tôi xem lại chút" {
 		t.Fatalf("unexpected eleventh line: %q", got[10])
 	}
 }
@@ -36,47 +36,47 @@ func TestParseOpenClawWarmupPlanReturnsEmptyOnInvalidJSON(t *testing.T) {
 }
 
 func TestBuildOpenClawWarmupHint(t *testing.T) {
-	got := buildOpenClawWarmupHint("帮我查一下上海今天天气怎么样？")
+	got := buildOpenClawWarmupHint("giúp tôi kiểm tra thời tiết Thượng Hải hôm nay thế nào?")
 	if got == "" {
 		t.Fatal("expected non-empty hint")
 	}
-	if strings.Contains(got, "帮我") {
+	if strings.Contains(got, "giúp tôi") {
 		t.Fatalf("hint should not contain user command: %q", got)
 	}
-	if len([]rune(got)) > 10 {
+	if len([]rune(got)) > openClawWarmupHintMaxRunes {
 		t.Fatalf("hint too long: %q", got)
 	}
 }
 
 func TestBuildOpenClawWarmupHintWeatherTopic(t *testing.T) {
-	got := buildOpenClawWarmupHint("天津后天的天气怎么样？")
-	if got != "天津后天的天气" {
+	got := buildOpenClawWarmupHint("thời tiết Thiên Tân ngày mốt thế nào?")
+	if got != "thời tiết Thiên Tân ngày mốt" {
 		t.Fatalf("unexpected weather hint: %q", got)
 	}
 }
 
 func TestBuildOpenClawWarmupUserPromptIncludesTimeline(t *testing.T) {
-	got := buildOpenClawWarmupUserPrompt("天津后天的天气怎么样？")
-	if !strings.Contains(got, "用户本轮任务：") {
+	got := buildOpenClawWarmupUserPrompt("thời tiết Thiên Tân ngày mốt thế nào?")
+	if !strings.Contains(got, "Nhiệm vụ của người dùng trong lượt này:") {
 		t.Fatalf("task label missing from prompt: %q", got)
 	}
-	if !strings.Contains(got, "只能提炼成名词短语“天津后天的天气”") {
+	if !strings.Contains(got, "chỉ được rút gọn thành cụm danh từ \"thời tiết Thiên Tân ngày mốt\"") {
 		t.Fatalf("topic hint missing from prompt: %q", got)
 	}
-	if !strings.Contains(got, "第1秒、第10秒、第20秒、第30秒、第40秒、第50秒、第60秒、第70秒、第80秒、第90秒、第100秒") {
+	if !strings.Contains(got, "giây thứ 1, giây thứ 10, giây thứ 20, giây thứ 30, giây thứ 40, giây thứ 50, giây thứ 60, giây thứ 70, giây thứ 80, giây thứ 90, giây thứ 100") {
 		t.Fatalf("timeline missing from prompt: %q", got)
 	}
 }
 
 func TestFormatOpenClawWarmupTopicWeather(t *testing.T) {
-	got := formatOpenClawWarmupTopic("天津后天的天气")
-	if got != "天津后天的天气" {
+	got := formatOpenClawWarmupTopic("thời tiết Thiên Tân ngày mốt")
+	if got != "thời tiết Thiên Tân ngày mốt" {
 		t.Fatalf("unexpected formatted topic: %q", got)
 	}
 }
 
 func TestSanitizeOpenClawWarmupTextRejectsUserCommandEcho(t *testing.T) {
-	got := sanitizeOpenClawWarmupText("我先看看帮我查询一下。")
+	got := sanitizeOpenClawWarmupText("Để tôi xem giúp tôi kiểm tra một chút.")
 	if got != "" {
 		t.Fatalf("expected invalid warmup text to be rejected, got %q", got)
 	}

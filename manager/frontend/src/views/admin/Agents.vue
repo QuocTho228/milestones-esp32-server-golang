@@ -29,7 +29,7 @@
       <el-table-column label="TTS / Giọng nói" width="190" show-overflow-tooltip>
         <template #default="{ row }">{{ getVoiceText(row) }}</template>
       </el-table-column>
-      <el-table-column label="Kho kiến thức" width="90">
+      <el-table-column label="Kho tri thức" width="90">
         <template #default="{ row }">{{ row.knowledge_base_ids?.length || 0 }}</template>
       </el-table-column>
       <el-table-column label="Thiết bị" width="90">

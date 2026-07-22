@@ -38,8 +38,16 @@ const authStore = useAuthStore();
 const commonItems = computed(() => {
   if (authStore.isAdmin) {
     return [
-      { title: 'Trình hướng dẫn cấu hình', desc: 'Khuyến nghị triển khai lần đầu, bắt đầu từ đây', path: '/admin/config-wizard' },
-      { title: 'Thống kê bể tài nguyên', desc: 'Xem trạng thái sử dụng hệ thống bể tài nguyên', path: '/admin/pool-stats' },
+      {
+        title: 'Trình hướng dẫn cấu hình',
+        desc: 'Khuyến nghị triển khai lần đầu, bắt đầu từ đây',
+        path: '/admin/config-wizard',
+      },
+      {
+        title: 'Thống kê bể tài nguyên',
+        desc: 'Xem trạng thái sử dụng hệ thống bể tài nguyên',
+        path: '/admin/pool-stats',
+      },
     ];
   }
 
@@ -75,7 +83,7 @@ const systemItems = [
   { title: 'Vai trò toàn cục', path: '/admin/global-roles' },
   { title: 'Quản lý người dùng', path: '/admin/users' },
   { title: 'Quản lý thiết bị', path: '/admin/devices' },
-  { title: 'Quản lý tác nhân thông minh', path: '/admin/agents' },
+  { title: 'Quản lý tác nhân AI', path: '/admin/agents' },
 ];
 
 const go = (path) => {

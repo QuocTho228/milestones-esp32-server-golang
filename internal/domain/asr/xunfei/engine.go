@@ -18,8 +18,8 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// ASR 讯飞流式听写实现
-// 每次识别创建独立连接，避免并发争用。
+// ASR: Triển khai tính năng nhận dạng giọng nói theo luồng của iFlytek.
+// Mỗi lần nhận dạng sẽ tạo một kết nối riêng để tránh tranh chấp khi xử lý đồng thời.
 type ASR struct {
 	config Config
 }

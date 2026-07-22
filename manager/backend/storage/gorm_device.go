@@ -6,24 +6,24 @@ import (
 	"milestones/manager/backend/models"
 )
 
-// GormDeviceStorage 通用GORM设备存储实现
+// GormDeviceStorage triển khai lưu trữ thiết bị dùng chung bằng GORM
 type GormDeviceStorage struct {
 	db *gorm.DB
 }
 
-// NewGormDeviceStorage 创建GORM设备存储实例
+// NewGormDeviceStorage tạo mới instance lưu trữ thiết bị bằng GORM
 func NewGormDeviceStorage(db *gorm.DB) *GormDeviceStorage {
 	return &GormDeviceStorage{
 		db: db,
 	}
 }
 
-// CreateDevice 创建设备
+// CreateDevice tạo mới thiết bị
 func (s *GormDeviceStorage) CreateDevice(ctx context.Context, device *models.Device) error {
 	return s.db.WithContext(ctx).Create(device).Error
 }
 
-// GetDeviceByID 根据ID获取设备
+// GetDeviceByID lấy thiết bị theo ID
 func (s *GormDeviceStorage) GetDeviceByID(ctx context.Context, id uint) (*models.Device, error) {
 	var device models.Device
 	err := s.db.WithContext(ctx).First(&device, id).Error
@@ -33,7 +33,7 @@ func (s *GormDeviceStorage) GetDeviceByID(ctx context.Context, id uint) (*models
 	return &device, nil
 }
 
-// GetDeviceByCode 根据设备码获取设备
+// GetDeviceByCode lấy thiết bị theo mã thiết bị (device code)
 func (s *GormDeviceStorage) GetDeviceByCode(ctx context.Context, deviceCode string) (*models.Device, error) {
 	var device models.Device
 	err := s.db.WithContext(ctx).Where("device_code = ?", deviceCode).First(&device).Error
@@ -43,28 +43,28 @@ func (s *GormDeviceStorage) GetDeviceByCode(ctx context.Context, deviceCode stri
 	return &device, nil
 }
 
-// GetDevicesByUserID 根据用户ID获取设备列表
+// GetDevicesByUserID lấy danh sách thiết bị theo ID người dùng
 func (s *GormDeviceStorage) GetDevicesByUserID(ctx context.Context, userID uint, offset, limit int) ([]*models.Device, int64, error) {
 	var devices []*models.Device
 	var total int64
-	
-	// 获取总数
+
+	// Lấy tổng số lượng
 	err := s.db.WithContext(ctx).Model(&models.Device{}).Where("user_id = ?", userID).Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	
-	// 获取分页数据
+
+	// Lấy dữ liệu theo trang (phân trang)
 	err = s.db.WithContext(ctx).Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&devices).Error
 	return devices, total, err
 }
 
-// UpdateDevice 更新设备
+// UpdateDevice cập nhật thiết bị
 func (s *GormDeviceStorage) UpdateDevice(ctx context.Context, id uint, updates map[string]interface{}) error {
 	return s.db.WithContext(ctx).Model(&models.Device{}).Where("id = ?", id).Updates(updates).Error
 }
 
-// DeleteDevice 删除设备
+// DeleteDevice xóa thiết bị
 func (s *GormDeviceStorage) DeleteDevice(ctx context.Context, id uint) error {
 	return s.db.WithContext(ctx).Delete(&models.Device{}, id).Error
 }

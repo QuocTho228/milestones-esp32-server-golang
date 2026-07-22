@@ -18,7 +18,7 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// 初始化函数
+// Hàm khởi tạo
 func Init(configFile string) error {
 	err := initConfig(configFile)
 	if err != nil {
@@ -34,19 +34,20 @@ func Init(configFile string) error {
 }
 
 func initLog() error {
-	// 不再检查stdout配置，统一输出到文件
-	// 输出到文件
+	// Không còn kiểm tra cấu hình stdout nữa, thống nhất ghi ra file
+	// Ghi ra file
 	binPath, _ := os.Executable()
 	baseDir := filepath.Dir(binPath)
 	logPath := fmt.Sprintf("%s/%s%s", baseDir, viper.GetString("log.path"), viper.GetString("log.file"))
-	/* 日志轮转相关函数
-	`WithLinkName` 为最新的日志建立软连接
-	`WithRotationTime` 设置日志分割的时间，隔多久分割一次
-	WithMaxAge 和 WithRotationCount二者只能设置一个
-		`WithMaxAge` 设置文件清理前的最长保存时间
-		`WithRotationCount` 设置文件清理前最多保存的个数
+	/* Các hàm liên quan đến xoay vòng (rotate) nhật ký
+	`WithLinkName` tạo liên kết mềm (symlink) trỏ tới file nhật ký mới nhất
+	`WithRotationTime` thiết lập thời gian phân tách (rotate) nhật ký, cách bao lâu thì xoay vòng một lần
+	WithMaxAge và WithRotationCount chỉ được thiết lập một trong hai:
+		`WithMaxAge` thiết lập thời gian lưu trữ tối đa của file trước khi bị dọn dẹp
+		`WithRotationCount` thiết lập số lượng file tối đa được lưu trước khi bị dọn dẹp
 	*/
-	// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
+	// Cấu hình dưới đây sẽ xoay vòng tạo file mới mỗi 1 phút, giữ lại nhật ký trong 3 phút gần nhất,
+	// các file dư thừa sẽ được tự động dọn dẹp.
 	writer, err := rotatelogs.New(
 		logPath+".%Y%m%d",
 		rotatelogs.WithLinkName(logPath),
@@ -54,17 +55,17 @@ func initLog() error {
 		rotatelogs.WithRotationTime(time.Duration(86400)*time.Second),
 	)
 	if err != nil {
-		fmt.Printf("init log error: %v\n", err)
+		fmt.Printf("Lỗi khởi tạo nhật ký: %v\n", err)
 		os.Exit(1)
 		return err
 	}
 	logrus.SetOutput(writer)
 	logrus.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05.000", //时间格式化，添加毫秒
-		ForceColors:     false,                     // 文件输出不启用颜色
+		TimestampFormat: "2006-01-02 15:04:05.000", // Định dạng thời gian, thêm mili giây
+		ForceColors:     false,                     // Không bật màu khi xuất ra file
 	})
 
-	// 禁用默认的调用者报告，使用自定义的caller字段
+	// Vô hiệu hóa báo cáo caller mặc định, sử dụng trường caller tùy chỉnh
 	logrus.SetReportCaller(false)
 	logLevel, _ := logrus.ParseLevel(viper.GetString("log.level"))
 	logrus.SetLevel(logLevel)
@@ -76,7 +77,7 @@ func initLog() error {
 func initConfig(configFile string) error {
 	basePath, file := filepath.Split(configFile)
 
-	// 获取文件名和扩展名
+	// Lấy tên tệp và phần mở rộng
 	fileName, fileExt := func(file string) (string, string) {
 		if pos := strings.LastIndex(file, "."); pos != -1 {
 			return file[:pos], strings.ToLower(file[pos+1:])
@@ -84,11 +85,11 @@ func initConfig(configFile string) error {
 		return file, ""
 	}(file)
 
-	// 设置配置文件名(不带扩展名)
+	// Thiết lập tên tệp cấu hình (không có phần mở rộng)
 	viper.SetConfigName(fileName)
 	viper.AddConfigPath(basePath)
 
-	// 根据文件扩展名设置配置类型
+	// Thiết lập loại cấu hình dựa theo phần mở rộng của tệp
 	switch fileExt {
 	case "json":
 		viper.SetConfigType("json")
@@ -102,38 +103,38 @@ func initConfig(configFile string) error {
 }
 
 func main() {
-	// 解析命令行参数
-	configFile := flag.String("c", "config/mqtt_config.json", "配置文件路径")
+	// Phân tích tham số dòng lệnh
+	configFile := flag.String("c", "config/mqtt_config.json", "Đường dẫn tệp cấu hình")
 	flag.Parse()
 
 	if *configFile == "" {
-		fmt.Println("配置文件路径不能为空")
+		fmt.Println("Đường dẫn tệp cấu hình không được để trống")
 		return
 	}
 
-	// 初始化配置和日志
+	// Khởi tạo cấu hình và nhật ký
 	err := Init(*configFile)
 	if err != nil {
-		fmt.Printf("初始化失败: %v\n", err)
+		fmt.Printf("Khởi tạo thất bại: %v\n", err)
 		return
 	}
 
-	// 启动MQTT服务器
+	// Khởi động máy chủ MQTT
 	err = mqtt_server.StartMqttServer()
 	if err != nil {
-		log.Errorf("启动MQTT服务器失败: %v", err)
+		log.Errorf("Khởi động máy chủ MQTT thất bại: %v", err)
 		return
 	}
 
-	fmt.Println("MQTT服务器已启动")
+	fmt.Println("Máy chủ MQTT đã khởi động")
 
-	// 阻塞监听退出信号
+	// Chặn (block) và lắng nghe tín hiệu thoát
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	log.Info("MQTT服务器已启动，按 Ctrl+C 退出")
+	log.Info("Máy chủ MQTT đã khởi động, nhấn Ctrl+C để thoát")
 	<-quit
 
-	log.Info("正在关闭MQTT服务器...")
-	log.Info("MQTT服务器已关闭")
+	log.Info("Đang tắt máy chủ MQTT...")
+	log.Info("Máy chủ MQTT đã tắt")
 }

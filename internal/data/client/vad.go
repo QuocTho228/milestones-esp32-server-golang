@@ -2,20 +2,20 @@ package client
 
 import (
 	"fmt"
-	"sync"
-	"sync/atomic"
 	"milestones-esp32-server-golang/internal/domain/vad"
 	vad_inter "milestones-esp32-server-golang/internal/domain/vad/inter"
+	"sync"
+	"sync/atomic"
 )
 
 type Vad struct {
 	lock sync.RWMutex
-	// VAD 提供者
+	// Provider VAD
 	VadProvider vad_inter.VAD
 
-	IdleDuration           int64 // 空闲时间, 单位: ms
-	VoiceDuration          int64 // 累积检测到声音的时长, 单位: ms
-	VoiceDurationInSession int64 // 一次过程中累积检测到声音的时长, 单位: ms
+	IdleDuration           int64 // Thời gian rảnh (idle), đơn vị: ms
+	VoiceDuration          int64 // Thời lượng phát hiện giọng nói tích lũy, đơn vị: ms
+	VoiceDurationInSession int64 // Thời lượng phát hiện giọng nói tích lũy trong một phiên xử lý, đơn vị: ms
 }
 
 func (v *Vad) AddIdleDuration(idleDuration int64) int64 {
@@ -44,7 +44,7 @@ func (v *Vad) ResetVoiceDuration() {
 	atomic.StoreInt64(&v.VoiceDurationInSession, 0)
 }
 
-// reset持续性语音时长
+// ResetVoiceContinuousDuration reset thời lượng giọng nói liên tục
 func (v *Vad) ResetVoiceContinuousDuration() {
 	atomic.StoreInt64(&v.VoiceDuration, 0)
 }
@@ -62,7 +62,7 @@ func (v *Vad) Init(provider string, config map[string]interface{}) error {
 	defer v.lock.Unlock()
 	vadProvider, err := vad.AcquireVAD(provider, config)
 	if err != nil {
-		return fmt.Errorf("创建 VAD 提供者失败: %v", err)
+		return fmt.Errorf("Tạo provider VAD thất bại: %v", err)
 	}
 
 	vadProvider.Reset()
@@ -93,8 +93,8 @@ func (v *Vad) Reset() error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 	if v.VadProvider != nil {
-		vad.ReleaseVAD(v.VadProvider) //释放vad实例资源
-		v.VadProvider = nil           //置nil
+		vad.ReleaseVAD(v.VadProvider) //Giải phóng tài nguyên instance vad
+		v.VadProvider = nil           //Đặt về nil
 	}
 	v.ResetIdleDuration()
 	v.ResetVoiceDuration()

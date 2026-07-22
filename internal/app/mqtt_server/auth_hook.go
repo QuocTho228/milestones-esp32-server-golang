@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// AuthHook 实现自定义鉴权逻辑
-// 支持普通用户和超级管理员
-// 普通用户: 用户名为 base64 后的 {"ip":"1.202.193.194"}，密码为 HMAC-SHA256 签名
-// 超级管理员: 用户名 admin，密码 shijingbo!@#
+// AuthHook triển khai logic xác thực (auth) tùy chỉnh
+// Hỗ trợ người dùng thông thường và quản trị viên cấp cao (super admin)
+// Người dùng thông thường: tên đăng nhập là chuỗi base64 của {"ip":"1.202.193.194"}, mật khẩu là chữ ký HMAC-SHA256
+// Quản trị viên cấp cao: tên đăng nhập admin, mật khẩu shijingbo!@#
 type AuthHook struct {
 	mqttServer.HookBase
 }
@@ -31,10 +31,10 @@ func (h *AuthHook) Provides(b byte) bool {
 }
 
 func (h *AuthHook) OnConnectAuthenticate(cl *mqttServer.Client, pk packets.Packet) bool {
-	// 检查是否启用鉴权
+	// Kiểm tra xem xác thực có được bật hay không
 	enableAuth := viper.GetBool("mqtt_server.enable_auth")
 	if !enableAuth {
-		//log.Infof("MQTT鉴权已禁用，允许所有连接")
+		//log.Infof("Xác thực MQTT đã bị vô hiệu hóa, cho phép tất cả các kết nối")
 		return true
 	}
 
@@ -42,44 +42,44 @@ func (h *AuthHook) OnConnectAuthenticate(cl *mqttServer.Client, pk packets.Packe
 	password := string(pk.Connect.Password)
 	clientId := string(pk.Connect.ClientIdentifier)
 
-	// 超级管理员校验
+	// Kiểm tra thông tin quản trị viên cấp cao
 	adminUsername := configuredAdminUsername()
 	adminPassword := configuredAdminPassword()
 	if username == adminUsername && password == adminPassword {
-		log.Infof("超级管理员登录成功: %s", username)
+		log.Infof("Quản trị viên cấp cao đăng nhập thành công: %s", username)
 		return true
 	}
 	if username == adminUsername {
-		log.Warnf("MQTT管理员登录失败: username=%s, clientId=%s, 原因=密码错误", username, clientId)
+		log.Warnf("Quản trị viên MQTT đăng nhập thất bại: username=%s, clientId=%s, nguyên nhân=sai mật khẩu", username, clientId)
 		return false
 	}
 
-	// 普通用户校验 - 使用新的签名验证逻辑
+	// Kiểm tra người dùng thông thường - sử dụng logic xác minh chữ ký mới
 	signatureKey := viper.GetString("mqtt_server.signature_key")
 	if signatureKey != "" {
 		credentialInfo, err := util.ValidateMqttCredentials(clientId, username, password, signatureKey)
-		//log.Infof("MQTT用户验证开始: clientId=%s, username=%s, password=%s, signatureKey=%s",
+		//log.Infof("Bắt đầu xác minh người dùng MQTT: clientId=%s, username=%s, password=%s, signatureKey=%s",
 		//	clientId, username, password, signatureKey)
-		//log.Infof("MQTT用户验证开始: credentialInfo=%+v", credentialInfo)
+		//log.Infof("Bắt đầu xác minh người dùng MQTT: credentialInfo=%+v", credentialInfo)
 
 		if err != nil {
-			log.Warnf("MQTT凭据验证失败: username=%s, clientId=%s, err=%v", username, clientId, err)
+			log.Warnf("Xác minh thông tin đăng nhập MQTT thất bại: username=%s, clientId=%s, err=%v", username, clientId, err)
 			return false
 		}
 
-		log.Infof("MQTT用户验证成功: groupId=%s, macAddress=%s, uuid=%s",
+		log.Infof("Xác minh người dùng MQTT thành công: groupId=%s, macAddress=%s, uuid=%s",
 			credentialInfo.GroupId, credentialInfo.MacAddress, credentialInfo.UUID)
 		return true
 	}
 
-	// 如果没有配置签名密钥，回退到原来的AES验证逻辑
-	log.Warnf("缺少OTA签名密钥配置，使用AES验证方式")
+	// Nếu không cấu hình khóa chữ ký, quay lại sử dụng logic xác minh AES cũ
+	log.Warnf("Thiếu cấu hình khóa chữ ký OTA, sử dụng phương thức xác minh AES")
 	return h.validateWithAes(username, password)
 }
 
-// validateWithAes 使用AES方式验证密码（向后兼容）
+// validateWithAes xác minh mật khẩu bằng phương thức AES (tương thích ngược)
 func (h *AuthHook) validateWithAes(username, password string) bool {
-	// 普通用户校验
+	// Kiểm tra người dùng thông thường
 	decoded, err := base64.StdEncoding.DecodeString(username)
 	if err != nil {
 		return false
@@ -91,16 +91,16 @@ func (h *AuthHook) validateWithAes(username, password string) bool {
 	if _, ok := userInfo["ip"]; !ok {
 		return false
 	}
-	// 校验 password 是否为 AES 加密后的 username
+	// Kiểm tra xem password có phải là username đã được mã hóa AES hay không
 	if !checkAesPassword(username, password) {
 		return false
 	}
 	return true
 }
 
-// checkAesPassword 校验 password 是否为 AES-ECB 加密后 base64(username)
+// checkAesPassword kiểm tra xem password có phải là base64(username) sau khi mã hóa AES-ECB hay không
 func checkAesPassword(username, password string) bool {
-	key := []byte("milestones_aes_key_1") // 16字节密钥，实际建议配置
+	key := []byte("milestones_aes_key_1") // Khóa 16 byte, khuyến nghị nên đưa ra cấu hình thực tế
 	ciphertext, err := aesEncryptECB([]byte(username), key)
 	if err != nil {
 		return false
@@ -109,14 +109,14 @@ func checkAesPassword(username, password string) bool {
 	return cipherBase64 == password
 }
 
-// aesEncryptECB 实现 AES-ECB 加密
+// aesEncryptECB triển khai mã hóa AES-ECB
 func aesEncryptECB(src, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
 	blockSize := block.BlockSize()
-	// PKCS7 填充
+	// Đệm (padding) theo chuẩn PKCS7
 	padding := blockSize - len(src)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	src = append(src, padtext...)

@@ -34,31 +34,34 @@ var openClawWarmupSchedule = []time.Duration{
 const (
 	openClawWarmupPlanTimeout = 8 * time.Second
 	openClawWarmupPlanSize    = 11
+	// openClawWarmupHintMaxRunes giới hạn độ dài (theo số ký tự) của cụm chủ đề
+	// được trích ra từ câu nói của người dùng, dùng để đưa vào prompt hệ thống.
+	openClawWarmupHintMaxRunes = 30
 )
 
-const openClawWarmupSystemPrompt = `你是实时语音对话里的暖场助手，不是主回答者。
+const openClawWarmupSystemPrompt = `Bạn là trợ lý "giữ nhịp" trong một cuộc hội thoại thoại thời gian thực, không phải người trả lời chính.
 
-你的任务是：在主回复返回前，生成 11 条很短的中文接话，让等待过程听起来一直有人在回应。
+Nhiệm vụ của bạn là: trước khi câu trả lời chính được trả về, hãy tạo ra 11 câu tiếng Việt rất ngắn để tiếp lời, giúp cho quá trình chờ đợi nghe như lúc nào cũng có người đang phản hồi.
 
-硬性要求：
-1. 只负责暖场，不能直接回答问题，不能给出事实、结论、建议、步骤、分析、解释或推测。
-2. 语气要像真人在通话里轻声接话：简短、自然、口语化、有耐心。
-3. 不要像客服，不要像系统提示，不要像通知播报，不要像写文案。
-4. 禁止复述用户原话，尤其不要把“帮我查一下”“帮我看看”“帮我查询一下”“告诉我”这类用户指令原样拼进回复。
-5. 如果需要提到主题，只能提炼成助手视角的名词短语，例如“北京后天的天气”“这个安排”；不要用命令句。
-6. 前 1 到 2 条尽量更轻，不一定带主题词，例如“我看一下”“等我一下”；不要一上来就说很重的安慰话。
-7. 后面的句子再逐步表达“我还在看”“我还在确认”，但要自然，不要机械重复。
-8. 避免使用“正在为您处理”“请稍候”“持续跟进”“调取数据”“连接服务中”这类生硬说法。
-9. 每条都必须是单句短中文，适合语音播报，长度控制在 4 到 16 个汉字。
-10. 你会拿到实际播报时间点。11 条话术必须严格按这些时间点依次设计：
-   - 第 1 秒：像刚接到问题，轻轻接一句。
-   - 第 10 秒：自然补一句，语气仍然轻。
-   - 第 20、30 秒：开始表达“我还在看”，但不要机械。
-   - 第 40、50、60 秒：继续安抚，允许更明确地说“还在确认”。
-   - 第 70、80、90、100 秒：承认时间有点久，但仍然自然、平静，不抱怨。
-11. 只输出严格 JSON 数组，长度必须为 11。
-12. JSON 每项格式必须为：{"text":"暖场语"}。
-13. 禁止输出编号、Markdown、解释、代码块或 JSON 之外的任何内容。`
+Yêu cầu bắt buộc:
+1. Chỉ đảm nhiệm việc giữ nhịp, không được trả lời trực tiếp câu hỏi, không được đưa ra sự kiện, kết luận, gợi ý, các bước, phân tích, giải thích hay suy đoán.
+2. Giọng điệu phải giống người thật đang tiếp lời nhẹ nhàng trong cuộc gọi: ngắn gọn, tự nhiên, đời thường, kiên nhẫn.
+3. Không được giống nhân viên chăm sóc khách hàng, không giống thông báo hệ thống, không giống bản tin, không giống văn bản quảng cáo.
+4. Cấm nhắc lại nguyên văn câu nói của người dùng, đặc biệt không được ghép nguyên các chỉ lệnh như "giúp tôi kiểm tra", "giúp tôi xem", "giúp tôi tra cứu", "nói cho tôi biết" vào câu trả lời.
+5. Nếu cần nhắc đến chủ đề, chỉ được rút gọn thành cụm danh từ theo góc nhìn của trợ lý, ví dụ "thời tiết Hà Nội ngày mốt", "lịch trình này"; không dùng câu mệnh lệnh.
+6. 1 đến 2 câu đầu nên nhẹ nhàng hơn, không nhất thiết phải nhắc đến từ khóa chủ đề, ví dụ "để tôi xem", "chờ tôi chút"; không mở đầu ngay bằng lời trấn an quá nặng nề.
+7. Các câu sau đó dần dần thể hiện "tôi vẫn đang xem", "tôi vẫn đang xác nhận", nhưng phải tự nhiên, không lặp lại một cách máy móc.
+8. Tránh dùng các cách nói cứng nhắc như "đang xử lý cho bạn", "vui lòng chờ", "đang tiếp tục theo dõi", "đang truy xuất dữ liệu", "đang kết nối dịch vụ".
+9. Mỗi câu phải là một câu ngắn, phù hợp để phát bằng giọng nói, độ dài kiểm soát trong khoảng 6 đến 16 ký tự.
+10. Bạn sẽ nhận được các mốc thời gian phát thực tế. 11 câu thoại phải được thiết kế nghiêm ngặt theo thứ tự các mốc thời gian này:
+   - Giây thứ 1: như vừa mới nhận câu hỏi, tiếp lời nhẹ nhàng.
+   - Giây thứ 10: bổ sung một câu tự nhiên, giọng điệu vẫn nhẹ.
+   - Giây thứ 20, 30: bắt đầu thể hiện "tôi vẫn đang xem", nhưng đừng máy móc.
+   - Giây thứ 40, 50, 60: tiếp tục trấn an, có thể nói rõ hơn "vẫn đang xác nhận".
+   - Giây thứ 70, 80, 90, 100: thừa nhận là hơi lâu, nhưng vẫn tự nhiên, bình tĩnh, không than phiền.
+11. Chỉ xuất ra đúng một mảng JSON nghiêm ngặt, độ dài phải là 11.
+12. Mỗi phần tử JSON phải có định dạng: {"text":"câu giữ nhịp"}.
+13. Cấm xuất ra số thứ tự, Markdown, giải thích, khối mã hoặc bất kỳ nội dung nào ngoài JSON.`
 
 type openClawWarmupTask struct {
 	correlationID string
@@ -369,8 +372,9 @@ func (s *ChatSession) runOpenClawWarmupTask(task *openClawWarmupTask, userText s
 		task.spokeAny.Store(true)
 	}
 
-	// 不在这里清理 active task：最后一条暖场音频可能仍在发送/播放中，
-	// 需要继续允许 OpenClaw 首句到达时执行抢占打断。
+	// Không dọn dẹp active task ở đây: câu âm thanh giữ nhịp cuối cùng có thể vẫn đang
+	// được gửi/phát, cần tiếp tục cho phép thực hiện ngắt ưu tiên khi câu đầu tiên của
+	// OpenClaw đến.
 }
 
 func waitOpenClawWarmupUntil(ctx context.Context, deadline time.Time) bool {
@@ -444,7 +448,8 @@ func (s *ChatSession) speakOpenClawWarmupLine(task *openClawWarmupTask, text str
 		IsStart: task.takeWarmupSegmentStartFlag(),
 		IsEnd:   true,
 	}
-	// 暖场句需要确保已经进入发送链路，避免被后续正式回复“看起来像没生效”。
+	// Câu giữ nhịp cần đảm bảo đã đi vào luồng gửi, tránh bị phản hồi chính thức
+	// sau đó "trông như không có tác dụng".
 	return s.ttsManager.handleTextResponse(task.sessionCtx, resp, true)
 }
 
@@ -485,12 +490,12 @@ func (s *ChatSession) generateOpenClawWarmupPlan(ctx context.Context, correlatio
 func buildOpenClawWarmupUserPrompt(userText string) string {
 	trimmed := strings.TrimSpace(userText)
 	topic := formatOpenClawWarmupTopic(buildOpenClawWarmupHint(userText))
-	topicLine := "不要复述“帮我查一下”这类用户指令。"
+	topicLine := "Không nhắc lại các chỉ lệnh của người dùng kiểu \"giúp tôi kiểm tra\"."
 	if topic != "" {
-		topicLine = fmt.Sprintf("如果需要提到主题，只能提炼成名词短语“%s”，不要复述“帮我查一下”这类用户指令。", topic)
+		topicLine = fmt.Sprintf("Nếu cần nhắc đến chủ đề, chỉ được rút gọn thành cụm danh từ \"%s\", không nhắc lại các chỉ lệnh của người dùng kiểu \"giúp tôi kiểm tra\".", topic)
 	}
 	return fmt.Sprintf(
-		"用户本轮任务：\n%s\n\n%s\n\n实际播报时间点依次为：第1秒、第10秒、第20秒、第30秒、第40秒、第50秒、第60秒、第70秒、第80秒、第90秒、第100秒。\n请输出 11 条暖场语，并按上述 11 个时间点一一对应。",
+		"Nhiệm vụ của người dùng trong lượt này:\n%s\n\n%s\n\nCác mốc thời gian phát thực tế lần lượt là: giây thứ 1, giây thứ 10, giây thứ 20, giây thứ 30, giây thứ 40, giây thứ 50, giây thứ 60, giây thứ 70, giây thứ 80, giây thứ 90, giây thứ 100.\nVui lòng xuất ra 11 câu giữ nhịp, tương ứng lần lượt với 11 mốc thời gian nêu trên.",
 		trimmed,
 		topicLine,
 	)
@@ -600,7 +605,7 @@ func sanitizeOpenClawWarmupText(text string) string {
 	text = strings.ReplaceAll(text, "\n", " ")
 	text = strings.TrimSpace(text)
 	text = strings.Trim(text, "\"'`[]{}")
-	text = strings.TrimLeft(text, "0123456789.、- ")
+	text = strings.TrimLeft(text, "0123456789.,- ")
 	text = strings.Join(strings.Fields(text), " ")
 	if text == "" {
 		return ""
@@ -616,18 +621,21 @@ func sanitizeOpenClawWarmupText(text string) string {
 	return text
 }
 
+// isInvalidOpenClawWarmupText phát hiện các câu "giữ nhịp" bị mô hình lặp lại
+// nguyên văn chỉ lệnh của người dùng (ví dụ "giúp tôi kiểm tra..."), là dấu hiệu
+// vi phạm yêu cầu số 4 trong system prompt.
 func isInvalidOpenClawWarmupText(text string) bool {
 	for _, bad := range []string{
-		"帮我",
-		"给我",
-		"告诉我",
-		"请帮",
-		"麻烦帮",
-		"能帮我",
-		"可以帮我",
-		"帮忙查",
-		"帮忙看",
-		"帮忙问",
+		"giúp tôi",
+		"giúp mình",
+		"cho tôi",
+		"nói cho tôi biết",
+		"làm ơn giúp",
+		"phiền bạn giúp",
+		"phiền giúp",
+		"có thể giúp tôi",
+		"có thể giúp",
+		"bạn giúp tôi",
 	} {
 		if strings.Contains(text, bad) {
 			return true
@@ -636,6 +644,9 @@ func isInvalidOpenClawWarmupText(text string) bool {
 	return false
 }
 
+// buildOpenClawWarmupHint trích ra một cụm danh từ chủ đề ngắn gọn từ câu nói
+// của người dùng (ví dụ "thời tiết Hà Nội ngày mai"), để đưa vào prompt hệ thống
+// làm gợi ý chủ đề cho các câu giữ nhịp.
 func buildOpenClawWarmupHint(userText string) string {
 	trimmed := strings.TrimSpace(userText)
 	if trimmed == "" {
@@ -652,31 +663,24 @@ func buildOpenClawWarmupHint(userText string) string {
 		return ""
 	}
 
-	for _, keyword := range []string{"天气", "气温", "温度", "预报"} {
+	for _, keyword := range []string{"thời tiết", "nhiệt độ", "độ ẩm", "dự báo"} {
 		if idx := strings.Index(normalized, keyword); idx >= 0 {
-			limit := idx + len([]rune(keyword))
-			runes := []rune(normalized)
-			if limit > len(runes) {
-				limit = len(runes)
-			}
-			normalized = string(runes[:limit])
+			// Trong tiếng Việt, từ khoá chủ đề thường đứng trước các thành phần bổ
+			// nghĩa (địa điểm, thời gian), khác với tiếng Trung (từ khoá thường
+			// đứng sau). Vì vậy ta giữ lại phần từ vị trí từ khoá đến hết chuỗi,
+			// thay vì cắt bỏ phần sau từ khoá như bản gốc tiếng Trung.
+			normalized = normalized[idx:]
 			break
 		}
 	}
 
 	runes := []rune(normalized)
-	if len(runes) > 10 {
-		runes = runes[:10]
+	if len(runes) > openClawWarmupHintMaxRunes {
+		runes = runes[:openClawWarmupHintMaxRunes]
 	}
-	for len(runes) > 0 {
-		last := runes[len(runes)-1]
-		if last == '的' || last == '了' || last == '呢' {
-			runes = runes[:len(runes)-1]
-			continue
-		}
-		break
-	}
-	return string(runes)
+	normalized = strings.TrimSpace(string(runes))
+	normalized = trimOpenClawWarmupQuestionSuffix(normalized)
+	return normalized
 }
 
 func trimOpenClawWarmupCommandPrefix(text string) string {
@@ -684,43 +688,43 @@ func trimOpenClawWarmupCommandPrefix(text string) string {
 	for {
 		changed := false
 		for _, prefix := range []string{
-			"麻烦帮我查询一下",
-			"麻烦帮我查一下",
-			"麻烦帮我看一下",
-			"请帮我查询一下",
-			"请帮我查一下",
-			"请帮我看一下",
-			"帮我查询一下",
-			"帮我查一下",
-			"帮我看一下",
-			"帮我问一下",
-			"给我查询一下",
-			"给我查一下",
-			"给我看一下",
-			"可以帮我查一下",
-			"可以帮我看一下",
-			"能帮我查一下",
-			"能帮我看一下",
-			"我想知道",
-			"我想问一下",
-			"我想问",
-			"请问一下",
-			"请问",
-			"查询一下",
-			"查一下",
-			"看一下",
-			"问一下",
-			"帮我查询",
-			"帮我查",
-			"帮我看",
-			"帮我问",
-			"给我查询",
-			"给我查",
-			"给我看",
-			"查询",
-			"查",
-			"看",
-			"问",
+			"phiền bạn giúp tôi tra cứu một chút",
+			"phiền bạn giúp tôi kiểm tra một chút",
+			"phiền bạn giúp tôi xem một chút",
+			"làm ơn giúp tôi tra cứu một chút",
+			"làm ơn giúp tôi kiểm tra một chút",
+			"làm ơn giúp tôi xem một chút",
+			"giúp tôi tra cứu một chút",
+			"giúp tôi kiểm tra một chút",
+			"giúp tôi xem một chút",
+			"giúp tôi hỏi một chút",
+			"cho tôi tra cứu một chút",
+			"cho tôi kiểm tra một chút",
+			"cho tôi xem một chút",
+			"có thể giúp tôi kiểm tra một chút",
+			"có thể giúp tôi xem một chút",
+			"bạn giúp tôi kiểm tra được không",
+			"bạn giúp tôi xem được không",
+			"tôi muốn biết",
+			"tôi muốn hỏi một chút",
+			"tôi muốn hỏi",
+			"làm ơn cho hỏi một chút",
+			"làm ơn cho hỏi",
+			"tra cứu một chút",
+			"kiểm tra một chút",
+			"xem một chút",
+			"hỏi một chút",
+			"giúp tôi tra cứu",
+			"giúp tôi kiểm tra",
+			"giúp tôi xem",
+			"giúp tôi hỏi",
+			"cho tôi tra cứu",
+			"cho tôi kiểm tra",
+			"cho tôi xem",
+			"tra cứu",
+			"kiểm tra",
+			"xem",
+			"hỏi",
 		} {
 			if strings.HasPrefix(trimmed, prefix) {
 				trimmed = strings.TrimSpace(strings.TrimPrefix(trimmed, prefix))
@@ -738,34 +742,30 @@ func trimOpenClawWarmupCommandPrefix(text string) string {
 func trimOpenClawWarmupQuestionSuffix(text string) string {
 	trimmed := strings.TrimSpace(text)
 	for _, suffix := range []string{
-		"怎么样",
-		"如何",
-		"多少",
-		"是什么",
-		"是啥",
-		"吗",
-		"呢",
-		"呀",
-		"吧",
+		"thế nào",
+		"như thế nào",
+		"bao nhiêu",
+		"là gì",
+		"là cái gì",
+		"à",
+		"nhỉ",
+		"vậy",
+		"nhé",
 	} {
 		trimmed = strings.TrimSpace(strings.TrimSuffix(trimmed, suffix))
 	}
 	return trimmed
 }
 
+// formatOpenClawWarmupTopic chuẩn hoá khoảng trắng của cụm chủ đề trước khi
+// đưa vào prompt. Bản gốc tiếng Trung còn chèn thêm trợ từ sở hữu "的" giữa
+// phần bổ nghĩa và từ khoá (vì từ khoá nằm ở cuối cụm); tiếng Việt không cần
+// trợ từ nối vì buildOpenClawWarmupHint đã đưa từ khoá lên đầu cụm, nên hàm
+// này chỉ còn nhiệm vụ dọn khoảng trắng thừa.
 func formatOpenClawWarmupTopic(hint string) string {
 	hint = strings.TrimSpace(hint)
 	if hint == "" {
 		return ""
 	}
-	for _, keyword := range []string{"天气", "气温", "温度", "预报"} {
-		if idx := strings.Index(hint, keyword); idx > 0 {
-			prefix := strings.TrimSpace(hint[:idx])
-			if prefix == "" || strings.HasSuffix(prefix, "的") {
-				return hint
-			}
-			return prefix + "的" + hint[idx:]
-		}
-	}
-	return hint
+	return strings.Join(strings.Fields(hint), " ")
 }

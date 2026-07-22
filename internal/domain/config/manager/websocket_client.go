@@ -1065,7 +1065,7 @@ func getDeviceMcpTools(deviceID string) ([]map[string]interface{}, error) {
 func getAgentMcpTools(agentID string) ([]map[string]interface{}, error) {
 	reportedTools, err := mcp.RefreshReportedToolsByAgentID(agentID)
 	if err != nil {
-		log.Errorf("Không thể làm mới danh sách các công cụ báo cáo MCP dành cho các tác nhân thông minh: %v", err)
+		log.Errorf("Không thể làm mới danh sách các công cụ báo cáo MCP dành cho các tác nhân AI: %v", err)
 		return nil, err
 	}
 

@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// SafeBuffer 是一个协程安全的缓冲区
+// SafeBuffer là một vùng đệm an toàn khi được truy cập đồng thời bởi nhiều goroutine.
 type SafeBuffer struct {
 	buf bytes.Buffer
 	mu  sync.Mutex

@@ -6,18 +6,18 @@ import (
 	"milestones/manager/backend/config"
 )
 
-// Config SQLite配置
+// Config: Cấu hình SQLite.
 type Config struct {
-	// FilePath 数据库文件路径（如：./data/milestones.db 或 /path/to/milestones.db）
+	// FilePath: Đường dẫn đến tệp cơ sở dữ liệu (ví dụ: ./data/milestones.db hoặc /path/to/milestones.db).
 	FilePath string `json:"file_path"`
 
-	// 连接池配置（SQLite 通常单连接足够）
+	// Cấu hình nhóm kết nối (đối với SQLite, một kết nối thường là đủ).
 	MaxIdleConns    int `json:"max_idle_conns"`
 	MaxOpenConns    int `json:"max_open_conns"`
 	ConnMaxLifetime int `json:"conn_max_lifetime"`
 }
 
-// NewConfigFromDatabase 从数据库配置创建SQLite配置
+// NewConfigFromDatabase: Tạo cấu hình SQLite từ cấu hình cơ sở dữ liệu.
 func NewConfigFromDatabase(cfg *config.SQLiteConfig) *Config {
 	filePath := cfg.FilePath
 	if filePath == "" {
@@ -32,19 +32,19 @@ func NewConfigFromDatabase(cfg *config.SQLiteConfig) *Config {
 	}
 }
 
-// DSN 生成数据源名称（GORM SQLite 格式）
+// DSN: Tạo tên nguồn dữ liệu (định dạng GORM SQLite).
 func (c *Config) DSN() string {
-	// 确保使用 file: 前缀以支持更多选项
+	// Đảm bảo sử dụng tiền tố file: để hỗ trợ thêm nhiều tùy chọn.
 	return "file:" + c.FilePath + "?_foreign_keys=on&_journal_mode=WAL"
 }
 
-// Validate 验证配置
+// Validate: Kiểm tra tính hợp lệ của cấu hình.
 func (c *Config) Validate() error {
 	if c.FilePath == "" {
 		return fmt.Errorf("SQLite file path is required")
 	}
 
-	// 检查文件扩展名
+	// Kiểm tra phần mở rộng của tệp.
 	ext := filepath.Ext(c.FilePath)
 	if ext != ".db" && ext != ".sqlite" && ext != ".sqlite3" {
 		return fmt.Errorf("SQLite file must have .db, .sqlite or .sqlite3 extension")
@@ -53,7 +53,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// ValidateConfig 验证SQLite配置
+// ValidateConfig: Kiểm tra tính hợp lệ của cấu hình SQLite.
 func ValidateConfig(cfg *config.SQLiteConfig) error {
 	if cfg == nil {
 		return fmt.Errorf("SQLite config is required")
@@ -62,7 +62,7 @@ func ValidateConfig(cfg *config.SQLiteConfig) error {
 		return fmt.Errorf("SQLite file path is required")
 	}
 
-	// 检查文件扩展名
+	// Kiểm tra phần mở rộng của tệp.
 	ext := filepath.Ext(cfg.FilePath)
 	if ext != ".db" && ext != ".sqlite" && ext != ".sqlite3" {
 		return fmt.Errorf("SQLite file must have .db, .sqlite or .sqlite3 extension")

@@ -139,7 +139,7 @@ func TestSummarizeDoubaoWSAttemptErrorResourceNotGranted(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !strings.Contains(err.Error(), "resource_id 未授权") {
+	if !strings.Contains(err.Error(), "resource_id chưa được cấp quyền") {
 		t.Fatalf("unexpected error = %v", err)
 	}
 }
@@ -157,7 +157,7 @@ func TestSummarizeDoubaoWSAttemptErrorExplicitUnauthorizedThenMismatch(t *testin
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !strings.Contains(err.Error(), "显式 resource_id 对该 app/token 未授权") {
+	if !strings.Contains(err.Error(), "resource_id chỉ định (explicit) hiện tại không được cấp quyền cho app/token này") {
 		t.Fatalf("unexpected error = %v", err)
 	}
 }

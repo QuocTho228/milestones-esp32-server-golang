@@ -11,9 +11,9 @@ import (
 )
 
 func (p *EinoLLMProvider) ResponseWithVllm(ctx context.Context, file []byte, text string, mimeType string) (string, error) {
-	log.Infof("[Eino-LLM] 开始进行VLLM请求 - MIMEType: %s, file length: %d", mimeType, len(file))
+	log.Infof("[Eino-LLM] Bắt đầu thực hiện request VLLM - MIMEType: %s, độ dài file: %d", mimeType, len(file))
 
-	// 将图片文件以base64编码，组装为data url
+	// Mã hóa file hình ảnh bằng base64, ghép thành data url
 	base64Str := base64.StdEncoding.EncodeToString(file)
 	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Str)
 
@@ -36,21 +36,21 @@ func (p *EinoLLMProvider) ResponseWithVllm(ctx context.Context, file []byte, tex
 	dialogue := []*schema.Message{
 		&schema.Message{
 			Role:    schema.System,
-			Content: "你是一个专业的图片识别专家，请根据图片内容使用中文回答用户的问题。",
+			Content: "Bạn là chuyên gia nhận diện hình ảnh chuyên nghiệp, hãy dựa vào nội dung hình ảnh để trả lời câu hỏi của người dùng bằng tiếng Việt.",
 		},
 		msg,
 	}
 	responseChan := p.ResponseWithContext(ctx, "", dialogue, []*schema.ToolInfo{})
 	if responseChan == nil {
-		log.Errorf("[Eino-VLLM] 调用视觉api请求处理失败 - responseChan为nil")
-		return "", fmt.Errorf("调用视觉api请求处理失败 - responseChan为nil")
+		log.Errorf("[Eino-VLLM] Gọi xử lý request API thị giác (vision api) thất bại - responseChan là nil")
+		return "", fmt.Errorf("gọi xử lý request API thị giác (vision api) thất bại - responseChan là nil")
 	}
 
 	var result bytes.Buffer
 	for {
 		select {
 		case <-ctx.Done():
-			log.Errorf("[Eino-VLLM]  context done")
+			log.Errorf("[Eino-VLLM] context done")
 			return "", nil
 		case response, ok := <-responseChan:
 			if !ok {

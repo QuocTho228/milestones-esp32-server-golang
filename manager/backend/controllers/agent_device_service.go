@@ -32,12 +32,12 @@ func scopeFromContext(c *gin.Context) accessScope {
 func targetUserIDFromScope(scope accessScope, requested uint) (uint, error) {
 	if scope.IsAdmin {
 		if requested == 0 {
-			return 0, fmt.Errorf("请选择所属用户")
+			return 0, fmt.Errorf("Vui lòng chọn người dùng")
 		}
 		return requested, nil
 	}
 	if scope.ActorUserID == 0 {
-		return 0, fmt.Errorf("用户未认证")
+		return 0, fmt.Errorf("Người dùng chưa xác thực")
 	}
 	return scope.ActorUserID, nil
 }
@@ -96,7 +96,7 @@ func (svc *AgentService) Get(scope accessScope, id uint) (*AgentResponse, error)
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("智能体不存在")
+			return nil, fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (svc *AgentService) Get(scope accessScope, id uint) (*AgentResponse, error)
 		return nil, err
 	}
 	if len(items) == 0 {
-		return nil, fmt.Errorf("智能体不存在")
+		return nil, fmt.Errorf("Tác nhân AI không tồn tại")
 	}
 	return &items[0], nil
 }
@@ -125,16 +125,16 @@ func (svc *AgentService) Create(scope accessScope, payload AgentPayload) (*Agent
 		nickname = strings.TrimSpace(*payload.Nickname)
 	}
 	if name == "" {
-		return nil, fmt.Errorf("请输入智能体名称")
+		return nil, fmt.Errorf("Vui lòng nhập tên của tác nhân AI")
 	}
 	if len([]rune(name)) > 50 {
-		return nil, fmt.Errorf("智能体名称不能超过50个字符")
+		return nil, fmt.Errorf("Tên tác nhân AI không được vượt quá 50 ký tự")
 	}
 	if nickname == "" {
 		nickname = name
 	}
 	if len([]rune(nickname)) > 50 {
-		return nil, fmt.Errorf("智能体昵称不能超过50个字符")
+		return nil, fmt.Errorf("Biệt danh của tác nhân AI không được vượt quá 50 ký tự")
 	}
 
 	agent := models.Agent{
@@ -183,17 +183,17 @@ func (svc *AgentService) Update(scope accessScope, id uint, payload AgentPayload
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("智能体不存在")
+			return nil, fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return nil, err
 	}
 
 	name := strings.TrimSpace(payload.Name)
 	if name == "" {
-		return nil, fmt.Errorf("请输入智能体名称")
+		return nil, fmt.Errorf("Vui lòng nhập tên tác nhân AI")
 	}
 	if len([]rune(name)) > 50 {
-		return nil, fmt.Errorf("智能体名称不能超过50个字符")
+		return nil, fmt.Errorf("Tên tác nhân AI không được vượt quá 50 ký tự")
 	}
 	agent.Name = name
 	if payload.Nickname != nil {
@@ -201,7 +201,7 @@ func (svc *AgentService) Update(scope accessScope, id uint, payload AgentPayload
 	}
 	ensureAgentNickname(&agent)
 	if len([]rune(agent.Nickname)) > 50 {
-		return nil, fmt.Errorf("智能体昵称不能超过50个字符")
+		return nil, fmt.Errorf("Biệt danh của tác nhân AI không được vượt quá 50 ký tự")
 	}
 
 	agent.CustomPrompt = payload.CustomPrompt
@@ -254,16 +254,16 @@ func (svc *AgentService) Delete(scope accessScope, id uint) error {
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return fmt.Errorf("智能体不存在")
+			return fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return err
 	}
 	deviceCount, err := countDevicesByAgentID(svc.DB, agent.ID)
 	if err != nil {
-		return fmt.Errorf("查询智能体绑定设备失败")
+		return fmt.Errorf("Không thể truy xuất các thiết bị đã liên kết với tác nhân AI")
 	}
 	if deviceCount > 0 {
-		return fmt.Errorf("智能体已绑定设备，请先移除所有设备后再删除")
+		return fmt.Errorf("Tác nhân AI đã liên kết với thiết bị. Vui lòng gỡ tất cả thiết bị trước khi xóa")
 	}
 	return svc.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Delete(&agent).Error; err != nil {
@@ -376,7 +376,7 @@ func (svc *AgentService) assertUserExists(userID uint) error {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("指定的用户不存在")
+		return fmt.Errorf("Người dùng được chỉ định không tồn tại")
 	}
 	return nil
 }
@@ -391,7 +391,7 @@ func (svc *AgentService) validateKnowledgeBaseOwnership(userID uint, knowledgeBa
 		return err
 	}
 	if count != int64(len(uniqueIDs)) {
-		return fmt.Errorf("包含无效或越权的知识库ID")
+		return fmt.Errorf("Chứa ID kho tri thức không hợp lệ hoặc vượt quá quyền hạn")
 	}
 	return nil
 }
@@ -443,7 +443,7 @@ func (svc *DeviceService) ListByAgent(scope accessScope, agentID uint) ([]Device
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("智能体不存在")
+			return nil, fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return nil, err
 	}
@@ -471,10 +471,10 @@ func (svc *DeviceService) Create(scope accessScope, payload DevicePayload) (*Dev
 	deviceCode := strings.TrimSpace(payload.DeviceCode)
 	if scope.IsAdmin {
 		if deviceCode == "" && deviceName == "" {
-			return nil, fmt.Errorf("激活码和设备标识至少填写一个")
+			return nil, fmt.Errorf("Vui lòng nhập ít nhất một trong hai: mã kích hoạt hoặc mã định danh thiết bị")
 		}
 	} else if deviceName == "" {
-		return nil, fmt.Errorf("请输入设备标识")
+		return nil, fmt.Errorf("Vui lòng nhập mã định danh thiết bị")
 	}
 	if nickName == "" {
 		nickName = deviceName
@@ -542,7 +542,7 @@ func (svc *DeviceService) Update(scope accessScope, id uint, payload DevicePaylo
 	}
 	if err := query.First(&device).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("设备不存在或不属于当前用户")
+			return nil, fmt.Errorf("Thiết bị không tồn tại hoặc không thuộc về người dùng hiện tại")
 		}
 		return nil, err
 	}
@@ -562,7 +562,7 @@ func (svc *DeviceService) Update(scope accessScope, id uint, payload DevicePaylo
 		nickName = device.NickName
 	}
 	if !scope.IsAdmin && nickName == "" {
-		return nil, fmt.Errorf("设备昵称不能为空")
+		return nil, fmt.Errorf("Biệt danh thiết bị không được để trống")
 	}
 	nextAgentID := device.AgentID
 	if payload.AgentID > 0 || scope.IsAdmin {
@@ -606,7 +606,7 @@ func (svc *DeviceService) Get(scope accessScope, id uint) (*DeviceResponse, erro
 	}
 	if err := query.First(&device).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("设备不存在")
+			return nil, fmt.Errorf("Thiết bị không tồn tại")
 		}
 		return nil, err
 	}
@@ -615,7 +615,7 @@ func (svc *DeviceService) Get(scope accessScope, id uint) (*DeviceResponse, erro
 		return nil, err
 	}
 	if len(items) == 0 {
-		return nil, fmt.Errorf("设备不存在")
+		return nil, fmt.Errorf("Thiết bị không tồn tại")
 	}
 	return &items[0], nil
 }
@@ -628,7 +628,7 @@ func (svc *DeviceService) Delete(scope accessScope, id uint) error {
 	var device models.Device
 	if err := query.First(&device).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return fmt.Errorf("设备不存在或不属于当前用户")
+			return fmt.Errorf("Thiết bị không tồn tại hoặc không thuộc về người dùng hiện tại")
 		}
 		return err
 	}
@@ -643,7 +643,7 @@ func (svc *DeviceService) BindToAgent(scope accessScope, agentID uint, payload D
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("智能体不存在")
+			return nil, fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return nil, err
 	}
@@ -654,10 +654,10 @@ func (svc *DeviceService) BindToAgent(scope accessScope, agentID uint, payload D
 		deviceName = strings.TrimSpace(payload.DeviceName)
 	}
 	if code == "" && deviceName == "" {
-		return nil, fmt.Errorf("请填写设备验证码或设备MAC")
+		return nil, fmt.Errorf("Vui lòng nhập mã xác minh thiết bị hoặc địa chỉ MAC của thiết bị")
 	}
 	if code != "" && !isSixDigitCode(code) {
-		return nil, fmt.Errorf("验证码格式错误")
+		return nil, fmt.Errorf("Định dạng mã xác minh không hợp lệ")
 	}
 	nickName, err := normalizeDeviceNickName(payload.NickName)
 	if err != nil {
@@ -688,9 +688,9 @@ func (svc *DeviceService) BindToAgent(scope accessScope, agentID uint, payload D
 	if deviceExists {
 		if device.UserID != 0 && device.UserID != agent.UserID {
 			if code != "" {
-				return nil, fmt.Errorf("验证码无效或设备已被绑定")
+				return nil, fmt.Errorf("Mã xác minh không hợp lệ hoặc thiết bị đã được liên kết")
 			}
-			return nil, fmt.Errorf("设备MAC无效或设备已被绑定")
+			return nil, fmt.Errorf("Địa chỉ MAC của thiết bị không hợp lệ hoặc thiết bị đã được liên kết")
 		}
 		device.UserID = agent.UserID
 		device.AgentID = agent.ID
@@ -736,7 +736,7 @@ func (svc *DeviceService) UnbindFromAgent(scope accessScope, agentID uint, devic
 	}
 	if err := query.First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return fmt.Errorf("智能体不存在")
+			return fmt.Errorf("Tác nhân AI không tồn tại")
 		}
 		return err
 	}
@@ -744,7 +744,7 @@ func (svc *DeviceService) UnbindFromAgent(scope accessScope, agentID uint, devic
 	var device models.Device
 	if err := svc.DB.Where("id = ? AND user_id = ? AND agent_id = ?", deviceID, agent.UserID, agent.ID).First(&device).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return fmt.Errorf("设备不存在或不属于此智能体")
+			return fmt.Errorf("Tác nhân AI không tồn tại hoặc không thuộc về người dùng chỉ định")
 		}
 		return err
 	}
@@ -825,7 +825,7 @@ func (svc *DeviceService) assertUserExists(userID uint) error {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("指定的用户不存在")
+		return fmt.Errorf("Người dùng được chỉ định không tồn tại")
 	}
 	return nil
 }
@@ -836,7 +836,7 @@ func (svc *DeviceService) assertAgentOwnedByUser(agentID uint, userID uint) erro
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("智能体不存在或不属于指定用户")
+		return fmt.Errorf("Tác nhân AI không tồn tại hoặc không thuộc về người dùng được chỉ định")
 	}
 	return nil
 }
@@ -850,10 +850,10 @@ func writeServiceError(c *gin.Context, err error, fallback string) {
 		msg = fallback
 	}
 	status := http.StatusBadRequest
-	if strings.Contains(msg, "不存在") {
+	if strings.Contains(msg, "Không tồn tại") {
 		status = http.StatusNotFound
 	}
-	if strings.Contains(msg, "无权") || strings.Contains(msg, "越权") {
+	if strings.Contains(msg, "Không có quyền") || strings.Contains(msg, "Vượt quá quyền hạn") {
 		status = http.StatusForbidden
 	}
 	c.JSON(status, gin.H{"error": msg})
@@ -958,7 +958,7 @@ func mapValues(values map[string]string) []string {
 func parseUintParam(c *gin.Context, name string) (uint, bool) {
 	id, err := strconv.Atoi(c.Param(name))
 	if err != nil || id <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
 		return 0, false
 	}
 	return uint(id), true
@@ -967,7 +967,7 @@ func parseUintParam(c *gin.Context, name string) (uint, bool) {
 func getVoiceOptionsForUser(db *gorm.DB, c *gin.Context, targetUserID uint, provider, configID, overrideURL, overrideAPIKey string) ([]VoiceOption, error) {
 	provider = strings.TrimSpace(provider)
 	if provider == "" {
-		return nil, fmt.Errorf("provider参数必填")
+		return nil, fmt.Errorf("Tham số provider là bắt buộc")
 	}
 
 	var systemVoices []VoiceOption
@@ -975,7 +975,7 @@ func getVoiceOptionsForUser(db *gorm.DB, c *gin.Context, targetUserID uint, prov
 		uc := &UserController{DB: db}
 		voices, err := uc.fetchIndexTTSVoices(c, configID, overrideURL, overrideAPIKey)
 		if err != nil {
-			return nil, fmt.Errorf("获取IndexTTS音色失败: %w", err)
+			return nil, fmt.Errorf("Không thể lấy danh sách giọng nói của IndexTTS: %w", err)
 		}
 		systemVoices = voices
 	} else if provider == "aliyun_qwen" {
@@ -984,7 +984,7 @@ func getVoiceOptionsForUser(db *gorm.DB, c *gin.Context, targetUserID uint, prov
 		} else {
 			var cfg models.Config
 			if err := db.Where("type = ? AND config_id = ?", "tts", configID).First(&cfg).Error; err != nil {
-				return nil, fmt.Errorf("未找到对应的TTS配置")
+				return nil, fmt.Errorf("Không tìm thấy cấu hình TTS tương ứng")
 			}
 			var qc struct {
 				Model string `json:"model"`
@@ -1045,7 +1045,7 @@ func getVoiceOptionsForUser(db *gorm.DB, c *gin.Context, targetUserID uint, prov
 			for _, clone := range sharedClones {
 				opt := VoiceOption{
 					Value: clone.ProviderVoiceID,
-					Label: fmt.Sprintf("[管理员共享] %s (%s)", clone.Name, clone.ProviderVoiceID),
+					Label: fmt.Sprintf("[Quản trị viên chia sẻ] %s (%s)", clone.Name, clone.ProviderVoiceID),
 				}
 				key := strings.TrimSpace(opt.Value)
 				if key == "" || seen[key] {

@@ -1,49 +1,49 @@
-# HTTP 组件
+# Thành phần HTTP
 
-统一的 HTTP 客户端组件，用于管理所有对 Manager 后端的 HTTP 调用。
+Thành phần HTTP client thống nhất, dùng để quản lý toàn bộ các lệnh gọi HTTP đến backend Manager.
 
-## 目录结构
+## Cấu trúc thư mục
 
 ```
 internal/components/http/
-├── client.go          # 通用 HTTP 客户端（支持重试、认证等）
-├── manager_client.go  # Manager 后端专用客户端
-├── types.go           # 类型定义
-└── README.md          # 本文档
+├── client.go          # HTTP client dùng chung (hỗ trợ retry, xác thực, v.v.)
+├── manager_client.go  # Client chuyên dụng cho backend Manager
+├── types.go           # Định nghĩa kiểu dữ liệu
+└── README.md          # Tài liệu này
 ```
 
-## 设计说明
+## Giải thích thiết kế
 
-### Client（通用 HTTP 客户端）
+### Client (HTTP client dùng chung)
 
-提供基础的 HTTP 请求功能：
+Cung cấp các chức năng HTTP request cơ bản:
 
-- 支持重试机制（使用 exponential backoff）
-- 支持认证 Token（Bearer Token）
-- 支持自定义超时时间
-- 统一错误处理
-- 自动 JSON 序列化/反序列化
+- Hỗ trợ cơ chế thử lại (retry) (dùng exponential backoff)
+- Hỗ trợ Token xác thực (Bearer Token)
+- Hỗ trợ tùy chỉnh thời gian timeout
+- Xử lý lỗi thống nhất
+- Tự động serialize/deserialize JSON
 
-### ManagerClient（Manager 后端专用客户端）
+### ManagerClient (Client chuyên dụng cho backend Manager)
 
-基于通用客户端封装，专门用于调用 Manager 后端 API。
+Được xây dựng dựa trên client dùng chung, chuyên dùng để gọi API của backend Manager.
 
-## 使用示例
+## Ví dụ sử dụng
 
-### 创建 Manager 客户端
+### Tạo Manager client
 
 ```go
 import "milestones-esp32-server-golang/internal/components/http"
 
 client := http.NewManagerClient(http.ManagerClientConfig{
     BaseURL:    "http://localhost:8080",
-    AuthToken:  "your-token",  // 可选
+    AuthToken:  "your-token",  // Tùy chọn
     Timeout:    10 * time.Second,
     MaxRetries: 3,
 })
 ```
 
-### 发送 GET 请求
+### Gửi request GET
 
 ```go
 var response MyResponse
@@ -57,7 +57,7 @@ err := client.DoRequest(ctx, http.RequestOptions{
 })
 ```
 
-### 发送 POST 请求
+### Gửi request POST
 
 ```go
 request := MyRequest{
@@ -72,7 +72,7 @@ err := client.DoRequest(ctx, http.RequestOptions{
 })
 ```
 
-### 获取原始响应
+### Lấy response gốc
 
 ```go
 body, err := client.DoRequestRaw(ctx, http.RequestOptions{
@@ -81,28 +81,28 @@ body, err := client.DoRequestRaw(ctx, http.RequestOptions{
 })
 ```
 
-## 重构说明
+## Giải thích về việc tái cấu trúc (refactor)
 
-### 重构前
+### Trước khi tái cấu trúc
 
-- `HistoryClient` 和 `ConfigManager` 各自实现 HTTP 调用逻辑
-- 代码重复，维护成本高
-- 重试、认证等逻辑分散
+- `HistoryClient` và `ConfigManager` mỗi cái tự triển khai logic gọi HTTP riêng
+- Code bị trùng lặp, chi phí bảo trì cao
+- Logic retry, xác thực... bị phân tán rải rác
 
-### 重构后
+### Sau khi tái cấu trúc
 
-- 统一的 HTTP 组件，集中管理
-- 代码复用，易于维护
-- 统一的错误处理和重试机制
+- Thành phần HTTP thống nhất, quản lý tập trung
+- Code được tái sử dụng, dễ bảo trì
+- Cơ chế xử lý lỗi và retry thống nhất
 
-## 已重构的模块
+## Các module đã được tái cấu trúc
 
-1. **internal/data/history/client.go** - 聊天历史客户端
-2. **internal/domain/config/manager/manager.go** - 配置管理器
-3. **internal/domain/config/manager/auth.go** - 认证相关 API
+1. **internal/data/history/client.go** - Client lịch sử chat
+2. **internal/domain/config/manager/manager.go** - Trình quản lý cấu hình
+3. **internal/domain/config/manager/auth.go** - API liên quan đến xác thực
 
-## 注意事项
+## Lưu ý
 
-- 所有对 Manager 后端的 HTTP 调用都应使用 `ManagerClient`
-- 如需调用其他后端服务，可以基于 `Client` 创建新的专用客户端
-- 重试机制默认最多 3 次，可通过配置调整
+- Tất cả các lệnh gọi HTTP đến backend Manager đều nên sử dụng `ManagerClient`
+- Nếu cần gọi đến các backend service khác, có thể xây dựng client chuyên dụng mới dựa trên `Client`
+- Cơ chế retry mặc định tối đa 3 lần, có thể điều chỉnh qua cấu hình

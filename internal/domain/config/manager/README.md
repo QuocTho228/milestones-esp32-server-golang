@@ -1,47 +1,47 @@
-# 配置管理器使用说明
+# Hướng dẫn sử dụng Trình quản lý cấu hình (Configuration Manager)
 
-## 概述
+## Tổng quan
 
-本包提供了两个主要的管理器：
+Package này cung cấp hai trình quản lý (manager) chính:
 
-1. **ConfigManager** - 配置管理器，提供高层级的配置管理功能
-2. **AuthManager** - 认证管理器，专门处理设备激活和认证相关功能
+1. **ConfigManager** - Trình quản lý cấu hình, cung cấp các chức năng quản lý cấu hình ở tầng cao
+2. **AuthManager** - Trình quản lý xác thực, chuyên xử lý các chức năng liên quan đến kích hoạt thiết bị và xác thực
 
-## 核心特性
+## Tính năng cốt lõi
 
-### ConfigManager 配置管理器
+### ConfigManager - Trình quản lý cấu hình
 
-- ✅ 配置缓存机制，提高访问性能
-- ✅ 配置验证功能
-- ✅ 单例模式的全局管理
-- ✅ 缓存清理和失效机制
-- ✅ 线程安全的并发访问
+- ✅ Cơ chế cache cấu hình, giúp tăng hiệu suất truy cập
+- ✅ Chức năng kiểm tra tính hợp lệ (validate) của cấu hình
+- ✅ Quản lý toàn cục theo mô hình Singleton
+- ✅ Cơ chế dọn dẹp (clear) và vô hiệu hóa (invalidate) cache
+- ✅ Truy cập đồng thời an toàn với luồng (thread-safe)
 
-### AuthManager 认证管理器
+### AuthManager - Trình quản lý xác thực
 
-- ✅ 设备激活状态检查（通过HTTP接口）
-- ✅ 实时获取激活信息（无缓存）
-- ✅ 挑战码验证和HMAC安全验证
-- ✅ 直接调用后端接口，确保数据实时性
-- ✅ **HTTP接口集成** - 调用后端管理系统的激活接口
+- ✅ Kiểm tra trạng thái kích hoạt thiết bị (thông qua giao diện HTTP)
+- ✅ Lấy thông tin kích hoạt theo thời gian thực (không sử dụng cache)
+- ✅ Xác minh mã thử thách (challenge code) và xác thực bảo mật bằng HMAC
+- ✅ Gọi trực tiếp đến giao diện backend, đảm bảo tính thời gian thực của dữ liệu
+- ✅ **Tích hợp giao diện HTTP** - Gọi đến giao diện kích hoạt của hệ thống quản lý backend
 
-## HTTP接口集成
+## Tích hợp giao diện HTTP
 
-AuthManager 现在通过HTTP接口调用后端管理系统，支持以下接口：
+AuthManager hiện gọi đến hệ thống quản lý backend thông qua giao diện HTTP, hỗ trợ các giao diện sau:
 
-### 1. 检查设备激活状态
+### 1. Kiểm tra trạng thái kích hoạt thiết bị
 
 ```http
 GET /api/internal/device/check-activation?device_id=xxx&client_id=xxx
 ```
 
-### 2. 获取设备激活信息
+### 2. Lấy thông tin kích hoạt thiết bị
 
 ```http
 GET /api/internal/device/activation-info?device_id=xxx&client_id=xxx
 ```
 
-### 3. 设备激活
+### 3. Kích hoạt thiết bị
 
 ```http
 POST /api/internal/device/activate
@@ -58,18 +58,18 @@ Content-Type: application/json
 }
 ```
 
-## 配置说明
+## Hướng dẫn cấu hình
 
-在配置文件（config.yaml）中添加以下配置：
+Thêm cấu hình sau vào file cấu hình (config.yaml):
 
 ```yaml
 manager:
-  backend_url: "http://localhost:8080" # 后端管理系统的基础URL
+  backend_url: 'http://localhost:8080' # URL gốc (base URL) của hệ thống quản lý backend
 ```
 
-如果未配置，默认使用 `http://localhost:8080`。
+Nếu không cấu hình, hệ thống sẽ mặc định sử dụng `http://localhost:8080`.
 
-## 使用示例
+## Ví dụ sử dụng
 
 ```go
 package main
@@ -82,7 +82,7 @@ import (
 func main() {
     ctx := context.Background()
 
-    // 初始化管理器
+    // Khởi tạo trình quản lý
     err := manager.Init()
     if err != nil {
         panic(err)
@@ -93,28 +93,28 @@ func main() {
         panic(err)
     }
 
-    // 获取管理器实例
+    // Lấy instance của trình quản lý
     configManager := manager.GetInstance()
     authManager := manager.GetAuthInstance()
 
-    // 使用配置管理器
+    // Sử dụng trình quản lý cấu hình
     config, err := configManager.GetUserConfig(ctx, "device_001")
     if err != nil {
-        // 处理错误
+        // Xử lý lỗi
     }
 
-    // 使用认证管理器（通过HTTP接口）
+    // Sử dụng trình quản lý xác thực (thông qua giao diện HTTP)
     activated, err := authManager.IsDeviceActivated(ctx, "device_001", "client_001")
     if err != nil {
-        // 处理错误
+        // Xử lý lỗi
     }
 
     if !activated {
-        // 获取激活信息
+        // Lấy thông tin kích hoạt
         code, challenge, message, timeout := authManager.GetActivationInfo(ctx, "device_001", "client_001")
-        // 显示激活码给用户...
+        // Hiển thị mã kích hoạt cho người dùng...
 
-        // 用户输入激活码后进行验证
+        // Xác minh sau khi người dùng nhập mã kích hoạt
         activationPayload := types.ActivationPayload{
             Algorithm:    "hmac-sha256",
             SerialNumber: "ABC123",
@@ -123,41 +123,41 @@ func main() {
         }
 
         success, err := authManager.VerifyChallenge(ctx, "device_001", "client_001", fmt.Sprintf("%d", code), activationPayload)
-        // 处理激活结果...
+        // Xử lý kết quả kích hoạt...
     }
 }
 ```
 
-## 架构优势
+## Ưu điểm kiến trúc
 
-### 前端系统集成
+### Tích hợp hệ thống frontend
 
-- ESP32设备或其他前端系统直接调用 AuthManager
-- AuthManager 内部通过HTTP调用后端管理系统
-- 实现了前端系统与后端管理系统的解耦
+- Thiết bị ESP32 hoặc các hệ thống frontend khác gọi trực tiếp đến AuthManager
+- AuthManager gọi nội bộ đến hệ thống quản lý backend thông qua HTTP
+- Thực hiện tách rời (decouple) giữa hệ thống frontend và hệ thống quản lý backend
 
-### 实时数据
+### Dữ liệu thời gian thực
 
-- 直接调用HTTP接口，获取最新状态
-- 无缓存设计，确保数据实时性
-- 简化架构，减少复杂性
+- Gọi trực tiếp giao diện HTTP để lấy trạng thái mới nhất
+- Thiết kế không dùng cache, đảm bảo tính thời gian thực của dữ liệu
+- Đơn giản hóa kiến trúc, giảm độ phức tạp
 
-### 错误处理
+### Xử lý lỗi
 
-- 完善的错误处理和日志记录
-- HTTP请求失败时的降级处理
-- 详细的错误信息和调试日志
+- Xử lý lỗi và ghi log hoàn thiện
+- Xử lý dự phòng (fallback/degradation) khi request HTTP thất bại
+- Thông tin lỗi chi tiết và log debug
 
-### 安全性
+### Bảo mật
 
-- 支持HMAC验证
-- 安全的激活流程
-- 实时状态验证
+- Hỗ trợ xác thực HMAC
+- Quy trình kích hoạt an toàn
+- Xác thực trạng thái theo thời gian thực
 
-## 注意事项
+## Lưu ý
 
-1. 确保后端管理系统正在运行并且可访问
-2. 正确配置 `manager.backend_url`
-3. HTTP客户端默认超时为10秒
-4. 无缓存模式，每次调用都会请求后端接口
-5. 确保网络连接稳定，避免频繁的接口调用失败
+1. Đảm bảo hệ thống quản lý backend đang chạy và có thể truy cập được
+2. Cấu hình đúng `manager.backend_url`
+3. Timeout mặc định của HTTP client là 10 giây
+4. Chế độ không cache, mỗi lần gọi đều sẽ gửi request đến giao diện backend
+5. Đảm bảo kết nối mạng ổn định, tránh việc gọi giao diện thất bại liên tục

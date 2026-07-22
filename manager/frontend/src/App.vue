@@ -26,7 +26,7 @@ export default {
           }
         }
       } catch (error) {
-        console.error('检查系统状态失败:', error);
+        console.error('Kiểm tra trạng thái hệ thống thất bại:', error);
         // Nếu kiểm tra không thành công thì có thể mạng có vấn đề và bước nhảy không bị ép buộc
       }
     };

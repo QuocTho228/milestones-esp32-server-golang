@@ -172,7 +172,7 @@ func (s *WebSocketServer) internalHandleChat(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		// 验证令牌
+		// Mã xác thực
 		if !s.authManager.ValidateToken(token) {
 			log.Warnf("无效的令牌: %s", token)
 			http.Error(w, "无效的令牌", http.StatusUnauthorized)

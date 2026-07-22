@@ -2,7 +2,7 @@ package client
 
 import "time"
 
-// Statistic 结构体已废弃，请使用 statistic_plugin 在 MetricTtsStop 时获取统计信息
+// Statistic Struct này đã lỗi thời (deprecated), hãy dùng statistic_plugin để lấy thông tin thống kê tại thời điểm MetricTtsStop
 type Statistic struct {
 	TurnStartTs        int64
 	VoiceSilenceTs     int64
@@ -17,7 +17,7 @@ type Statistic struct {
 	TtsStopTs          int64
 }
 
-// MarkTurnStart 记录轮次开始时间
+// MarkTurnStart Ghi lại thời điểm bắt đầu lượt (turn)
 func (state *ClientState) MarkTurnStart() {
 	state.Statistic.TurnStartTs = time.Now().UnixMilli()
 	state.Statistic.VoiceSilenceTs = 0
@@ -25,7 +25,7 @@ func (state *ClientState) MarkTurnStart() {
 	state.Statistic.AsrFinalTextTs = 0
 }
 
-// MarkVoiceSilenceAt 记录语音静默开始时间，返回本轮是否首次记录
+// MarkVoiceSilenceAt Ghi lại thời điểm bắt đầu im lặng giọng nói, trả về true nếu đây là lần ghi đầu tiên trong lượt này
 func (state *ClientState) MarkVoiceSilenceAt(ts int64) bool {
 	if state.Statistic.VoiceSilenceTs != 0 {
 		return false
@@ -34,24 +34,24 @@ func (state *ClientState) MarkVoiceSilenceAt(ts int64) bool {
 	return true
 }
 
-// MarkVoiceSilence 记录语音静默开始时间，返回本轮是否首次记录
+// MarkVoiceSilence Ghi lại thời điểm bắt đầu im lặng giọng nói, trả về true nếu đây là lần ghi đầu tiên trong lượt này
 func (state *ClientState) MarkVoiceSilence() bool {
 	return state.MarkVoiceSilenceAt(time.Now().UnixMilli())
 }
 
-// MarkAsrFirstText 记录 ASR 首次返回文本时间
+// MarkAsrFirstText Ghi lại thời điểm ASR trả về văn bản lần đầu
 func (state *ClientState) MarkAsrFirstText() {
 	if state.Statistic.AsrFirstTextTs == 0 {
 		state.Statistic.AsrFirstTextTs = time.Now().UnixMilli()
 	}
 }
 
-// MarkAsrFinalText 记录 ASR 最终文本时间
+// MarkAsrFinalText Ghi lại thời điểm ASR trả về văn bản cuối cùng
 func (state *ClientState) MarkAsrFinalText() {
 	state.MarkAsrFinalTextAt(time.Now().UnixMilli())
 }
 
-// MarkAsrFinalTextAt 记录 ASR 最终文本时间，返回本轮是否首次记录
+// MarkAsrFinalTextAt Ghi lại thời điểm ASR trả về văn bản cuối cùng, trả về true nếu đây là lần ghi đầu tiên trong lượt này
 func (state *ClientState) MarkAsrFinalTextAt(ts int64) bool {
 	if state.Statistic.AsrFinalTextTs != 0 {
 		return false
@@ -60,7 +60,7 @@ func (state *ClientState) MarkAsrFinalTextAt(ts int64) bool {
 	return true
 }
 
-// MarkLlmStart 记录 LLM 开始时间
+// MarkLlmStart Ghi lại thời điểm LLM bắt đầu
 func (state *ClientState) MarkLlmStart() {
 	state.Statistic.LlmStartTs = time.Now().UnixMilli()
 	state.Statistic.LlmFirstTokenTs = 0
@@ -68,12 +68,12 @@ func (state *ClientState) MarkLlmStart() {
 	state.Statistic.LlmEndTs = 0
 }
 
-// MarkLlmFirstToken 记录 LLM 首次返回 token 时间
+// MarkLlmFirstToken Ghi lại thời điểm LLM trả về token đầu tiên
 func (state *ClientState) MarkLlmFirstToken() {
 	state.Statistic.LlmFirstTokenTs = time.Now().UnixMilli()
 }
 
-// MarkLlmFirstSentenceAt 记录 LLM 首句输出时间，返回本轮是否首次记录
+// MarkLlmFirstSentenceAt Ghi lại thời điểm LLM xuất câu đầu tiên, trả về true nếu đây là lần ghi đầu tiên trong lượt này
 func (state *ClientState) MarkLlmFirstSentenceAt(ts int64) bool {
 	if state.Statistic.LlmFirstSentenceTs != 0 {
 		return false
@@ -82,60 +82,60 @@ func (state *ClientState) MarkLlmFirstSentenceAt(ts int64) bool {
 	return true
 }
 
-// MarkLlmFirstSentence 记录 LLM 首句输出时间，返回本轮是否首次记录
+// MarkLlmFirstSentence Ghi lại thời điểm LLM xuất câu đầu tiên, trả về true nếu đây là lần ghi đầu tiên trong lượt này
 func (state *ClientState) MarkLlmFirstSentence() bool {
 	return state.MarkLlmFirstSentenceAt(time.Now().UnixMilli())
 }
 
-// MarkLlmEnd 记录 LLM 结束时间
+// MarkLlmEnd Ghi lại thời điểm LLM kết thúc
 func (state *ClientState) MarkLlmEnd() {
 	state.Statistic.LlmEndTs = time.Now().UnixMilli()
 }
 
-// MarkTtsStart 记录 TTS 开始时间
+// MarkTtsStart Ghi lại thời điểm TTS bắt đầu
 func (state *ClientState) MarkTtsStart() {
 	state.Statistic.TtsStartTs = time.Now().UnixMilli()
 	state.Statistic.TtsFirstFrameTs = 0
 	state.Statistic.TtsStopTs = 0
 }
 
-// MarkTtsFirstFrame 记录 TTS 首帧时间
+// MarkTtsFirstFrame Ghi lại thời điểm khung (frame) TTS đầu tiên
 func (state *ClientState) MarkTtsFirstFrame() {
 	if state.Statistic.TtsFirstFrameTs == 0 {
 		state.Statistic.TtsFirstFrameTs = time.Now().UnixMilli()
 	}
 }
 
-// MarkTtsStop 记录 TTS 结束时间
+// MarkTtsStop Ghi lại thời điểm TTS kết thúc
 func (state *ClientState) MarkTtsStop() {
 	state.Statistic.TtsStopTs = time.Now().UnixMilli()
 }
 
-// SetStartAsrTs 设置 ASR 开始时间（别名，为了兼容）
+// SetStartAsrTs Thiết lập thời điểm bắt đầu ASR (bí danh, để tương thích ngược)
 func (state *ClientState) SetStartAsrTs() { state.MarkVoiceSilence() }
 
-// SetStartLlmTs 设置 LLM 开始时间（别名，为了兼容）
+// SetStartLlmTs Thiết lập thời điểm bắt đầu LLM (bí danh, để tương thích ngược)
 func (state *ClientState) SetStartLlmTs() { state.MarkLlmStart() }
 
-// SetStartTtsTs 设置 TTS 开始时间（别名，为了兼容）
+// SetStartTtsTs Thiết lập thời điểm bắt đầu TTS (bí danh, để tương thích ngược)
 func (state *ClientState) SetStartTtsTs() { state.MarkTtsStart() }
 
-// GetAsrDuration 获取 ASR 处理耗时（已废弃，仅保留方法签名）
+// GetAsrDuration Lấy thời gian xử lý ASR (đã lỗi thời, chỉ giữ lại chữ ký phương thức)
 func (state *ClientState) GetAsrDuration() int64 {
 	return calcStatisticDuration(state.Statistic.VoiceSilenceTs, state.Statistic.AsrFinalTextTs)
 }
 
-// GetAsrLlmTtsDuration 获取整体耗时（已废弃，仅保留方法签名）
+// GetAsrLlmTtsDuration Lấy tổng thời gian xử lý (đã lỗi thời, chỉ giữ lại chữ ký phương thức)
 func (state *ClientState) GetAsrLlmTtsDuration() int64 {
 	return calcStatisticDuration(state.Statistic.VoiceSilenceTs, state.Statistic.TtsFirstFrameTs)
 }
 
-// GetLlmDuration 获取 LLM 耗时（已废弃，仅保留方法签名）
+// GetLlmDuration Lấy thời gian xử lý LLM (đã lỗi thời, chỉ giữ lại chữ ký phương thức)
 func (state *ClientState) GetLlmDuration() int64 {
 	return calcStatisticDuration(state.Statistic.LlmStartTs, state.Statistic.LlmEndTs)
 }
 
-// GetTtsDuration 获取 TTS 耗时（已废弃，仅保留方法签名）
+// GetTtsDuration Lấy thời gian xử lý TTS (đã lỗi thời, chỉ giữ lại chữ ký phương thức)
 func (state *ClientState) GetTtsDuration() int64 {
 	return calcStatisticDuration(state.Statistic.TtsStartTs, state.Statistic.TtsStopTs)
 }

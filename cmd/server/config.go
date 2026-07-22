@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// 全局变量用于控制周期性更新
+// Các biến toàn cục dùng để điều khiển việc cập nhật cấu hình định kỳ
 var (
 	configUpdateTicker *time.Ticker
 	configUpdateStop   chan struct{}
@@ -30,7 +30,7 @@ var (
 )
 
 func Init(configFile string) error {
-	//init config
+	// Khởi tạo cấu hình
 	err := initConfig(configFile)
 	if err != nil {
 		fmt.Printf("initConfig err: %+v", err)
@@ -38,33 +38,35 @@ func Init(configFile string) error {
 		return err
 	}
 
-	//init log
+	// Khởi tạo nhật ký
 	initLog()
 
-	// 初始化配置系统（包括WebSocket连接）
-	// 注意：不要在此处单独注册 ApplySystemConfigToViper，否则会先于 main 的回调执行，导致 main 里读取的「当前配置」已是合并后的新配置；合并应在 main 的回调中、在读取 current 并比较之后再执行。
+	// Khởi tạo hệ thống cấu hình (bao gồm cả kết nối WebSocket)
+	// Lưu ý: không đăng ký ApplySystemConfigToViper riêng lẻ ở đây, nếu không nó sẽ được thực thi trước callback của main,
+	// khiến "cấu hình hiện tại" được đọc trong main đã là cấu hình mới sau khi hợp nhất; việc hợp nhất cần được thực hiện
+	// trong callback của main, sau khi đã đọc current và so sánh xong.
 	ctx := context.Background()
 	if err := user_config.InitConfigSystem(ctx); err != nil {
 		fmt.Printf("Không thể khởi tạo hệ thống cấu hình: %v\n", err)
 	}
 
-	// 从接口获取配置并更新
+	// Lấy cấu hình từ API và cập nhật
 	if err := updateConfigFromAPI(); err != nil {
 		fmt.Printf("Không lấy được cấu hình từ giao diện, hãy sử dụng cấu hình cục bộ: %v\n", err)
 	}
 
-	// 启动周期性配置更新
+	// Bắt đầu cập nhật cấu hình định kỳ
 	startPeriodicConfigUpdate()
 
-	//init vad
+	// Khởi tạo VAD
 	initVad()
 
-	//init redis
+	// Khởi tạo Redis
 	initRedis()
 
-	// memory 模块采用懒加载，使用时自动初始化，无需显式初始化
+	// Mô-đun memory sử dụng cơ chế tải chậm (lazy load), sẽ tự động khởi tạo khi được sử dụng, không cần khởi tạo tường minh
 
-	//init auth
+	// Khởi tạo auth
 	err = initAuthManager()
 	if err != nil {
 		fmt.Printf("initAuthManager err: %+v", err)
@@ -75,15 +77,15 @@ func Init(configFile string) error {
 	return nil
 }
 
-// startPeriodicConfigUpdate 启动周期性配置更新
+// startPeriodicConfigUpdate khởi động việc cập nhật cấu hình định kỳ
 func startPeriodicConfigUpdate() {
-	// 从配置中获取更新间隔，默认5分钟
+	// Lấy khoảng thời gian cập nhật từ cấu hình, mặc định 5 phút
 	updateInterval := viper.GetDuration("config_provider.update_interval")
 	if updateInterval <= 0 {
 		updateInterval = 30 * time.Second
 	}
 
-	// 检查是否启用周期性更新
+	// Kiểm tra xem cập nhật định kỳ có được bật hay không
 	if !viper.GetBool("config_provider.enable_periodic_update") {
 		log.Info("Cập nhật cấu hình định kỳ bị vô hiệu hóa")
 		return
@@ -103,7 +105,7 @@ func startPeriodicConfigUpdate() {
 				if err := updateConfigFromAPI(); err != nil {
 					log.Warnf("Cập nhật cấu hình định kỳ thất bại: %v", err)
 				} else {
-					//log.Debug("周期性配置更新成功")
+					//log.Debug("Cập nhật cấu hình định kỳ thành công")
 				}
 			case <-configUpdateStop:
 				log.Info("Cập nhật cấu hình định kỳ đã dừng")
@@ -115,7 +117,7 @@ func startPeriodicConfigUpdate() {
 	log.Infof("Cập nhật cấu hình định kỳ đã được bắt đầu, khoảng thời gian cập nhật: %v", updateInterval)
 }
 
-// StopPeriodicConfigUpdate 停止周期性配置更新
+// StopPeriodicConfigUpdate dừng việc cập nhật cấu hình định kỳ
 func StopPeriodicConfigUpdate() {
 	if configUpdateStop != nil {
 		close(configUpdateStop)
@@ -127,7 +129,7 @@ func StopPeriodicConfigUpdate() {
 func initConfig(configFile string) error {
 	viper.SetConfigFile(configFile)
 
-	// 读取配置文件
+	// Đọc tệp cấu hình
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
@@ -135,7 +137,8 @@ func initConfig(configFile string) error {
 	return nil
 }
 
-// ApplySystemConfigToViper 将系统配置合并到 viper，用于 WebSocket 推送的 system_config 实时更新（回调无返回值）
+// ApplySystemConfigToViper hợp nhất cấu hình hệ thống vào viper, dùng cho việc cập nhật thời gian thực system_config
+// được đẩy xuống qua WebSocket (callback không có giá trị trả về)
 func ApplySystemConfigToViper(data map[string]interface{}) {
 	if err := viper.MergeConfigMap(data); err != nil {
 		log.Warnf("Hợp nhất cấu hình đẩy vào viper không thành công: %v", err)
@@ -144,7 +147,8 @@ func ApplySystemConfigToViper(data map[string]interface{}) {
 	log.Info("Cấu hình hệ thống đã hợp nhất được đẩy từ WebSocket sang viper")
 }
 
-// SystemConfigEqual 比较两段系统配置是否语义相同（使用 hashstructure 指纹，与 map key 顺序无关）
+// SystemConfigEqual so sánh xem hai đoạn cấu hình hệ thống có tương đương về mặt ngữ nghĩa hay không
+// (sử dụng fingerprint hashstructure, không phụ thuộc vào thứ tự key trong map)
 func SystemConfigEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		log.Debugf("[SystemConfigEqual] Kết quả: true (tất cả các giá trị đều là nil)")
@@ -165,15 +169,15 @@ func SystemConfigEqual(a, b interface{}) bool {
 	return equal
 }
 
-// updateConfigFromAPI 从接口获取配置并更新viper配置
-// 内部会持续重试，直到成功后才返回
+// updateConfigFromAPI lấy cấu hình từ API và cập nhật vào cấu hình viper.
+// Bên trong sẽ liên tục thử lại cho đến khi thành công thì mới trả về.
 func updateConfigFromAPI() error {
 	configProviderType := viper.GetString("config_provider.type")
-	retryInterval := 10 * time.Second // 重试间隔
+	retryInterval := 10 * time.Second // Khoảng thời gian giữa các lần thử lại
 	retryCount := 0
 
 	for {
-		// 从配置文件获取后端管理系统地址
+		// Lấy địa chỉ hệ thống quản lý backend từ tệp cấu hình
 		configProvider, err := user_config.GetProvider(configProviderType)
 		if err != nil {
 			retryCount++
@@ -182,10 +186,10 @@ func updateConfigFromAPI() error {
 			continue
 		}
 
-		// 创建上下文
+		// Tạo context
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-		// 获取系统配置JSON字符串
+		// Lấy chuỗi JSON cấu hình hệ thống
 		configJSON, err := configProvider.GetSystemConfig(ctx)
 		cancel()
 
@@ -197,14 +201,14 @@ func updateConfigFromAPI() error {
 		}
 
 		if configJSON == "" {
-			// 配置为空，视为成功（可能服务返回空配置）
+			// Cấu hình trống, coi như thành công (có thể dịch vụ trả về cấu hình rỗng)
 			if retryCount > 0 {
 				log.Infof("Cấu hình đã được truy xuất thành công (cấu hình trống, sau %d lần thử lại)", retryCount)
 			}
 			return nil
 		}
 
-		// 解析JSON为map
+		// Phân tích chuỗi JSON thành map
 		var configMap map[string]interface{}
 		if err := json.Unmarshal([]byte(configJSON), &configMap); err != nil {
 			retryCount++
@@ -215,7 +219,7 @@ func updateConfigFromAPI() error {
 
 		//log.Debugf("Load config from API: %+v", configMap)
 
-		// 使用viper.MergeConfigMap设置到viper
+		// Sử dụng viper.MergeConfigMap để thiết lập vào viper
 		if err := viper.MergeConfigMap(configMap); err != nil {
 			retryCount++
 			log.Warnf("Hợp nhất cấu hình vào Viper thất bại (thử lại %d): %v, thử lại sau %v", retryCount, err, retryInterval)
@@ -223,7 +227,7 @@ func updateConfigFromAPI() error {
 			continue
 		}
 
-		// 成功
+		// Thành công
 		if retryCount > 0 {
 			log.Infof("Cấu hình đã được thiết lập thành công (sau %d lần thử lại).", retryCount)
 		} else {
@@ -234,18 +238,19 @@ func updateConfigFromAPI() error {
 }
 
 func initLog() error {
-	// 输出到文件
+	// Ghi ra file
 	binPath, _ := os.Executable()
 	baseDir := filepath.Dir(binPath)
 	logPath := fmt.Sprintf("%s/%s%s", baseDir, viper.GetString("log.path"), viper.GetString("log.file"))
-	/* 日志轮转相关函数
-	`WithLinkName` 为最新的日志建立软连接
-	`WithRotationTime` 设置日志分割的时间，隔多久分割一次
-	WithMaxAge 和 WithRotationCount二者只能设置一个
-		`WithMaxAge` 设置文件清理前的最长保存时间
-		`WithRotationCount` 设置文件清理前最多保存的个数
+	/* Các hàm liên quan đến xoay vòng (rotate) nhật ký
+	`WithLinkName` tạo liên kết mềm (symlink) trỏ tới file nhật ký mới nhất
+	`WithRotationTime` thiết lập thời gian phân tách (rotate) nhật ký, cách bao lâu thì xoay vòng một lần
+	WithMaxAge và WithRotationCount chỉ được thiết lập một trong hai:
+		`WithMaxAge` thiết lập thời gian lưu trữ tối đa của file trước khi bị dọn dẹp
+		`WithRotationCount` thiết lập số lượng file tối đa được lưu trước khi bị dọn dẹp
 	*/
-	// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
+	// Cấu hình dưới đây sẽ xoay vòng tạo file mới mỗi 1 phút, giữ lại nhật ký trong 3 phút gần nhất,
+	// các file dư thừa sẽ được tự động dọn dẹp.
 	writer, err := rotatelogs.New(
 		logPath+".%Y%m%d",
 		rotatelogs.WithLinkName(logPath),
@@ -258,25 +263,25 @@ func initLog() error {
 		return err
 	}
 
-	// 根据配置决定输出目标
+	// Xác định đích xuất log dựa theo cấu hình
 	if viper.GetBool("log.stdout") {
-		// 同时输出到文件和标准输出
+		// Xuất đồng thời ra cả file và standard output
 		multiWriter := io.MultiWriter(writer, os.Stdout)
 		logrus.SetOutput(multiWriter)
 		logrus.SetFormatter(&logrus.TextFormatter{
-			TimestampFormat: "2006-01-02 15:04:05.000", //时间格式化，添加毫秒
-			ForceColors:     true,                      // 标准输出启用颜色
+			TimestampFormat: "2006-01-02 15:04:05.000", // Định dạng thời gian, thêm mili giây
+			ForceColors:     true,                      // Bật màu khi xuất ra standard output
 		})
 	} else {
-		// 只输出到文件
+		// Chỉ xuất ra file
 		logrus.SetOutput(writer)
 		logrus.SetFormatter(&logrus.TextFormatter{
-			TimestampFormat: "2006-01-02 15:04:05.000", //时间格式化，添加毫秒
-			ForceColors:     false,                     // 文件输出不启用颜色
+			TimestampFormat: "2006-01-02 15:04:05.000", // Định dạng thời gian, thêm mili giây
+			ForceColors:     false,                     // Không bật màu khi xuất ra file
 		})
 	}
 
-	// 禁用默认的调用者报告，使用自定义的caller字段
+	// Vô hiệu hóa báo cáo caller mặc định, sử dụng trường caller tùy chỉnh
 	logrus.SetReportCaller(false)
 	logLevel, _ := logrus.ParseLevel(viper.GetString("log.level"))
 	logrus.SetLevel(logLevel)
@@ -289,13 +294,13 @@ func initVad() error {
 	vadProvider := viper.GetString("vad.provider")
 	log.Infof("Nhà cung cấp VAD: %s", vadProvider)
 
-	// VAD 使用懒加载模式，将在首次使用时通过全局资源池自动初始化
+	// VAD sử dụng chế độ tải chậm (lazy load), sẽ tự động khởi tạo thông qua resource pool toàn cục trong lần sử dụng đầu tiên
 	log.Infof("Mô-đun VAD sẽ sử dụng chế độ tải chậm và tự động khởi tạo trong lần sử dụng đầu tiên")
 	return nil
 }
 
 func initRedis() error {
-	// 初始化我们的统一Redis模块
+	// Khởi tạo mô-đun Redis thống nhất của chúng ta
 	redisConfig := &redisdb.Config{
 		Host:     viper.GetString("redis.host"),
 		Port:     viper.GetInt("redis.port"),

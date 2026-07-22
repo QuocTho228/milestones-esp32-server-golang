@@ -8,7 +8,7 @@ import (
 	"milestones/manager/backend/storage/sqlite"
 )
 
-// StorageType 存储类型
+// StorageType loại lưu trữ
 type StorageType string
 
 const (
@@ -16,17 +16,17 @@ const (
 	StorageTypeSQLite StorageType = "sqlite"
 )
 
-// Factory 存储工厂
+// Factory factory (xưởng tạo) lưu trữ
 type Factory struct{}
 
-// NewFactory 创建存储工厂
+// NewFactory tạo mới factory lưu trữ
 func NewFactory() *Factory {
 	return &Factory{}
 }
 
-// CreateStorage 创建存储实例
+// CreateStorage tạo mới instance lưu trữ
 func CreateStorage(dbConfig config.DatabaseConfig) (*StorageAdapter, error) {
-	// 根据配置判断存储类型
+	// Xác định loại lưu trữ dựa theo cấu hình
 	storageType := dbConfig.GetStorageType()
 
 	switch StorageType(storageType) {
@@ -34,40 +34,40 @@ func CreateStorage(dbConfig config.DatabaseConfig) (*StorageAdapter, error) {
 		if dbConfig.SQLite == nil {
 			return nil, fmt.Errorf("SQLite config is required")
 		}
-		// 验证SQLite配置
+		// Kiểm tra hợp lệ cấu hình SQLite
 		if err := sqlite.ValidateConfig(dbConfig.SQLite); err != nil {
 			return nil, fmt.Errorf("invalid SQLite config: %w", err)
 		}
-		// 创建SQLite配置
+		// Tạo cấu hình SQLite
 		sqliteConfig := sqlite.NewConfigFromDatabase(dbConfig.SQLite)
-		// 创建SQLite存储
+		// Tạo storage SQLite
 		sqliteStorage, err := sqlite.NewStorage(sqliteConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create SQLite storage: %w", err)
 		}
-		// 创建基础存储
+		// Tạo storage nền tảng (base storage)
 		baseStorage := NewGormBaseStorage(sqliteStorage.DB)
-		// 返回适配器
+		// Trả về adapter
 		return NewStorageAdapter(baseStorage), nil
 
 	case StorageTypeMySQL:
 		if dbConfig.MySQL == nil {
 			return nil, fmt.Errorf("MySQL config is required")
 		}
-		// 验证MySQL配置
+		// Kiểm tra hợp lệ cấu hình MySQL
 		if err := mysql.ValidateConfig(dbConfig.MySQL); err != nil {
 			return nil, fmt.Errorf("invalid MySQL config: %w", err)
 		}
-		// 创建MySQL配置
+		// Tạo cấu hình MySQL
 		mysqlConfig := mysql.NewConfigFromDatabase(dbConfig.MySQL)
-		// 创建MySQL存储
+		// Tạo storage MySQL
 		mysqlStorage, err := mysql.NewStorage(mysqlConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create MySQL storage: %w", err)
 		}
-		// 创建基础存储
+		// Tạo storage nền tảng (base storage)
 		baseStorage := NewGormBaseStorage(mysqlStorage.DB)
-		// 返回适配器
+		// Trả về adapter
 		return NewStorageAdapter(baseStorage), nil
 
 	default:
@@ -75,7 +75,7 @@ func CreateStorage(dbConfig config.DatabaseConfig) (*StorageAdapter, error) {
 	}
 }
 
-// GetSupportedTypes 获取支持的存储类型
+// GetSupportedTypes lấy danh sách các loại lưu trữ được hỗ trợ
 func (f *Factory) GetSupportedTypes() []StorageType {
 	return []StorageType{
 		StorageTypeMySQL,

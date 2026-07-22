@@ -15,21 +15,21 @@ const (
 )
 
 func init() {
-	// 不设置默认输出，由应用程序决定
-	log.SetFormatter(Formatter(false)) // 默认不使用颜色
+	// Không thiết lập đầu ra mặc định, để ứng dụng tự quyết định
+	log.SetFormatter(Formatter(false)) // Mặc định không dùng màu
 }
 
-// SetOutput 设置日志输出目标
+// SetOutput thiết lập đích ghi log
 func SetOutput(out *os.File) {
 	log.SetOutput(out)
 }
 
-// SetLevel 设置日志级别
+// SetLevel thiết lập mức độ log
 func SetLevel(level log.Level) {
 	log.SetLevel(level)
 }
 
-// UseStdout 使用标准输出
+// UseStdout sử dụng đầu ra chuẩn (standard output)
 func UseStdout() {
 	log.SetOutput(os.Stdout)
 	log.SetFormatter(Formatter(true))
@@ -46,21 +46,21 @@ func getUserInfo(ctx *gin.Context) int {
 }
 */
 
-// getCaller 获取实际的调用者信息（跳过logger包装层）
+// getCaller lấy thông tin của bên gọi thực tế (bỏ qua lớp bao bọc của logger)
 func getCaller() (string, int) {
-	// 跳过日志库的调用栈，获取实际调用者
-	// 通过调用栈：用户代码 -> logger.Info -> addCallerField -> getCaller -> runtime.Caller
-	// 所以需要跳过3层才能到达实际调用位置
+	// Bỏ qua call stack của thư viện log để lấy đúng bên gọi thực tế
+	// Theo call stack: code người dùng -> logger.Info -> addCallerField -> getCaller -> runtime.Caller
+	// Vì vậy cần bỏ qua 3 tầng mới đến được vị trí gọi thực tế
 	_, file, line, ok := runtime.Caller(3)
 	if !ok {
 		return "unknown", 0
 	}
-	// 提取文件名（不带路径）
+	// Trích xuất tên file (không kèm đường dẫn)
 	shortFile := filepath.Base(file)
 	return shortFile, line
 }
 
-// addCallerField 添加调用者信息到日志字段
+// addCallerField thêm thông tin bên gọi vào field của log
 func addCallerField() *log.Entry {
 	file, line := getCaller()
 	return log.WithField("caller", fmt.Sprintf("%s:%d", file, line))
@@ -123,8 +123,8 @@ func Log(args ...interface{}) *log.Entry {
 		fields[key] = ""
 	}
 
-	// 添加调用者信息
-	// 在Log函数调用链中也需要调整层级
+	// Thêm thông tin bên gọi
+	// Trong chuỗi gọi hàm Log cũng cần điều chỉnh số tầng
 	_, file, line, ok := runtime.Caller(2)
 	if !ok {
 		file = "unknown"
@@ -146,7 +146,7 @@ func Formatter(isConsole bool) *nested.Formatter {
 		NoUppercaseLevel: true,
 		ShowFullLevel:    true,
 		//NoFieldsSpace:    true,
-		// 禁用默认的调用者格式化，因为我们已经添加了自定义的caller字段
+		// Vô hiệu hóa định dạng caller mặc định, vì chúng ta đã thêm field caller tùy chỉnh
 		CustomCallerFormatter: func(frame *runtime.Frame) string {
 			return ""
 		},
@@ -159,7 +159,7 @@ func Formatter(isConsole bool) *nested.Formatter {
 	return fmtter
 }
 
-// DebugStack 用于调试日志调用栈，输出当前调用链的所有调用者信息
+// DebugStack dùng để debug call stack của log, in ra thông tin tất cả các bên gọi trong chuỗi gọi hiện tại
 func DebugStack() {
 	for i := 0; i < 5; i++ {
 		_, file, line, ok := runtime.Caller(i)
@@ -167,6 +167,6 @@ func DebugStack() {
 			break
 		}
 		shortFile := filepath.Base(file)
-		log.Infof("调用栈[%d]: %s:%d", i, shortFile, line)
+		log.Infof("ngăn xếp gọi[%d]: %s:%d", i, shortFile, line)
 	}
 }

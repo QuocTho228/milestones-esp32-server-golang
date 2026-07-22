@@ -55,7 +55,7 @@ func enqueueKnowledgeSyncUpsert(db *gorm.DB, knowledgeBaseID uint) error {
 		return fmt.Errorf("Kết nối cơ sở dữ liệu trống")
 	}
 	if knowledgeBaseID == 0 {
-		return fmt.Errorf("ID cơ sở kiến thức không hợp lệ")
+		return fmt.Errorf("ID cơ sở tri thức không hợp lệ")
 	}
 	ensureKnowledgeSyncWorkersStarted()
 
@@ -70,7 +70,7 @@ func enqueueKnowledgeSyncUpsert(db *gorm.DB, knowledgeBaseID uint) error {
 		log.Printf("[KnowledgeSync][Async] enqueue type=%s kb_id=%d", job.jobType, job.knowledgeBaseID)
 		return nil
 	default:
-		return fmt.Errorf("Hàng đợi đồng bộ cơ sở kiến thức đã đầy, vui lòng thử lại sau")
+		return fmt.Errorf("Hàng đợi đồng bộ cơ sở tri thức đã đầy, vui lòng thử lại sau")
 	}
 }
 
@@ -93,7 +93,7 @@ func enqueueKnowledgeSyncDelete(db *gorm.DB, snapshot models.KnowledgeBase) erro
 		log.Printf("[KnowledgeSync][Async] enqueue type=%s kb_id=%d", job.jobType, job.knowledgeBaseID)
 		return nil
 	default:
-		return fmt.Errorf("Hàng đợi đồng bộ cơ sở kiến thức đã đầy, vui lòng thử lại sau")
+		return fmt.Errorf("Hàng đợi đồng bộ cơ sở tri thức đã đầy, vui lòng thử lại sau")
 	}
 }
 
@@ -102,7 +102,7 @@ func enqueueKnowledgeDocumentSyncUpsert(db *gorm.DB, knowledgeBaseID, documentID
 		return fmt.Errorf("Kết nối cơ sở dữ liệu trống")
 	}
 	if knowledgeBaseID == 0 || documentID == 0 {
-		return fmt.Errorf("ID cơ sở kiến thức hoặc tài liệu không hợp lệ")
+		return fmt.Errorf("ID cơ sở tri thức hoặc tài liệu không hợp lệ")
 	}
 	ensureKnowledgeSyncWorkersStarted()
 
@@ -118,7 +118,7 @@ func enqueueKnowledgeDocumentSyncUpsert(db *gorm.DB, knowledgeBaseID, documentID
 		log.Printf("[KnowledgeSync][Async] enqueue type=%s kb_id=%d doc_id=%d", job.jobType, job.knowledgeBaseID, job.documentID)
 		return nil
 	default:
-		return fmt.Errorf("Hàng đợi đồng bộ cơ sở kiến thức đã đầy, vui lòng thử lại sau")
+		return fmt.Errorf("Hàng đợi đồng bộ cơ sở tri thức đã đầy, vui lòng thử lại sau")
 	}
 }
 
@@ -144,7 +144,7 @@ func enqueueKnowledgeDocumentSyncDelete(db *gorm.DB, kbSnapshot models.Knowledge
 		log.Printf("[KnowledgeSync][Async] enqueue type=%s kb_id=%d doc_id=%d", job.jobType, job.knowledgeBaseID, job.documentID)
 		return nil
 	default:
-		return fmt.Errorf("Hàng đợi đồng bộ cơ sở kiến thức đã đầy, vui lòng thử lại sau")
+		return fmt.Errorf("Hàng đợi đồng bộ cơ sở tri thức đã đầy, vui lòng thử lại sau")
 	}
 }
 
@@ -196,7 +196,7 @@ func processKnowledgeSyncUpsert(job knowledgeSyncJob) error {
 		if err == gorm.ErrRecordNotFound {
 			return nil
 		}
-		return fmt.Errorf("Tải cơ sở kiến thức thất bại: %w", err)
+		return fmt.Errorf("Tải cơ sở tri thức thất bại: %w", err)
 	}
 	return syncKnowledgeBaseBestEffort(job.db, &kb)
 }
@@ -206,7 +206,7 @@ func processKnowledgeSyncDelete(job knowledgeSyncJob) error {
 		return fmt.Errorf("Kết nối cơ sở dữ liệu trống")
 	}
 	if job.knowledgeSnapshot == nil {
-		return fmt.Errorf("Đồng bộ xóa thiếu ảnh chụp nhanh cơ sở kiến thức")
+		return fmt.Errorf("Đồng bộ xóa thiếu ảnh chụp nhanh cơ sở tri thức")
 	}
 	return syncKnowledgeBaseDeleteBestEffort(job.db, job.knowledgeSnapshot)
 }

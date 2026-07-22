@@ -1,30 +1,30 @@
-# 构建阶段
+# Giai đoạn build (build stage)
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# 复制package文件
+# Sao chép các tệp package
 COPY manager/frontend/package*.json ./
 RUN npm ci
 
-# 复制源代码
+# Sao chép mã nguồn
 COPY manager/frontend/ .
 
-# 构建应用
+# Build ứng dụng
 RUN npm run build
 
 RUN ls -a 
 
-# 运行阶段
+# Giai đoạn chạy (runtime stage)
 FROM nginx:alpine
 
-# 复制构建结果
+# Sao chép kết quả build
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 复制 diagnose.js 文件
+# Sao chép tệp diagnose.js
 COPY manager/frontend/diagnose.js /usr/share/nginx/html/
 
-# 复制nginx配置
+# Sao chép cấu hình nginx
 COPY manager/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

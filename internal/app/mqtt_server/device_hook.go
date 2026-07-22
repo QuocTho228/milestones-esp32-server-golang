@@ -12,8 +12,9 @@ import (
 	log "milestones-esp32-server-golang/logger"
 )
 
-// DeviceHook 设备权限与自动订阅钩子
-// 普通用户禁止随意订阅，只允许发布指定 topic，连接时自动订阅 /p2p/device_sub/{mac}
+// DeviceHook: Hook kiểm soát quyền thiết bị và tự động đăng ký chủ đề.
+// Người dùng chỉ được phép đăng ký chủ đề theo quy định, không được đăng ký tùy ý.
+// Khi kết nối, hệ thống sẽ tự động đăng ký chủ đề /p2p/device_sub/{mac}.
 type DeviceHook struct {
 	mqttServer.HookBase
 	server           *mqttServer.Server
@@ -28,16 +29,16 @@ func (h *DeviceHook) Provides(b byte) bool {
 	return b == mqttServer.OnDisconnect || b == mqttServer.OnACLCheck || b == mqttServer.OnSessionEstablished || b == mqttServer.OnSubscribe || b == mqttServer.OnPublish
 }
 
-// OnACLCheck 发布/订阅权限控制
+// OnACLCheck: Kiểm soát quyền xuất bản và đăng ký chủ đề.
 func (h *DeviceHook) OnACLCheck(cl *mqttServer.Client, topic string, write bool) bool {
 	isAdmin := isAdminUser(cl)
 
 	if isAdmin {
-		return true // 超级管理员无限制
+		return true // Quản trị viên không bị giới hạn.
 	}
 
 	if write {
-		// 只允许普通用户发布到 "device-server"
+		// Chỉ cho phép người dùng xuất bản tới topic "device-server".
 		if topic == client.MDeviceMockPubTopicPrefix {
 			return true
 		}
@@ -104,13 +105,13 @@ func (h *DeviceHook) OnDisconnect(cl *mqttServer.Client, err error, ok bool) {
 	return
 }
 
-// OnSessionEstablished 连接建立后自动订阅
+// OnSessionEstablished: Tự động đăng ký chủ đề sau khi kết nối được thiết lập.
 func (h *DeviceHook) OnSessionEstablished(cl *mqttServer.Client, pk packets.Packet) {
 	isAdmin := isAdminUser(cl)
 	mac := parseMacFromClientId(cl.ID)
 	deviceID := deviceIDFromClientId(cl.ID)
 	if isAdmin {
-		return // 超级管理员不做限制
+		return // Quản trị viên không bị giới hạn.
 	}
 	if mac == "" {
 		log.Info("Cảnh báo: Không thể phân giải địa chỉ MAC từ ID máy khách:", cl.ID)
@@ -121,7 +122,7 @@ func (h *DeviceHook) OnSessionEstablished(cl *mqttServer.Client, pk packets.Pack
 
 	topic := deviceSubTopic(mac)
 
-	// 使用服务器的API直接订阅，而不是注入数据包
+	// Đăng ký chủ đề trực tiếp thông qua API của máy chủ, thay vì chèn gói dữ liệu.
 	clientID := cl.ID
 	exists := h.server.Topics.Subscribe(clientID, packets.Subscription{
 		Filter: topic,
@@ -131,7 +132,7 @@ func (h *DeviceHook) OnSessionEstablished(cl *mqttServer.Client, pk packets.Pack
 	log.Infof("Đăng ký theo dõi chủ đề %s thông qua máy khách %s, exists: %v", topic, clientID, exists)
 }
 
-// OnSubscribe 打印订阅包
+// OnSubscribe: Ghi nhật ký gói đăng ký chủ đề.
 func (h *DeviceHook) OnSubscribe(cl *mqttServer.Client, pk packets.Packet) packets.Packet {
 	log.Info("=== Đã nhận được gói đăng ký ===")
 	log.Infof("ID khách hàng: %s", cl.ID)
@@ -149,7 +150,7 @@ func (h *DeviceHook) OnSubscribe(cl *mqttServer.Client, pk packets.Packet) packe
 	return pk
 }
 
-// OnPublish 打印发布包
+// OnPublish: Ghi nhật ký gói xuất bản.
 func (h *DeviceHook) OnPublish(cl *mqttServer.Client, pk packets.Packet) (packets.Packet, error) {
 	if cl == nil {
 		return pk, nil
@@ -167,7 +168,7 @@ func (h *DeviceHook) OnPublish(cl *mqttServer.Client, pk packets.Packet) (packet
 
 	if len(pk.Payload) > 0 {
 		if len(pk.Payload) > 100 {
-			// 如果消息太长，只显示前100个字节
+			// Nếu nội dung tin nhắn quá dài, chỉ hiển thị 100 byte đầu.
 			log.Infof("Nội dung tin nhắn (100 byte đầu tiên): %s...", pk.Payload[:100])
 		} else {
 			log.Infof("Nội dung tin nhắn: %s", pk.Payload)
@@ -176,7 +177,7 @@ func (h *DeviceHook) OnPublish(cl *mqttServer.Client, pk packets.Packet) (packet
 		log.Info("Nội dung tin nhắn: <trống>")
 	}
 
-	//从cl中找到mac地址
+	// Tìm địa chỉ MAC từ client.
 	mac := parseMacFromClientId(cl.ID)
 	if mac == "" {
 		log.Info("Cảnh báo: Không thể phân giải địa chỉ MAC từ ID máy khách:", cl.ID)
@@ -190,7 +191,7 @@ func (h *DeviceHook) OnPublish(cl *mqttServer.Client, pk packets.Packet) (packet
 	return pk, nil
 }
 
-// 判断是否超级管理员
+// Kiểm tra có phải là quản trị viên cấp cao hay không.
 func isAdminUser(cl *mqttServer.Client) bool {
 	if cl == nil {
 		return false
@@ -198,7 +199,7 @@ func isAdminUser(cl *mqttServer.Client) bool {
 	return string(cl.Properties.Username) == configuredAdminUsername()
 }
 
-// 解析 clientId，获取 mac 地址
+// Phân tích clientId để lấy địa chỉ MAC.
 func parseMacFromClientId(clientId string) string {
 	parts := strings.Split(clientId, "@@@")
 	if len(parts) >= 3 {
@@ -241,7 +242,7 @@ func deviceSubTopic(mac string) string {
 	return fmt.Sprintf("%s%s", client.MDeviceSubTopicPrefix, mac)
 }
 
-// 启动周期性打印订阅主题的任务
+// Khởi động tác vụ định kỳ in danh sách các chủ đề đã đăng ký.
 func (h *DeviceHook) StartPeriodicSubscriptionPrinter(interval time.Duration) {
 	go func() {
 		ticker := time.NewTicker(interval)
@@ -253,7 +254,7 @@ func (h *DeviceHook) StartPeriodicSubscriptionPrinter(interval time.Duration) {
 	}()
 }
 
-// 打印所有客户端的订阅主题
+// In danh sách các chủ đề mà tất cả client đã đăng ký.
 func (h *DeviceHook) PrintAllClientSubscriptions() {
 	log.Info("=== Danh sách chủ đề do khách hàng đăng ký ===")
 	clients := h.server.Clients.GetAll()
@@ -265,25 +266,25 @@ func (h *DeviceHook) PrintAllClientSubscriptions() {
 	for clientID, _ := range clients {
 		log.Infof("Các chủ đề mà khách hàng %s đăng ký theo dõi: ", clientID)
 
-		// 使用server.Topics.Subscribers("+")获取所有主题的订阅者
-		// 然后过滤出与当前clientID匹配的订阅
+		// Lấy danh sách người đăng ký của tất cả chủ đề bằng server.Topics.Subscribers("+").
+		// Sau đó lọc ra các đăng ký tương ứng với clientID hiện tại.
 		allSubs := h.server.Topics.Subscribers("+")
 		foundTopics := false
 
-		// 检查客户端的订阅
+		// Kiểm tra các chủ đề mà client đã đăng ký.
 		if subs, ok := allSubs.Subscriptions[clientID]; ok {
 			log.Infof("  - %s (QoS: %d)", subs.Filter, subs.Qos)
 			foundTopics = true
 		}
 
-		// 检查更多可能的主题订阅
+		// Kiểm tra thêm các chủ đề có thể đã được đăng ký.
 		allSubs = h.server.Topics.Subscribers("#")
 		if subs, ok := allSubs.Subscriptions[clientID]; ok {
 			log.Infof("  - %s (QoS: %d)", subs.Filter, subs.Qos)
 			foundTopics = true
 		}
 
-		// 再检查一下特定主题
+		// Kiểm tra lại chủ đề cụ thể.
 		mac := parseMacFromClientId(clientID)
 		if mac != "" {
 			topic := deviceSubTopic(mac)

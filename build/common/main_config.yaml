@@ -1,6 +1,6 @@
 # Cấu hình máy chủ chạy local
 server:
-  # ấu hình công cụ phân tích hiệu năng
+  # Cấu hình công cụ phân tích hiệu năng
   pprof:
     enable: false # Có bật phân tích hiệu năng pprof không
     port: 6060 # Cổng lắng nghe pprof
@@ -11,329 +11,330 @@ auth:
 
 # Cấu hình trò chuyện
 chat:
-  max_idle_duration: 30000 # Thời gian rảnh tối đa của phiên (mili giây), 0 không giới hạn
-  chat_max_silence_duration: 400 # Ngưỡng im lặng kết thúc câu (mili giây), mặc định 400
-  speak_request_reuse_window_ms: 60000 # Cửa sổ tái sử dụng liên kết phát sóng chủ động MQTT-UDP (mili giây)
-  realtime_mode: 4 # 1: chế độ ngắt vad 2: chế độ ngắt asr 3: ngắt khi phát hiện giọng nói trong asr 4. ngắt khi có kết quả asr (tương thích với luồng hoặc ngoại tuyến)
+  max_idle_duration: 30000 # Thời gian rảnh tối đa của phiên (mili giây), 0 là không giới hạn
+  chat_max_silence_duration: 400 # Ngưỡng im lặng để kết thúc câu (mili giây), mặc định 400
+  speak_request_reuse_window_ms: 60000 # Cửa sổ tái sử dụng liên kết phát (broadcast) chủ động MQTT-UDP (mili giây)
+  realtime_mode: 4 # 1: chế độ ngắt theo VAD  2: chế độ ngắt theo ASR  3: ngắt khi phát hiện có giọng nói trong ASR  4: ngắt khi có kết quả ASR (tương thích cả chế độ streaming và offline)
 
 config_provider: # Tương ứng với provider trong domain/config/
   type: 'manager' # Hiện có thể là manager, redis
   enable_periodic_update: true # Có bật cập nhật cấu hình định kỳ không
   update_interval: '5m' # Khoảng thời gian cập nhật cấu hình, hỗ trợ các đơn vị thời gian như "5m", "1h", "30s"
 
-manager: #Cấu hình quản lý kiểm soát nội bộ, tương ứng với domain/config/manager/manager.go
+manager: # Cấu hình quản lý kiểm soát nội bộ, tương ứng với domain/config/manager/manager.go
   backend_url: 'http://127.0.0.1:8080' # Địa chỉ nội bộ
-  auth_token: 'milestones_admin_secret_key' # Token để gọi API từ bên trong (giá trị mặc định)
-  endpoint_auth_token: 'milestones_mcp_openclaw_secret_key' # Token để xác minh JWT cho các điểm cuối MCP/OpenClaw (giá trị mặc định)
-  history_timeout: 5s # Thời gian chờ yêu cầu HTTP
-# Lời nhắc hệ thống, xác định vai trò và hành vi của trợ lý AI
+  auth_token: 'milestones_admin_secret_key' # Token dùng để gọi API nội bộ (giá trị mặc định)
+  endpoint_auth_token: 'milestones_mcp_openclaw_secret_key' # Token dùng để xác thực JWT cho các endpoint MCP/OpenClaw (giá trị mặc định)
+  history_timeout: 5s # Thời gian chờ (timeout) của yêu cầu HTTP
+
+# Lời nhắc hệ thống (system prompt), xác định vai trò và hành vi của trợ lý AI
 system_prompt: 'Bạn là một trợ lý học tập AI thông minh Milestones, có khả năng trò chuyện tự nhiên, trả lời câu hỏi, cung cấp thông tin và hỗ trợ người dùng trong nhiều lĩnh vực. Bạn có thể hiểu ngôn ngữ tự nhiên, phân tích dữ liệu và đưa ra các giải pháp hữu ích. Hãy luôn lịch sự, thân thiện và hữu ích trong các phản hồi của bạn.'
 
-# Cấu hình nhật ký
+# Cấu hình nhật ký (log)
 log:
   path: './logs/' # Đường dẫn lưu trữ tệp nhật ký
   file: 'server.log' # Tên tệp nhật ký
   level: 'debug' # Mức độ nhật ký (debug/info/warn/error)
   max_age: 3 # Số ngày tối đa lưu trữ tệp nhật ký
-  rotation_time: 10 # Thời gian quay nhật ký (giờ)
-  stdout: true # Có xuất ra bảng điều khiển hay không
+  rotation_time: 10 # Chu kỳ xoay vòng (rotate) nhật ký (giờ)
+  stdout: true # Có xuất ra bảng điều khiển (console) hay không
 
-# Cấu hình cơ sở dữ liệu Redis, được sử dụng để lưu trữ cấu hình thiết bị và lịch sử trò chuyện, tùy chọn
+# Cấu hình cơ sở dữ liệu Redis, dùng để lưu trữ cấu hình thiết bị và lịch sử trò chuyện, tùy chọn
 redis:
   host: '127.0.0.1' # Địa chỉ máy chủ Redis
   port: 6379 # Cổng Redis
   password: 'ticket_dev' # Mật khẩu Redis
-  db: 0 # 使用的数据库编号
-  key_prefix: 'milestones' # 键名前缀
+  db: 0 # Số cơ sở dữ liệu (database) được sử dụng
+  key_prefix: 'milestones' # Tiền tố tên khóa (key)
 
-# WebSocket服务配置
+# Cấu hình dịch vụ WebSocket
 websocket:
-  host: '0.0.0.0' # 监听地址，0.0.0.0表示监听所有网卡
-  port: 8989 # WebSocket监听端口
+  host: '0.0.0.0' # Địa chỉ lắng nghe, 0.0.0.0 nghĩa là lắng nghe trên tất cả các card mạng
+  port: 8989 # Cổng lắng nghe WebSocket
 
-# MQTT客户端配置（连接外部MQTT服务器）
+# Cấu hình MQTT client (kết nối tới máy chủ MQTT bên ngoài)
 mqtt:
-  enable: true # 是否启用MQTT客户端, 当此值为false时会同时关闭udp服务器
-  broker: '127.0.0.1' # MQTT代理服务器地址
-  type: 'tcp' # 连接类型
-  port: 2883 # MQTT端口
-  client_id: 'milestones_server' # 客户端ID
-  username: 'admin' # MQTT用户名
-  password: 'test!@#' # MQTT密码
+  enable: true # Có bật MQTT client không; khi giá trị này là false, máy chủ UDP cũng sẽ bị tắt theo
+  broker: '127.0.0.1' # Địa chỉ máy chủ MQTT broker
+  type: 'tcp' # Loại kết nối
+  port: 2883 # Cổng MQTT
+  client_id: 'milestones_server' # ID của client
+  username: 'admin' # Tên đăng nhập MQTT
+  password: 'test!@#' # Mật khẩu MQTT
 
-# MQTT服务器配置（作为MQTT服务器运行）
+# Cấu hình MQTT server (chạy như một máy chủ MQTT)
 mqtt_server:
-  enable: true # 是否启用MQTT服务器
-  listen_host: '0.0.0.0' # 监听地址
-  listen_port: 2883 # 监听端口
-  client_id: 'milestones_server' # 服务器客户端ID
-  username: 'admin' # 默认用户名
-  password: 'test!@#' # 默认密码
-  signature_key: 'your_ota_signature_key_here' # OTA更新签名密钥
-  enable_auth: false # 是否启用身份验证
-  # TLS安全连接配置
+  enable: true # Có bật máy chủ MQTT không
+  listen_host: '0.0.0.0' # Địa chỉ lắng nghe
+  listen_port: 2883 # Cổng lắng nghe
+  client_id: 'milestones_server' # ID client của máy chủ
+  username: 'admin' # Tên đăng nhập mặc định
+  password: 'test!@#' # Mật khẩu mặc định
+  signature_key: 'your_ota_signature_key_here' # Khóa chữ ký (signature key) cho cập nhật OTA
+  enable_auth: false # Có bật xác thực danh tính không
+  # Cấu hình kết nối bảo mật TLS
   tls:
-    enable: false # 是否启用TLS
-    port: 8883 # TLS端口
-    pem: 'config/server.pem' # 证书文件路径
-    key: 'config/server.key' # 私钥文件路径
+    enable: false # Có bật TLS không
+    port: 8883 # Cổng TLS
+    pem: 'config/server.pem' # Đường dẫn tệp chứng chỉ (certificate)
+    key: 'config/server.key' # Đường dẫn tệp khóa riêng tư (private key)
 
-# UDP服务配置
+# Cấu hình dịch vụ UDP
 udp:
-  external_host: '127.0.0.1' # 外部访问地址, hello消息时下发的地址
-  external_port: 8990 # 外部访问端口, hello消息时下发的端口
-  listen_host: '0.0.0.0' # 监听地址
-  listen_port: 8990 # 监听端口
+  external_host: '127.0.0.1' # Địa chỉ truy cập bên ngoài, được gửi kèm trong thông điệp "hello"
+  external_port: 8990 # Cổng truy cập bên ngoài, được gửi kèm trong thông điệp "hello"
+  listen_host: '0.0.0.0' # Địa chỉ lắng nghe
+  listen_port: 8990 # Cổng lắng nghe
 
-# 资源池配置（所有资源类型共享默认配置）
+# Cấu hình resource pool (nhóm tài nguyên) - dùng chung cấu hình mặc định cho tất cả các loại tài nguyên
 resource_pools:
-  max_size: 1000 # 最大资源数量
-  min_size: 1 # 最小资源数量（预创建）
-  max_idle: 50 # 最大空闲资源数量
-  acquire_timeout: 5s # 获取资源超时时间
-  idle_timeout: 10m # 资源空闲超时时间
-  validate_on_borrow: true # 获取时是否验证资源
-  validate_on_return: true # 归还时是否验证资源
+  max_size: 1000 # Số lượng tài nguyên tối đa
+  min_size: 1 # Số lượng tài nguyên tối thiểu (được tạo trước)
+  max_idle: 50 # Số lượng tài nguyên rảnh (idle) tối đa
+  acquire_timeout: 5s # Thời gian chờ tối đa để lấy tài nguyên
+  idle_timeout: 10m # Thời gian tối đa tài nguyên được phép ở trạng thái rảnh
+  validate_on_borrow: true # Có kiểm tra (validate) tài nguyên khi lấy ra không
+  validate_on_return: true # Có kiểm tra (validate) tài nguyên khi trả về không
 
-# 语音活动检测（VAD）配置
+# Cấu hình phát hiện hoạt động giọng nói (VAD - Voice Activity Detection)
 vad:
-  provider: 'ten_vad' # VAD提供商：webrtc_vad、silero_vad 或 ten_vad
-  # WebRTC VAD配置
+  provider: 'ten_vad' # Nhà cung cấp VAD: webrtc_vad, silero_vad hoặc ten_vad
+  # Cấu hình WebRTC VAD
   webrtc_vad:
-    pool_min_size: 5 # 连接池最小大小
-    pool_max_size: 1000 # 连接池最大大小
-    pool_max_idle: 100 # 连接池最大空闲连接数
-    vad_sample_rate: 16000 # VAD采样率
-    vad_mode: 2 # VAD模式（0-3，越高越敏感）
-  # Silero VAD配置
+    pool_min_size: 5 # Kích thước tối thiểu của connection pool
+    pool_max_size: 1000 # Kích thước tối đa của connection pool
+    pool_max_idle: 100 # Số kết nối rảnh tối đa trong pool
+    vad_sample_rate: 16000 # Tần số lấy mẫu (sample rate) của VAD
+    vad_mode: 2 # Chế độ VAD (0-3, giá trị càng cao thì độ nhạy càng lớn)
+  # Cấu hình Silero VAD
   silero_vad:
-    model_path: 'models/vad/silero_vad.onnx' # 模型文件路径
-    threshold: 0.5 # 检测阈值
-    min_silence_duration_ms: 100 # 最小静默时间（毫秒）
-    sample_rate: 16000 # 采样率
-    channels: 1 # 声道数
-    # pool_size: 10                    # 可选；不配置时默认与CPU核心数一致
-    acquire_timeout_ms: 3000 # 获取连接超时时间（毫秒）
-  # TEN-VAD配置
+    model_path: 'models/vad/silero_vad.onnx' # Đường dẫn tệp mô hình
+    threshold: 0.5 # Ngưỡng phát hiện
+    min_silence_duration_ms: 100 # Thời gian im lặng tối thiểu (mili giây)
+    sample_rate: 16000 # Tần số lấy mẫu
+    channels: 1 # Số kênh âm thanh
+    # pool_size: 10                    # Tùy chọn; nếu không cấu hình thì mặc định bằng số nhân CPU
+    acquire_timeout_ms: 3000 # Thời gian chờ tối đa để lấy kết nối (mili giây)
+  # Cấu hình TEN-VAD
   ten_vad:
-    hop_size: 512 # 帧移大小
-    threshold: 0.4 # VAD检测阈值
-    pool_size: 10 # 资源池大小
-    acquire_timeout_ms: 3000 # 获取超时时间（毫秒）
+    hop_size: 512 # Kích thước bước nhảy khung (frame hop size)
+    threshold: 0.4 # Ngưỡng phát hiện VAD
+    pool_size: 10 # Kích thước resource pool
+    acquire_timeout_ms: 3000 # Thời gian chờ tối đa để lấy tài nguyên (mili giây)
 
-# 自动语音识别（ASR）配置
+# Cấu hình nhận dạng giọng nói tự động (ASR - Automatic Speech Recognition)
 asr:
-  provider: 'funasr' # ASR提供商：funasr 或 doubao
-  # FunASR配置
+  provider: 'funasr' # Nhà cung cấp ASR: funasr hoặc doubao
+  # Cấu hình FunASR
   funasr:
-    host: '127.0.0.1' # FunASR服务器地址
-    port: '10096' # FunASR服务器端口
-    mode: 'offline' # 识别模式：offline/online
-    sample_rate: 16000 # 采样率
-    chunk_size: [5, 10, 5] # 分块大小配置
-    chunk_interval: 10 # 分块间隔（毫秒）
-    max_connections: 5 # 最大连接数
-    timeout: 30 # 超时时间（秒）
-    auto_end: true # 是否自动结束
-  # 豆包ASR配置
+    host: '127.0.0.1' # Địa chỉ máy chủ FunASR
+    port: '10096' # Cổng máy chủ FunASR
+    mode: 'offline' # Chế độ nhận dạng: offline/online
+    sample_rate: 16000 # Tần số lấy mẫu
+    chunk_size: [5, 10, 5] # Cấu hình kích thước chia khối (chunk)
+    chunk_interval: 10 # Khoảng cách giữa các chunk (mili giây)
+    max_connections: 5 # Số kết nối tối đa
+    timeout: 30 # Thời gian chờ tối đa (giây)
+    auto_end: true # Có tự động kết thúc không
+  # Cấu hình ASR của Doubao (豆包)
   doubao:
-    appid: 'xxx' # 应用ID
-    access_token: 'xxx-Cu' # 访问令牌
-    ws_url: 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream' # WebSocket URL
-    model_name: 'bigmodel' # 模型名称
-    end_window_size: 800 # 结束窗口大小
-    enable_punc: true # 启用标点符号
-    enable_itn: true # 启用反向文本标准化
-    enable_ddc: false # 启用数字检测修正
-    timeout: 30 # 超时时间（秒）
+    appid: 'xxx' # ID ứng dụng
+    access_token: 'xxx-Cu' # Token truy cập
+    ws_url: 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream' # Địa chỉ WebSocket
+    model_name: 'bigmodel' # Tên mô hình
+    end_window_size: 800 # Kích thước cửa sổ kết thúc
+    enable_punc: true # Bật thêm dấu câu tự động
+    enable_itn: true # Bật chuẩn hóa văn bản nghịch (Inverse Text Normalization)
+    enable_ddc: false # Bật sửa lỗi phát hiện số (Digit Detection Correction)
+    timeout: 30 # Thời gian chờ tối đa (giây)
 
-# 文本转语音（TTS）配置
+# Cấu hình chuyển văn bản thành giọng nói (TTS - Text To Speech)
 tts:
-  provider: 'doubao_ws' # TTS提供商：milestones/doubao/doubao_ws/cosyvoice/edge/edge_offline
-  openai: #openai兼容格式的tts服务, 这里使用硅基流动服务
-    api_key: 'xxxx' #apikey
+  provider: 'doubao_ws' # Nhà cung cấp TTS: milestones/doubao/doubao_ws/cosyvoice/edge/edge_offline
+  openai: # Dịch vụ TTS tương thích định dạng OpenAI, ở đây sử dụng dịch vụ SiliconFlow (硅基流动)
+    api_key: 'xxxx' # API key
     api_url: 'https://api.siliconflow.cn/v1/audio/speech'
     model: 'FunAudioLLM/CosyVoice2-0.5B'
     voice: 'FunAudioLLM/CosyVoice2-0.5B:alex'
     response_format: 'mp3'
     speed: 1.0
     stream: true
-  # 豆包TTS配置（HTTP方式）
-  doubao: #基本废掉，不支持流式
-    appid: '6886011847' # 应用ID
-    access_token: 'access_token' # 访问令牌
-    model: 'seed-tts-1.1' # 模型
-    voice: 'BV001_streaming' # 语音模型
-    api_url: 'https://openspeech.bytedance.com/api/v3/tts/unidirectional' # API地址
-  # 豆包TTS配置（WebSocket方式），支持流式输出
+  # Cấu hình TTS của Doubao (phương thức HTTP)
+  doubao: # Về cơ bản đã lỗi thời, không hỗ trợ streaming
+    appid: '6886011847' # ID ứng dụng
+    access_token: 'access_token' # Token truy cập
+    model: 'seed-tts-1.1' # Mô hình
+    voice: 'BV001_streaming' # Mô hình giọng nói
+    api_url: 'https://openspeech.bytedance.com/api/v3/tts/unidirectional' # Địa chỉ API
+  # Cấu hình TTS của Doubao (phương thức WebSocket), hỗ trợ đầu ra dạng streaming
   doubao_ws:
-    appid: '6886011847' # 应用ID
-    access_token: 'access_token' # 访问令牌
-    model: 'seed-tts-1.1' # 模型
-    resource_id: '' # 可选，建议填写控制台里的实例 ID，如 TTS-SeedTTS2.xxxxx
-    voice: '' # 语音模型，需按账号实际开通的 v3 音色填写
-    ws_url: 'wss://openspeech.bytedance.com/api/v3/tts/unidirectional/stream' # WebSocket 地址
-  # CosyVoice TTS配置
+    appid: '6886011847' # ID ứng dụng
+    access_token: 'access_token' # Token truy cập
+    model: 'seed-tts-1.1' # Mô hình
+    resource_id: '' # Tùy chọn, khuyến nghị điền ID instance trong console, ví dụ TTS-SeedTTS2.xxxxx
+    voice: '' # Mô hình giọng nói, cần điền theo giọng (voice) v3 mà tài khoản thực tế đã kích hoạt
+    ws_url: 'wss://openspeech.bytedance.com/api/v3/tts/unidirectional/stream' # Địa chỉ WebSocket
+  # Cấu hình CosyVoice TTS
   cosyvoice:
-    api_url: 'https://tts.linkerai.top/tts' # API地址
-    spk_id: 'spk_id' # 说话人ID
-    frame_duration: 60 # 帧持续时间（毫秒）
-    target_sr: 24000 # 目标采样率
-    audio_format: 'mp3' # 音频格式
-    instruct_text: '你好' # 指示文本
-  # Microsoft Edge TTS配置
+    api_url: 'https://tts.linkerai.top/tts' # Địa chỉ API
+    spk_id: 'spk_id' # ID người nói (speaker)
+    frame_duration: 60 # Thời lượng khung (frame) (mili giây)
+    target_sr: 24000 # Tần số lấy mẫu đầu ra mong muốn
+    audio_format: 'mp3' # Định dạng âm thanh
+    instruct_text: '你好' # Văn bản hướng dẫn (instruct text)
+  # Cấu hình Microsoft Edge TTS
   edge:
-    voice: 'zh-CN-XiaoxiaoNeural' # 语音模型
-    rate: '+0%' # 语速调整
-    volume: '+0%' # 音量调整
-    pitch: '+0Hz' # 音调调整
-    connect_timeout: 10 # 连接超时（秒）
-    receive_timeout: 60 # 接收超时（秒）
-  # Edge离线TTS配置
+    voice: 'zh-CN-XiaoxiaoNeural' # Mô hình giọng nói
+    rate: '+0%' # Điều chỉnh tốc độ nói
+    volume: '+0%' # Điều chỉnh âm lượng
+    pitch: '+0Hz' # Điều chỉnh cao độ (tông giọng)
+    connect_timeout: 10 # Thời gian chờ kết nối (giây)
+    receive_timeout: 60 # Thời gian chờ nhận dữ liệu (giây)
+  # Cấu hình Edge TTS ngoại tuyến (offline)
   edge_offline:
-    server_url: 'ws://localhost:8080/tts' # 服务器地址
-    timeout: 30 # 超时时间（秒）
-    sample_rate: 16000 # 采样率
-    channels: 1 # 声道数
-    frame_duration: 20 # 帧持续时间（毫秒）
-  # 小智TTS配置
+    server_url: 'ws://localhost:8080/tts' # Địa chỉ máy chủ
+    timeout: 30 # Thời gian chờ tối đa (giây)
+    sample_rate: 16000 # Tần số lấy mẫu
+    channels: 1 # Số kênh âm thanh
+    frame_duration: 20 # Thời lượng khung (frame) (mili giây)
+  # Cấu hình TTS Xiaozhi (小智)
   milestones:
-    server_addr: 'wss://api.tenclass.net/milestones/v1/' # 服务器地址
-    device_id: 'ba:8f:17:de:94:94' # 设备ID
-    client_id: 'e4b0c442-98fc-4e1b-8c3d-6a5b6a5b6a6d' # 客户端ID
-    token: 'test-token' # 访问令牌
+    server_addr: 'wss://api.tenclass.net/milestones/v1/' # Địa chỉ máy chủ
+    device_id: 'ba:8f:17:de:94:94' # ID thiết bị
+    client_id: 'e4b0c442-98fc-4e1b-8c3d-6a5b6a5b6a6d' # ID client
+    token: 'test-token' # Token truy cập
 
-# 大语言模型（LLM）配置
+# Cấu hình mô hình ngôn ngữ lớn (LLM - Large Language Model)
 llm:
-  provider: 'qwen_72b' # 默认使用的LLM提供商
-  # DeepSeek V3模型配置（硅基流动平台）
+  provider: 'qwen_72b' # Nhà cung cấp LLM được sử dụng mặc định
+  # Cấu hình mô hình DeepSeek V3 (nền tảng SiliconFlow)
   deepseek:
-    type: 'openai' # 接口类型
-    model_name: 'Pro/deepseek-ai/DeepSeek-V3' # 模型名称
-    api_key: 'api_key' # API密钥
-    base_url: 'https://api.siliconflow.cn/v1' # API基础地址
-    max_tokens: 500 # 最大生成token数
-  # DeepSeek V2.5模型配置（硅基流动平台）
+    type: 'openai' # Loại giao diện (interface type)
+    model_name: 'Pro/deepseek-ai/DeepSeek-V3' # Tên mô hình
+    api_key: 'api_key' # API key
+    base_url: 'https://api.siliconflow.cn/v1' # Địa chỉ gốc của API
+    max_tokens: 500 # Số token tối đa được sinh ra
+  # Cấu hình mô hình DeepSeek V2.5 (nền tảng SiliconFlow)
   deepseek2_5:
-    type: 'openai' # 接口类型
-    model_name: 'deepseek-ai/DeepSeek-V2.5' # 模型名称
-    api_key: 'api_key' # API密钥
-    base_url: 'https://api.siliconflow.cn/v1' # API基础地址
-    max_tokens: 500 # 最大生成token数
-  # 通义千问72B模型配置（硅基流动平台）
+    type: 'openai' # Loại giao diện
+    model_name: 'deepseek-ai/DeepSeek-V2.5' # Tên mô hình
+    api_key: 'api_key' # API key
+    base_url: 'https://api.siliconflow.cn/v1' # Địa chỉ gốc của API
+    max_tokens: 500 # Số token tối đa được sinh ra
+  # Cấu hình mô hình Qwen 72B - Thông Nghĩa Thiên Vấn (nền tảng SiliconFlow)
   qwen_72b:
-    type: 'openai' # 接口类型
-    model_name: 'Qwen/Qwen2.5-72B-Instruct' # 模型名称
-    api_key: 'api_key' # API密钥
-    base_url: 'https://api.siliconflow.cn/v1' # API基础地址
-    max_tokens: 500 # 最大生成token数
-  # ChatGLM模型配置（智谱AI）
+    type: 'openai' # Loại giao diện
+    model_name: 'Qwen/Qwen2.5-72B-Instruct' # Tên mô hình
+    api_key: 'api_key' # API key
+    base_url: 'https://api.siliconflow.cn/v1' # Địa chỉ gốc của API
+    max_tokens: 500 # Số token tối đa được sinh ra
+  # Cấu hình mô hình ChatGLM (Zhipu AI)
   chatglmllm:
-    type: 'openai' # 接口类型
-    model_name: 'glm-4-flash' # 模型名称
-    base_url: 'https://open.bigmodel.cn/api/paas/v4/' # API基础地址
-    api_key: 'api_key' # API密钥
-    max_tokens: 500 # 最大生成token数
-  # 阿里云通义千问配置
+    type: 'openai' # Loại giao diện
+    model_name: 'glm-4-flash' # Tên mô hình
+    base_url: 'https://open.bigmodel.cn/api/paas/v4/' # Địa chỉ gốc của API
+    api_key: 'api_key' # API key
+    max_tokens: 500 # Số token tối đa được sinh ra
+  # Cấu hình Alibaba Cloud Qwen (Thông Nghĩa Thiên Vấn)
   aliyun_qwen:
-    type: 'openai' # 接口类型
-    model_name: 'qwen2.5-72b-instruct' # 模型名称
-    base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' # API基础地址
-    api_key: 'api_key' # API密钥
-    max_token: 500 # 最大生成token数
-  # 豆包DeepSeek模型配置
+    type: 'openai' # Loại giao diện
+    model_name: 'qwen2.5-72b-instruct' # Tên mô hình
+    base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' # Địa chỉ gốc của API
+    api_key: 'api_key' # API key
+    max_token: 500 # Số token tối đa được sinh ra
+  # Cấu hình mô hình DeepSeek của Doubao
   doubao_deepseek:
-    type: 'openai' # 接口类型
-    model_name: 'deepseek-v3' # 模型名称
-    api_key: 'api_key' # API密钥
-    base_url: 'https://ark.cn-beijing.volces.com/api/v3' # API基础地址
-    max_tokens: 500 # 最大生成token数
+    type: 'openai' # Loại giao diện
+    model_name: 'deepseek-v3' # Tên mô hình
+    api_key: 'api_key' # API key
+    base_url: 'https://ark.cn-beijing.volces.com/api/v3' # Địa chỉ gốc của API
+    max_tokens: 500 # Số token tối đa được sinh ra
 
-# 视觉识别配置
+# Cấu hình nhận dạng thị giác (Vision)
 vision:
-  enable_auth: false # 是否启用身份验证
-  vision_url: 'http://192.168.1.97:8989/milestones/api/vision' # 下发给设备的 视觉API地址
-  # 视觉语言模型配置
+  enable_auth: false # Có bật xác thực danh tính không
+  vision_url: 'http://192.168.1.97:8989/milestones/api/vision' # Địa chỉ API thị giác được gửi xuống thiết bị
+  # Cấu hình mô hình ngôn ngữ thị giác (VLLM - Vision Language Model)
   vllm:
-    provider: 'aliyun_vision' # 视觉模型提供商
-    # 阿里云视觉模型配置
+    provider: 'aliyun_vision' # Nhà cung cấp mô hình thị giác
+    # Cấu hình mô hình thị giác của Alibaba Cloud
     aliyun_vision:
-      type: 'openai' # 接口类型
-      model_name: 'qwen-vl-plus-latest' # 模型名称
-      base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' # API基础地址
-      api_key: 'api_key' # API密钥
-      max_token: 500 # 最大生成token数
-    # 豆包视觉模型配置
+      type: 'openai' # Loại giao diện
+      model_name: 'qwen-vl-plus-latest' # Tên mô hình
+      base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' # Địa chỉ gốc của API
+      api_key: 'api_key' # API key
+      max_token: 500 # Số token tối đa được sinh ra
+    # Cấu hình mô hình thị giác của Doubao
     doubao_vision:
-      type: 'openai' # 接口类型
-      model_name: 'doubao-1.5-vision-lite-250315' # 模型名称
-      api_key: 'api_key' # API密钥
-      base_url: 'https://ark.cn-beijing.volces.com/api/v3' # API基础地址
-      max_tokens: 500 # 最大生成token数
+      type: 'openai' # Loại giao diện
+      model_name: 'doubao-1.5-vision-lite-250315' # Tên mô hình
+      api_key: 'api_key' # API key
+      base_url: 'https://ark.cn-beijing.volces.com/api/v3' # Địa chỉ gốc của API
+      max_tokens: 500 # Số token tối đa được sinh ra
 
-# OTA（空中升级）配置
+# Cấu hình OTA (cập nhật qua mạng - Over The Air)
 ota:
-  signature_key: 'your_ota_signature_key_here' # OTA签名密钥
-  # 测试环境配置，内部测试用
+  signature_key: 'your_ota_signature_key_here' # Khóa chữ ký OTA
+  # Cấu hình môi trường kiểm thử (test), dùng để test nội bộ
   test:
     websocket:
-      url: 'ws://192.168.1.97:8989/milestones/v1/' # WebSocket地址
+      url: 'ws://192.168.1.97:8989/milestones/v1/' # Địa chỉ WebSocket
     mqtt:
-      enable: false # 当为true时，会将 mqtt 配置给设备
-      endpoint: '192.168.1.97' # MQTT端点，可以带端口
-  # 外部环境配置，线上环境用
+      enable: false # Khi là true, cấu hình MQTT sẽ được gửi xuống cho thiết bị
+      endpoint: '192.168.1.97' # Endpoint MQTT, có thể kèm theo cổng
+  # Cấu hình môi trường bên ngoài (external), dùng cho môi trường production
   external:
     websocket:
-      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/' # WebSocket地址
+      url: 'wss://www.tb263.cn:55555/go_ws/milestones/v1/' # Địa chỉ WebSocket
     mqtt:
-      enable: false # 当为true时，会将 mqtt 配置给设备
-      endpoint: 'www.youdomain.cn' # MQTT端点，可以带端口
+      enable: false # Khi là true, cấu hình MQTT sẽ được gửi xuống cho thiết bị
+      endpoint: 'www.youdomain.cn' # Endpoint MQTT, có thể kèm theo cổng
 
-# MCP（模型控制协议）配置
+# Cấu hình MCP (Model Control Protocol - Giao thức điều khiển mô hình)
 mcp:
-  # 全局MCP服务器配置
+  # Cấu hình máy chủ MCP toàn cục (global)
   global:
-    enabled: false # 是否启用全局MCP
+    enabled: false # Có bật MCP toàn cục không
     servers:
-      # 文件系统MCP服务器
+      # Máy chủ MCP hệ thống tệp (filesystem)
       - name: 'filesystem'
-        type: 'sse' # 连接类型：SSE
-        url: 'http://localhost:3001/sse' # 服务器地址
-        enabled: true # 是否启用
-      # 内存MCP服务器
+        type: 'sse' # Loại kết nối: SSE
+        url: 'http://localhost:3001/sse' # Địa chỉ máy chủ
+        enabled: true # Có bật không
+      # Máy chủ MCP bộ nhớ (memory)
       - name: 'memory'
-        type: 'streamablehttp' # 连接类型：流式HTTP
-        url: 'http://localhost:3002/mcp' # 服务器地址
-        enabled: true # 是否启用
-    reconnect_interval: 300 # 重连间隔（秒）
-    max_reconnect_attempts: 10 # 最大重连尝试次数
+        type: 'streamablehttp' # Loại kết nối: streaming HTTP
+        url: 'http://localhost:3002/mcp' # Địa chỉ máy chủ
+        enabled: true # Có bật không
+    reconnect_interval: 300 # Khoảng thời gian giữa các lần kết nối lại (giây)
+    max_reconnect_attempts: 10 # Số lần thử kết nối lại tối đa
 
-# 本地MCP工具配置
+# Cấu hình công cụ MCP cục bộ (local)
 local_mcp:
-  exit_conversation: true # 允许退出对话
-  clear_conversation_history: true # 允许清除对话历史
+  exit_conversation: true # Cho phép thoát khỏi cuộc trò chuyện
+  clear_conversation_history: true # Cho phép xóa lịch sử trò chuyện
 
-# Memory 长记忆配置
+# Cấu hình bộ nhớ dài hạn (Memory)
 memory:
-  provider: 'nomemo' # 记忆提供商: nomemo(无长记忆) llm(短期对话记忆,基于Redis) / memobase(长期记忆) / mem0 / memos(MemOS, 兼容Mem0 API)
-  # LLM Memory 配置（短期对话记忆）
-  # 使用 Redis 存储，配置见上面的 redis 部分
+  provider: 'nomemo' # Nhà cung cấp bộ nhớ: nomemo (không có bộ nhớ dài hạn) / llm (bộ nhớ hội thoại ngắn hạn, dựa trên Redis) / memobase (bộ nhớ dài hạn) / mem0 / memos (MemOS, tương thích API của Mem0)
+  # Cấu hình LLM Memory (bộ nhớ hội thoại ngắn hạn)
+  # Sử dụng Redis để lưu trữ, cấu hình xem ở phần redis phía trên
   nomemo:
-    # 无需额外配置，使用全局 redis 配置
-  # Memobase 配置（长期记忆存储）
+    # Không cần cấu hình thêm, sử dụng cấu hình redis toàn cục
+  # Cấu hình Memobase (lưu trữ bộ nhớ dài hạn)
   memobase:
-    base_url: 'https://api.memobase.dev' # Memobase项目URL
-    api_key: 'your_memobase_api_key_here' # Memobase API密钥
-    api_version: 'v1' # API版本
-    enable_search: true #允许在调用llm之前搜索memory,会有200ms左右延迟
-    search_threshold: 0.5 #搜索阈值,0.5表示只有当搜索到的memory与用户输入的相似度超过0.5时,才会将其加入到llm的输入中
-    search_top_k: 3 #搜索TopK,表示搜索到的memory中,相似度最高的TopK个memory会被加入到llm的输入中
+    base_url: 'https://api.memobase.dev' # URL dự án Memobase
+    api_key: 'your_memobase_api_key_here' # API key của Memobase
+    api_version: 'v1' # Phiên bản API
+    enable_search: true # Cho phép tìm kiếm bộ nhớ trước khi gọi LLM, sẽ có độ trễ khoảng 200ms
+    search_threshold: 0.5 # Ngưỡng tìm kiếm; 0.5 nghĩa là chỉ khi bộ nhớ tìm được có độ tương đồng với đầu vào của người dùng vượt quá 0.5 thì mới được đưa vào đầu vào của LLM
+    search_top_k: 3 # Số lượng kết quả tìm kiếm hàng đầu (Top-K); trong số các bộ nhớ tìm được, K bộ nhớ có độ tương đồng cao nhất sẽ được đưa vào đầu vào của LLM
   mem0:
     api_key: 'your_mem0_api_key_here'
     base_url: 'https://api.mem0.ai'
-    enable_search: true #允许在调用llm之前搜索memory,会有200ms左右延迟
-    search_threshold: 0.5 #搜索阈值,0.5表示只有当搜索到的memory与用户输入的相似度超过0.5时,才会将其加入到llm的输入中
-    search_top_k: 3 #搜索TopK,表示搜索到的memory中,相似度最高的TopK个memory会被加入到llm的输入中
+    enable_search: true # Cho phép tìm kiếm bộ nhớ trước khi gọi LLM, sẽ có độ trễ khoảng 200ms
+    search_threshold: 0.5 # Ngưỡng tìm kiếm; 0.5 nghĩa là chỉ khi bộ nhớ tìm được có độ tương đồng với đầu vào của người dùng vượt quá 0.5 thì mới được đưa vào đầu vào của LLM
+    search_top_k: 3 # Số lượng kết quả tìm kiếm hàng đầu (Top-K); trong số các bộ nhớ tìm được, K bộ nhớ có độ tương đồng cao nhất sẽ được đưa vào đầu vào của LLM
   memos:
     api_key: 'your_memos_api_key_here'
     base_url: 'https://memos.memtensor.cn/api/openmem/v1'
@@ -350,13 +351,13 @@ greeting_list:
   - 'Xin chào, tôi là Milestones, rất vui được gặp bạn!'
   - 'Chào bạn, tôi là Milestones, hôm nay tôi có thể giúp gì cho bạn?'
 
-# đánh thức danh sách từ
+# Danh sách từ đánh thức (wake-up words)
 wakeup_words:
-  - 'Milestones'
+  - 'Xin chào Milestones'
   - 'Hey Milestones'
 
+# Cấu hình nhận dạng giọng nói người dùng (voice identify)
 voice_identify:
   enable: true
   base_url: 'http://192.168.1.97:8080'
-  threshold: 0.4 # Ngưỡng nhận dạng giọng nói, phạm vi 0,0-1,0, mặc định 0,6
-
+  threshold: 0.4 # Ngưỡng nhận dạng giọng nói, phạm vi 0.0-1.0, mặc định 0.6

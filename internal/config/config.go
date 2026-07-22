@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Config 表示服务器配置
+// Config Thể hiện cấu hình server
 type Config struct {
 	Server struct {
 		Host string `json:"host"`
@@ -18,17 +18,17 @@ type Config struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	} `json:"mqtt"`
-	// 唤醒词相关配置
+	// Cấu hình liên quan đến từ đánh thức (wakeup word)
 	WakeupWords    []string `json:"wakeup_words"`
 	EnableGreeting bool     `json:"enable_greeting"`
 }
 
-// ServerAddress 返回服务器地址
+// ServerAddress Trả về địa chỉ server
 func (c *Config) ServerAddress() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
 }
 
-// LoadConfig 从文件加载配置
+// LoadConfig Nạp cấu hình từ file
 func LoadConfig(filename string) (*Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -44,7 +44,7 @@ func LoadConfig(filename string) (*Config, error) {
 	return &config, nil
 }
 
-// SaveConfig 保存配置到文件
+// SaveConfig Lưu cấu hình ra file
 func (c *Config) SaveConfig(filename string) error {
 	data, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {

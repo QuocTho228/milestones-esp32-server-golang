@@ -215,16 +215,16 @@ const generateConfig = () => {
 };
 
 const rules = {
-  name: [{ required: true, message: 'Vui lòng nhậpTên cấu hình', trigger: 'blur' }],
-  provider: [{ required: true, message: 'Vui lòng chọnNhà cung cấp', trigger: 'change' }],
-  type: [{ required: true, message: 'Vui lòng nhậpLoại', trigger: 'blur' }],
-  model_name: [{ required: true, message: 'Vui lòng nhậpTên mô hình', trigger: 'blur' }],
-  api_key: [{ required: true, message: 'Vui lòng nhậpAPI key', trigger: 'blur' }],
+  name: [{ required: true, message: 'Vui lòng nhập Tên cấu hình', trigger: 'blur' }],
+  provider: [{ required: true, message: 'Vui lòng chọn Nhà cung cấp', trigger: 'change' }],
+  type: [{ required: true, message: 'Vui lòng nhập Loại', trigger: 'blur' }],
+  model_name: [{ required: true, message: 'Vui lòng nhập Tên mô hình', trigger: 'blur' }],
+  api_key: [{ required: true, message: 'Vui lòng nhập API key', trigger: 'blur' }],
   base_url: [
-    { required: true, message: 'Vui lòng nhậpbaseURL', trigger: 'blur' },
+    { required: true, message: 'Vui lòng nhập baseURL', trigger: 'blur' },
     { type: 'url', message: 'Vui lòng nhập URL hợp lệ', trigger: 'blur' },
   ],
-  max_tokens: [{ required: true, message: 'Vui lòng nhậpSố token tối đa', trigger: 'blur' }],
+  max_tokens: [{ required: true, message: 'Vui lòng nhập Số token tối đa', trigger: 'blur' }],
   timeout: [{ required: true, message: 'Vui lòng nhập thời gian chờ', trigger: 'blur' }],
 };
 
@@ -268,9 +268,9 @@ const saveBaseConfig = async () => {
           enable_auth: baseForm.enable_auth,
           vision_url: baseForm.vision_url,
         });
-        ElMessage.success('Cấu hình cơ bảnLưuthành công');
+        ElMessage.success('Cấu hình cơ bản Lưu thành công');
       } catch (error) {
-        ElMessage.error('Lưuthất bại，vui lòng kiểm tra kết nối mạng và nội dung nhập');
+        ElMessage.error('Lưu thất bại, vui lòng kiểm tra kết nối mạng và nội dung nhập');
       } finally {
         baseSaving.value = false;
       }
@@ -395,7 +395,7 @@ const getEnabledConfigs = () => {
 
 const deleteConfig = async (id) => {
   try {
-    await ElMessageBox.confirm('Xác nhậnmuốnXóacấu hình này không？', 'Thông báo', {
+    await ElMessageBox.confirm('Xác nhận muốn Xóa cấu hình này không?', 'Thông báo', {
       confirmButtonText: 'Xác nhận',
       cancelButtonText: 'Hủy',
       type: 'warning',

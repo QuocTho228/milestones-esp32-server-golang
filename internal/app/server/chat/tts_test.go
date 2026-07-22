@@ -22,7 +22,7 @@ func TestClearTTSQueueDismissesDrainedItemsForTurnBarrier(t *testing.T) {
 		t.Fatal("expected tracker to be stored in context")
 	}
 
-	if err := manager.handleTextResponseWithHooks(ctx, llm_common.LLMResponseStruct{Text: "你好"}, false, tracker.Add, nil); err != nil {
+	if err := manager.handleTextResponseWithHooks(ctx, llm_common.LLMResponseStruct{Text: "xin chào"}, false, tracker.Add, nil); err != nil {
 		t.Fatalf("enqueue tts item failed: %v", err)
 	}
 
@@ -58,7 +58,7 @@ func TestClearTTSQueueResetsDualStreamState(t *testing.T) {
 	}
 
 	if err := manager.handleTextResponseWithHooks(ctx, llm_common.LLMResponseStruct{
-		Text:    "第一段",
+		Text:    "đoạn thứ nhất",
 		IsStart: true,
 	}, false, tracker.Add, nil); err != nil {
 		t.Fatalf("enqueue dual-stream tts item failed: %v", err)
@@ -110,7 +110,7 @@ func TestHandleTextResponseWithCanceledContextSkipsEnqueue(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	if err := manager.handleTextResponseWithHooks(ctx, llm_common.LLMResponseStruct{Text: "晚到分片"}, false, nil, nil); err != nil {
+	if err := manager.handleTextResponseWithHooks(ctx, llm_common.LLMResponseStruct{Text: "phân mảnh đến muộn"}, false, nil, nil); err != nil {
 		t.Fatalf("handleTextResponseWithHooks returned error: %v", err)
 	}
 	if got := manager.ttsQueueSeq.Load(); got != 0 {
@@ -126,7 +126,7 @@ func TestDualStreamIgnoresFragmentsFromPreviousTurn(t *testing.T) {
 	defer secondCancel()
 
 	if err := manager.handleTextResponseWithHooks(firstCtx, llm_common.LLMResponseStruct{
-		Text:    "第一轮开头",
+		Text:    "mở đầu lượt thứ nhất",
 		IsStart: true,
 	}, false, nil, nil); err != nil {
 		t.Fatalf("enqueue first dual-stream start failed: %v", err)
@@ -135,7 +135,7 @@ func TestDualStreamIgnoresFragmentsFromPreviousTurn(t *testing.T) {
 	manager.ClearTTSQueue()
 
 	if err := manager.handleTextResponseWithHooks(secondCtx, llm_common.LLMResponseStruct{
-		Text:    "第二轮开头",
+		Text:    "mở đầu lượt thứ hai",
 		IsStart: true,
 	}, false, nil, nil); err != nil {
 		t.Fatalf("enqueue second dual-stream start failed: %v", err)
@@ -154,7 +154,7 @@ func TestDualStreamIgnoresFragmentsFromPreviousTurn(t *testing.T) {
 
 	seqBefore := manager.ttsQueueSeq.Load()
 	if err := manager.handleTextResponseWithHooks(firstCtx, llm_common.LLMResponseStruct{
-		Text: "上一轮残留",
+		Text: "phần sót lại từ lượt trước",
 	}, false, nil, nil); err != nil {
 		t.Fatalf("enqueue stale dual-stream fragment failed: %v", err)
 	}
@@ -163,17 +163,17 @@ func TestDualStreamIgnoresFragmentsFromPreviousTurn(t *testing.T) {
 	}
 
 	if err := manager.handleTextResponseWithHooks(secondCtx, llm_common.LLMResponseStruct{
-		Text: "第二轮续写",
+		Text: "tiếp nối lượt thứ hai",
 	}, false, nil, nil); err != nil {
 		t.Fatalf("enqueue second dual-stream continuation failed: %v", err)
 	}
 
 	first := <-streamChan
-	if first.Text != "第二轮开头" {
+	if first.Text != "mở đầu lượt thứ hai" {
 		t.Fatalf("expected first buffered fragment to belong to second turn, got %q", first.Text)
 	}
 	second := <-streamChan
-	if second.Text != "第二轮续写" {
+	if second.Text != "tiếp nối lượt thứ hai" {
 		t.Fatalf("expected continuation to stay on second turn stream, got %q", second.Text)
 	}
 

@@ -2,8 +2,8 @@ package xunfei
 
 import "time"
 
-// Config 讯飞听写(WebSocket IAT)配置
-// 文档: https://www.xfyun.cn/doc/asr/voicedictation/API.html
+// Config: Cấu hình iFlytek Voice Dictation (WebSocket IAT).
+// Tài liệu: https://www.xfyun.cn/doc/asr/voicedictation/API.html
 type Config struct {
 	AppID      string
 	APIKey     string

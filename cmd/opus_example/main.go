@@ -8,74 +8,74 @@ import (
 )
 
 func main() {
-	// 音频参数设置
+	// Thiết lập tham số âm thanh
 	channels := 1
 	sampleRate := 16000 // 16kHz
-	fmt.Printf("通道数: %d, 采样率: %d Hz\n", channels, sampleRate)
+	fmt.Printf("Số kênh: %d, Tần số lấy mẫu: %d Hz\n", channels, sampleRate)
 
-	// 创建一个编码器，指定应用类型为VoIP (低延迟语音)
+	// Tạo một bộ mã hóa (encoder), chỉ định loại ứng dụng là VoIP (thoại độ trễ thấp)
 	enc, err := opus.NewEncoder(sampleRate, channels, opus.AppVoIP)
 	if err != nil {
-		fmt.Printf("创建编码器失败: %v\n", err)
+		fmt.Printf("Tạo bộ mã hóa thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 设置比特率为16kbps
+	// Thiết lập bitrate là 16kbps
 	if err = enc.SetBitrate(16000); err != nil {
-		fmt.Printf("设置比特率失败: %v\n", err)
+		fmt.Printf("Thiết lập bitrate thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 设置复杂度，0-10之间，越高质量越好但CPU消耗越大
+	// Thiết lập độ phức tạp (complexity), trong khoảng 0-10, giá trị càng cao chất lượng càng tốt nhưng tốn nhiều CPU hơn
 	if err = enc.SetComplexity(5); err != nil {
-		fmt.Printf("设置复杂度失败: %v\n", err)
+		fmt.Printf("Thiết lập độ phức tạp thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 生成20ms的测试PCM数据 (每帧20ms，16kHz采样率 = 320样本)
+	// Tạo dữ liệu PCM thử nghiệm dài 20ms (mỗi khung 20ms, tần số lấy mẫu 16kHz = 320 mẫu)
 	frameSize := 320
 	pcm := make([]int16, frameSize*channels)
 
-	// 生成一个简单的正弦波进行测试
+	// Tạo một sóng sin đơn giản để kiểm thử
 	for i := 0; i < frameSize; i++ {
-		// 简单的正弦波，频率约为440Hz
+		// Sóng sin đơn giản, tần số khoảng 440Hz
 		value := int16(10000.0 * float64(i%36) / 36.0)
 		pcm[i] = value
 	}
 
-	// 用于存储编码后的数据
+	// Dùng để lưu trữ dữ liệu sau khi mã hóa
 	data := make([]byte, 1000)
 
-	// 编码PCM数据为Opus
+	// Mã hóa dữ liệu PCM thành Opus
 	n, err := enc.Encode(pcm, data)
 	if err != nil {
-		fmt.Printf("编码失败: %v\n", err)
+		fmt.Printf("Mã hóa thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("编码%d个样本为%d字节的Opus数据，压缩率: %.2f%%\n",
+	fmt.Printf("Đã mã hóa %d mẫu thành %d byte dữ liệu Opus, tỷ lệ nén: %.2f%%\n",
 		frameSize*channels, n, float64(n)/float64(frameSize*channels*2)*100)
 
-	// 创建解码器进行解码测试
+	// Tạo bộ giải mã (decoder) để kiểm thử giải mã
 	dec, err := opus.NewDecoder(sampleRate, channels)
 	if err != nil {
-		fmt.Printf("创建解码器失败: %v\n", err)
+		fmt.Printf("Tạo bộ giải mã thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 用于存储解码后的PCM数据
+	// Dùng để lưu trữ dữ liệu PCM sau khi giải mã
 	decodedPCM := make([]int16, frameSize*channels)
 
-	// 解码Opus数据为PCM
+	// Giải mã dữ liệu Opus thành PCM
 	samplesDecoded, err := dec.Decode(data[:n], decodedPCM)
 	if err != nil {
-		fmt.Printf("解码失败: %v\n", err)
+		fmt.Printf("Giải mã thất bại: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("解码%d字节的Opus数据为%d个样本\n", n, samplesDecoded)
+	fmt.Printf("Đã giải mã %d byte dữ liệu Opus thành %d mẫu\n", n, samplesDecoded)
 
-	// 计算原始PCM与解码后PCM的差异
+	// Tính toán sự chênh lệch giữa PCM gốc và PCM sau khi giải mã
 	var sumDiff int64
 	for i := 0; i < frameSize; i++ {
 		diff := int64(pcm[i]) - int64(decodedPCM[i])
@@ -86,6 +86,6 @@ func main() {
 	}
 	avgDiff := float64(sumDiff) / float64(frameSize)
 
-	fmt.Printf("原始PCM与解码PCM的平均差异: %.2f\n", avgDiff)
-	fmt.Println("Opus编解码示例完成!")
+	fmt.Printf("Chênh lệch trung bình giữa PCM gốc và PCM đã giải mã: %.2f\n", avgDiff)
+	fmt.Println("Ví dụ mã hóa/giải mã Opus đã hoàn tất!")
 }

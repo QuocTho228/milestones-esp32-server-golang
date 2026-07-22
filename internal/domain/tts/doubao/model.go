@@ -175,20 +175,20 @@ func resolveDoubaoTTSModel(model, voice string) (resolvedTTSModel, error) {
 		resolved.RequestModel = modelSeedTTS20Expr
 		resolved.ResourceID = resourceSeedICL20
 	default:
-		return resolvedTTSModel{}, fmt.Errorf("不支持的豆包 TTS 模型: %s", model)
+		return resolvedTTSModel{}, fmt.Errorf("Model TTS Doubao không được hỗ trợ: %s", model)
 	}
 
 	if voiceFamily == "icl1" && resolved.ResourceID != resourceSeedICL10 {
-		return resolvedTTSModel{}, fmt.Errorf("豆包复刻 1.0 音色需要匹配 seed-icl-1.0 模型族")
+		return resolvedTTSModel{}, fmt.Errorf("Âm sắc (voice) nhân bản (clone) Doubao 1.0 cần khớp với dòng model seed-icl-1.0")
 	}
 	if voiceFamily == "icl2" && resolved.ResourceID != resourceSeedICL20 {
-		return resolvedTTSModel{}, fmt.Errorf("豆包复刻 2.0 音色需要匹配 seed-icl-2.0 模型族")
+		return resolvedTTSModel{}, fmt.Errorf("Âm sắc (voice) nhân bản (clone) Doubao 2.0 cần khớp với dòng model seed-icl-2.0")
 	}
 	if voiceFamily == "tts1" && strings.HasPrefix(resolved.ResourceID, "seed-icl-") {
-		return resolvedTTSModel{}, fmt.Errorf("豆包公版音色不能使用 ICL 复刻模型族")
+		return resolvedTTSModel{}, fmt.Errorf("Âm sắc (voice) công khai (public) của Doubao không thể sử dụng dòng model nhân bản ICL")
 	}
 	if voiceFamily == "tts1" && resolved.ResourceID == resourceSeedTTS20 {
-		return resolvedTTSModel{}, fmt.Errorf("豆包 1.0 公版音色需要匹配 seed-tts-1.0 模型族")
+		return resolvedTTSModel{}, fmt.Errorf("Âm sắc (voice) công khai (public) Doubao 1.0 cần khớp với dòng model seed-tts-1.0")
 	}
 
 	return resolved, nil

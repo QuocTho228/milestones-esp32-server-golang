@@ -4,18 +4,18 @@ import (
 	"milestones-esp32-server-golang/internal/util"
 )
 
-// ResourceWrapper 泛型资源包装器
-// T: 具体的资源类型（如 vad.VAD, asr.AsrProvider 等）
+// ResourceWrapper wrapper (lớp bọc) resource dạng generic
+// T: kiểu resource cụ thể (ví dụ vad.VAD, asr.AsrProvider, v.v.)
 type ResourceWrapper[T any] struct {
-	provider     T                    // 实际的资源提供者（类型安全）
-	configKey    string               // 配置键，用于标识资源池
-	resourceType string               // 资源类型（vad/asr/llm/tts等）
-	closeFunc    func(T) error        // 关闭资源的函数
-	isValidFunc  func(T) bool         // 验证资源是否有效的函数
-	resetFunc    func(T) error        // 重置资源状态的函数（可选）
+	provider     T             // Provider resource thực tế (type-safe)
+	configKey    string        // Khóa cấu hình, dùng để định danh resource pool
+	resourceType string        // Loại resource (vad/asr/llm/tts...)
+	closeFunc    func(T) error // Hàm đóng resource
+	isValidFunc  func(T) bool  // Hàm kiểm tra resource có hợp lệ hay không
+	resetFunc    func(T) error // Hàm đặt lại trạng thái resource (tùy chọn)
 }
 
-// Close 关闭资源
+// Close đóng resource
 func (r *ResourceWrapper[T]) Close() error {
 	if r.closeFunc != nil {
 		return r.closeFunc(r.provider)
@@ -23,7 +23,7 @@ func (r *ResourceWrapper[T]) Close() error {
 	return nil
 }
 
-// IsValid 检查资源是否有效
+// IsValid kiểm tra resource có hợp lệ hay không
 func (r *ResourceWrapper[T]) IsValid() bool {
 	if r.isValidFunc != nil {
 		return r.isValidFunc(r.provider)
@@ -32,22 +32,22 @@ func (r *ResourceWrapper[T]) IsValid() bool {
 	return any(r.provider) != any(zero)
 }
 
-// GetProvider 获取实际的资源提供者（类型安全，无需类型断言）
+// GetProvider lấy provider resource thực tế (type-safe, không cần type assertion)
 func (r *ResourceWrapper[T]) GetProvider() T {
 	return r.provider
 }
 
-// GetConfigKey 获取配置键
+// GetConfigKey lấy khóa cấu hình
 func (r *ResourceWrapper[T]) GetConfigKey() string {
 	return r.configKey
 }
 
-// GetResourceType 获取资源类型
+// GetResourceType lấy loại resource
 func (r *ResourceWrapper[T]) GetResourceType() string {
 	return r.resourceType
 }
 
-// Reset 重置资源状态
+// Reset đặt lại trạng thái resource
 func (r *ResourceWrapper[T]) Reset() error {
 	if r.resetFunc != nil {
 		return r.resetFunc(r.provider)
@@ -55,13 +55,13 @@ func (r *ResourceWrapper[T]) Reset() error {
 	return nil
 }
 
-// CreatorFunc 泛型资源创建函数类型
-// T: 资源类型
-// 参数：resourceType, provider, config
-// 返回：资源实例（类型 T）和错误
+// CreatorFunc kiểu hàm tạo resource dạng generic
+// T: kiểu resource
+// Tham số: resourceType, provider, config
+// Trả về: thực thể resource (kiểu T) và lỗi (nếu có)
 type CreatorFunc[T any] func(resourceType, provider string, config map[string]interface{}) (T, error)
 
-// ResourceFactory 泛型资源工厂
+// ResourceFactory factory (nhà máy tạo instance) resource dạng generic
 type ResourceFactory[T any] struct {
 	resourceType string
 	provider     string
@@ -73,7 +73,7 @@ type ResourceFactory[T any] struct {
 	resetFunc    func(T) error
 }
 
-// Create 创建资源
+// Create tạo resource
 func (f *ResourceFactory[T]) Create() (util.Resource, error) {
 	provider, err := f.creator(f.resourceType, f.provider, f.config)
 	if err != nil {
@@ -90,7 +90,7 @@ func (f *ResourceFactory[T]) Create() (util.Resource, error) {
 	}, nil
 }
 
-// Validate 验证资源
+// Validate kiểm tra resource
 func (f *ResourceFactory[T]) Validate(resource util.Resource) bool {
 	if wrapper, ok := resource.(*ResourceWrapper[T]); ok {
 		if f.isValidFunc != nil {
@@ -101,7 +101,7 @@ func (f *ResourceFactory[T]) Validate(resource util.Resource) bool {
 	return resource != nil && resource.IsValid()
 }
 
-// Reset 重置资源
+// Reset đặt lại resource
 func (f *ResourceFactory[T]) Reset(resource util.Resource) error {
 	if wrapper, ok := resource.(*ResourceWrapper[T]); ok {
 		if wrapper.resetFunc != nil {
