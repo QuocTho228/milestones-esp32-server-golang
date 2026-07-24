@@ -197,7 +197,7 @@ tts:
     sample_rate: 16000 # Tần số lấy mẫu
     channels: 1 # Số kênh âm thanh
     frame_duration: 20 # Thời lượng khung (frame) (mili giây)
-  # Cấu hình TTS Xiaozhi (小智)
+  # Cấu hình TTS Milestones
   milestones:
     server_addr: 'wss://api.tenclass.net/milestones/v1/' # Địa chỉ máy chủ
     device_id: 'ba:8f:17:de:94:94' # ID thiết bị

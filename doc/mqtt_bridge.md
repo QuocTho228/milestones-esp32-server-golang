@@ -62,7 +62,7 @@ cp config/mqtt.json.example config/mqtt.json
 
 File cấu hình `config/mqtt.json` cần chứa nội dung sau:
 
-- `chat_servers`: điền IP và cổng của server Xiaozhi Golang, **_path bắt buộc phải là `/milestones/mqtt_udp/v1/`_**
+- `chat_servers`: điền IP và cổng của server Milestones Golang, **_path bắt buộc phải là `/milestones/mqtt_udp/v1/`_**
 
 ```
 {
@@ -103,7 +103,7 @@ DEBUG=mqtt-server node app.js
 
 ---
 
-## II. Hướng dẫn cấu hình dịch vụ backend Xiaozhi Golang
+## II. Hướng dẫn cấu hình dịch vụ backend Milestones Golang
 
 ### 1. Giải thích các mục cấu hình quan trọng
 

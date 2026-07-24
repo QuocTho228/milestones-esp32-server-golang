@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== Script khởi động backend hệ thống quản lý Xiaozhi ==="
+echo "=== Script khởi động backend hệ thống quản lý Milestones ==="
 
 # Kiểm tra tham số
 if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then

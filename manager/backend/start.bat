@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-echo === Script khoi dong backend he thong quan ly Xiaozhi ===
+echo === Script khoi dong backend he thong quan ly Milestones ===
 
 REM Kiem tra tham so
 if "%1"=="help" goto :help

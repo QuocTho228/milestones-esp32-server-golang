@@ -17,7 +17,7 @@ Usage of ./ws_multi:
   -text string
         Nội dung chat, nhiều câu cách nhau bằng dấu phẩy sẽ được gửi lần lượt (default "你好")
 root@87311584e5fe:/workspace# ./ws_multi -count 1 -server wss://joeyzhou.chat/ws/milestones/v1/ -text "你好,在干什么,一起出去玩吧"
-Đang chạy client Xiaozhi
+Đang chạy client Milestones
 Server: wss://joeyzhou.chat/ws/milestones/v1/
 Số lượng client: 1
 Nội dung gửi: 你好,在干什么,一起出去玩吧
