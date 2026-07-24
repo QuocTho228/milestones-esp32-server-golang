@@ -3,9 +3,9 @@
     <div class="login-shell">
       <section class="login-hero">
         <div class="login-brand">
-          <img class="login-brand-logo" :src="appLogo" alt="Hệ thống quản lý Milestones" />
+          <img class="login-brand-logo" :src="appLogo" alt="Robot Milestones" />
           <div>
-            <strong>Hệ thống quản lý Milestones</strong>
+            <strong>Hệ Thống Robot Milestones</strong>
             <span>Nền tảng quản lý thiết bị và dịch vụ AI</span>
           </div>
         </div>
@@ -19,7 +19,7 @@
           <span class="apple-chip is-primary">Điều phối tác nhân AI</span>
           <span class="apple-chip">Truy cập thiết bị</span>
           <span class="apple-chip">Nhận dạng giọng nói và kho tri thức</span>
-          <span class="apple-chip">MCP / OpenClaw</span>
+          <span class="apple-chip">OpenClaw</span>
           <span class="apple-chip">Gọi MCP</span>
           <span class="apple-chip">Chủ động gửi giọng nói</span>
         </div>
@@ -404,8 +404,8 @@ onMounted(async () => {
 }
 
 .login-brand-logo {
-  width: 58px;
-  height: 58px;
+  width: 150px;
+  height: 150px;
   border-radius: 20px;
   object-fit: cover;
   box-shadow: 0 12px 24px rgba(0, 122, 255, 0.18);

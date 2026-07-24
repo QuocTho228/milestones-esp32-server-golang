@@ -966,7 +966,7 @@ watch(
 .device-icon {
   width: 42px;
   height: 42px;
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%);
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;

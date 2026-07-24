@@ -3,7 +3,7 @@
     <aside class="sidebar-shell">
       <div class="sidebar-card apple-surface">
         <div class="brand-panel">
-          <img class="brand-mark" :src="appLogo" alt="Hệ thống quản lý Milestones" />
+          <img class="brand-mark" :src="appLogo" alt="Robot Milestones" />
           <div class="brand-copy">
             <p class="brand-eyebrow">Control Center</p>
             <h3>Hệ Thống Milestones</h3>
@@ -238,8 +238,8 @@ const handleCommand = async (command) => {
 }
 
 .brand-mark {
-  width: 38px;
-  height: 38px;
+  width: 65px;
+  height: 65px;
   border-radius: 14px;
   display: block;
   object-fit: cover;

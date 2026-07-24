@@ -123,7 +123,7 @@ const login = async () => {
   margin-top: 8px;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%);
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%);
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;

@@ -9,9 +9,9 @@
   --apple-text-tertiary: #8e8e93;
   --apple-line: #e5e5ea;
   --apple-line-strong: #d7dbe2;
-  --apple-primary: #007aff;
-  --apple-primary-pressed: #0062cc;
-  --apple-primary-soft: rgba(0, 122, 255, 0.1);
+  --apple-primary: #10783e;
+  --apple-primary-pressed: #0d6032;
+  --apple-primary-soft: rgba(16, 120, 62, 0.1);
   --apple-success: #34c759;
   --apple-success-soft: rgba(52, 199, 89, 0.12);
   --apple-warning: #ff9f0a;
@@ -34,11 +34,11 @@
     'Microsoft YaHei', sans-serif;
 
   --el-color-primary: var(--apple-primary);
-  --el-color-primary-light-3: #4da3ff;
-  --el-color-primary-light-5: #7abaff;
-  --el-color-primary-light-7: #b5d8ff;
-  --el-color-primary-light-8: #d7eaff;
-  --el-color-primary-light-9: #ecf5ff;
+  --el-color-primary-light-3: #58a178;
+  --el-color-primary-light-5: #88bc9f;
+  --el-color-primary-light-7: #b7d7c5;
+  --el-color-primary-light-8: #cfe4d8;
+  --el-color-primary-light-9: #e7f2ec;
   --el-color-primary-dark-2: var(--apple-primary-pressed);
   --el-color-success: var(--apple-success);
   --el-color-warning: var(--apple-warning);
@@ -64,7 +64,7 @@
   --el-box-shadow: var(--apple-shadow-md);
   --el-menu-bg-color: transparent;
   --el-menu-border-color: transparent;
-  --el-menu-hover-bg-color: rgba(0, 122, 255, 0.08);
+  --el-menu-hover-bg-color: rgba(16, 120, 62, 0.08);
 
   --van-primary-color: var(--apple-primary);
   --van-success-color: var(--apple-success);
@@ -77,7 +77,7 @@
   --van-text-color-2: #4f5562;
   --van-text-color-3: var(--apple-text-secondary);
   --van-border-color: rgba(229, 229, 234, 0.76);
-  --van-active-color: rgba(0, 122, 255, 0.08);
+  --van-active-color: rgba(16, 120, 62, 0.08);
   --van-cell-background: rgba(255, 255, 255, 0.84);
   --van-cell-group-background: transparent;
   --van-cell-group-inset-padding: 0 16px;
@@ -102,7 +102,7 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(0, 122, 255, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(16, 120, 62, 0.08), transparent 24%),
     radial-gradient(circle at top right, rgba(52, 199, 89, 0.06), transparent 20%),
     linear-gradient(180deg, var(--apple-bg-soft) 0%, var(--apple-bg) 100%);
   color: var(--apple-text);
@@ -123,7 +123,7 @@ textarea,
 }
 
 ::selection {
-  background: rgba(0, 122, 255, 0.18);
+  background: rgba(16, 120, 62, 0.18);
 }
 
 #app {
@@ -267,7 +267,7 @@ textarea,
 .el-select__wrapper:hover,
 .el-textarea__inner:hover {
   box-shadow:
-    0 0 0 1px rgba(0, 122, 255, 0.22) inset,
+    0 0 0 1px rgba(16, 120, 62, 0.22) inset,
     0 10px 20px rgba(15, 23, 42, 0.04);
 }
 
@@ -275,8 +275,8 @@ textarea,
 .el-select__wrapper.is-focused,
 .el-textarea__inner:focus {
   box-shadow:
-    0 0 0 1px rgba(0, 122, 255, 0.34) inset,
-    0 0 0 4px rgba(0, 122, 255, 0.08) !important;
+    0 0 0 1px rgba(16, 120, 62, 0.34) inset,
+    0 0 0 4px rgba(16, 120, 62, 0.08) !important;
 }
 
 .el-dialog {
@@ -292,7 +292,7 @@ textarea,
 
 .el-table {
   --el-table-header-bg-color: rgba(245, 247, 250, 0.84);
-  --el-table-row-hover-bg-color: rgba(0, 122, 255, 0.05);
+  --el-table-row-hover-bg-color: rgba(16, 120, 62, 0.05);
   border-radius: 18px;
   overflow: hidden;
 }
@@ -329,7 +329,7 @@ textarea,
 }
 
 .van-button--primary {
-  box-shadow: 0 12px 26px rgba(0, 122, 255, 0.22);
+  box-shadow: 0 12px 26px rgba(16, 120, 62, 0.22);
 }
 
 body
@@ -720,18 +720,18 @@ body
     .simple-login-page
   )
   :is(.save-button, .agent-actions .el-button--primary, .device-actions .el-button--primary) {
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%) !important;
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%) !important;
   border: none !important;
-  box-shadow: 0 16px 32px rgba(0, 122, 255, 0.18) !important;
+  box-shadow: 0 16px 32px rgba(16, 120, 62, 0.18) !important;
 }
 
 body
   :is(.roles-page, .agents-page, .agent-devices-page, .agent-config, .speakers-page, .admin-devices, .admin-agents)
   :is(.agent-avatar, .device-icon) {
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%) !important;
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%) !important;
   color: #ffffff !important;
   border-radius: 18px !important;
-  box-shadow: 0 14px 28px rgba(0, 122, 255, 0.18) !important;
+  box-shadow: 0 14px 28px rgba(16, 120, 62, 0.18) !important;
 }
 
 body :is(.agents-page, .agent-devices-page) .device-dialog-content .device-icon {
@@ -762,14 +762,14 @@ body :is(.agent-config, .agents-page) .mcp-endpoint-display {
 }
 
 body :is(.roles-page, .agent-config) .template-card.active {
-  border-color: rgba(0, 122, 255, 0.28) !important;
-  background: rgba(0, 122, 255, 0.08) !important;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.08) !important;
+  border-color: rgba(16, 120, 62, 0.28) !important;
+  background: rgba(16, 120, 62, 0.08) !important;
+  box-shadow: 0 0 0 4px rgba(16, 120, 62, 0.08) !important;
 }
 
 body :is(.roles-page, .agent-config) .template-card:hover {
-  border-color: rgba(0, 122, 255, 0.22) !important;
-  background: rgba(0, 122, 255, 0.04) !important;
+  border-color: rgba(16, 120, 62, 0.22) !important;
+  background: rgba(16, 120, 62, 0.04) !important;
 }
 
 body .api-tokens-page .doc-link {
@@ -830,7 +830,7 @@ body .agent-history-page .message-bubble-left {
 }
 
 body .agent-history-page .message-bubble-right {
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%) !important;
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%) !important;
 }
 
 body .agent-history-page .message-bubble-right :is(.message-text, .message-time-small, .message-more) {
@@ -884,7 +884,7 @@ body .vp-docs .vp-nav-item {
 
 body .vp-docs .vp-nav-item:hover {
   color: var(--apple-primary);
-  background: rgba(0, 122, 255, 0.08);
+  background: rgba(16, 120, 62, 0.08);
 }
 
 body .vp-docs .vp-content {
@@ -965,7 +965,7 @@ body .vp-docs .method.get {
 }
 
 body .vp-docs .method.post {
-  background: rgba(0, 122, 255, 0.92);
+  background: rgba(16, 120, 62, 0.92);
 }
 
 body .vp-docs .method.put {

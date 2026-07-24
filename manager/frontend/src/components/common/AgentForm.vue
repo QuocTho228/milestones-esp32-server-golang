@@ -561,7 +561,7 @@ defineExpose({
 
 .clone-voice-button.active {
   border-color: #409eff;
-  background: #ecf5ff;
+  background: #e7f2ec;
   color: #1677d2;
 }
 

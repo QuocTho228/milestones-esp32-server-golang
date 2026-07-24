@@ -54,7 +54,7 @@ const showUserMenu = ref(false);
 
 // Tiêu đề trang
 const pageTitle = computed(() => {
-  return route.meta?.title || 'Hệ thống quản lý Milestones';
+  return route.meta?.title || 'Robot Milestones';
 });
 
 // Có hiển thị nút quay lại không (hiển thị khi không phải trang chủ và không ở trang thanh tab)

@@ -353,7 +353,7 @@ export default {
 .setup-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%);
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%);
   color: white;
   border: none;
   border-radius: 16px;
@@ -427,7 +427,7 @@ export default {
 .login-btn {
   display: inline-block;
   padding: 12px 24px;
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%);
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%);
   color: white;
   text-decoration: none;
   border-radius: 16px;

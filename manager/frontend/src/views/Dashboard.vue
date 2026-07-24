@@ -56,7 +56,7 @@
                 <h3>Địa chỉ dịch vụ</h3>
               </div>
               <el-button type="warning" size="small" :loading="otaTestLoading" @click="runOtaTest">
-                OTA Kiểm tra
+                Kiểm tra OTA
               </el-button>
             </div>
           </template>

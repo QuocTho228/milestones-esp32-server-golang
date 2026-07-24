@@ -847,7 +847,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(180deg, #2e90ff 0%, #007aff 100%);
+  background: linear-gradient(180deg, #3b9061 0%, #10783e 100%);
   box-shadow: 0 12px 24px rgba(0, 122, 255, 0.18);
 }
 
