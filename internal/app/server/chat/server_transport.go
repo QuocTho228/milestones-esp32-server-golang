@@ -195,6 +195,22 @@ func (s *ServerTransport) SendAsrResult(text string) error {
 	return nil
 }
 
+// SendEmotion gửi tin nhắn {"type": "llm", "emotion": "..."} xuống thiết bị.
+// LƯU Ý: firmware chỉ đọc field "emotion" ở nhánh type=="llm" (main/application.cc), KHÔNG đọc ở type=="tts",
+// nên emotion phải được gửi qua message riêng này, không nhét vào ServerMessage của SendSentenceStart/SendSentenceEnd.
+func (s *ServerTransport) SendEmotion(emotion string) error {
+	msg := ServerMessage{
+		Type:      ServerMessageTypeLlm,
+		Emotion:   emotion,
+		SessionID: s.clientState.SessionID,
+	}
+	bytes, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	return s.transport.SendCmd(bytes)
+}
+
 func (s *ServerTransport) SendSentenceStart(text string) error {
 	response := ServerMessage{
 		Type:      ServerMessageTypeTts,

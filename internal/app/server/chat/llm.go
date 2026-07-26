@@ -385,6 +385,11 @@ func (l *LLMManager) handleLLMWithContextAndTools(
 				}
 			case streamtransform.ItemKindTextDelta, streamtransform.ItemKindTextSegment:
 				response.Text = item.Text
+				if item.Meta != nil {
+					if emo, ok := item.Meta["emotion"].(string); ok && emo != "" {
+						response.Emotion = emo
+					}
+				}
 				if strings.TrimSpace(item.Text) != "" {
 					response.IsStart = isFirstOutput
 					if !firstSegment {

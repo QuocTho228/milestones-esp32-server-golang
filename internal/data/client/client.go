@@ -211,7 +211,59 @@ func (c *ClientState) AddMessage(msg *schema.Message) {
 	}
 	c.Dialogue.mu.Lock()
 	defer c.Dialogue.mu.Unlock()
+
+	// Lớp bảo vệ chống lưu trùng: nếu message ngay trước đó (cuối Dialogue.Messages) giống hệt
+	// message sắp thêm (cùng Role, cùng Content, cùng tập tool_call_id), bỏ qua không thêm.
+	//
+	// Lý do: đã quan sát thấy race condition (chưa xác định chính xác điểm gây ra) khiến cùng
+	// 1 assistant message mang tool_calls bị lưu 2 lần liên tiếp không có tool-result message
+	// chen giữa. Hậu quả: API LLM trả lỗi 400 "insufficient tool messages following tool_calls
+	// message", và vì lỗi này được lưu luôn vào lịch sử, MỌI lần gọi lại sau đó trong cùng phiên
+	// đều kế thừa lịch sử đã hỏng và lặp lại lỗi y hệt. Việc chặn trùng lặp tại đây là tuyến
+	// phòng thủ cuối cùng, an toàn tuyệt đối (message hợp lệ không bao giờ bị chặn nhầm vì so
+	// sánh nội dung + role + tool_call_id chính xác), không phụ thuộc vào việc tìm ra nguyên
+	// nhân gốc ở tầng gọi LLM/thực thi tool.
+	if n := len(c.Dialogue.Messages); n > 0 {
+		if isDuplicateMessage(c.Dialogue.Messages[n-1], msg) {
+			log.Warnf("Phát hiện tin nhắn trùng lặp liên tiếp (Role=%s), bỏ qua để tránh hỏng lịch sử hội thoại", msg.Role)
+			return
+		}
+	}
+
 	c.Dialogue.Messages = append(c.Dialogue.Messages, msg)
+}
+
+// isDuplicateMessage so sánh 2 message có "giống hệt" nhau không, dùng để chặn lưu trùng lặp
+// liên tiếp. So sánh Role, Content, và tập hợp tool_call_id (không quan tâm thứ tự) của ToolCalls
+// (đối với assistant message) hoặc ToolCallID (đối với tool-result message).
+func isDuplicateMessage(prev, next *schema.Message) bool {
+	if prev == nil || next == nil {
+		return false
+	}
+	if prev.Role != next.Role || prev.Content != next.Content {
+		return false
+	}
+	if prev.Role == schema.Tool {
+		return prev.ToolCallID == next.ToolCallID
+	}
+	if len(prev.ToolCalls) != len(next.ToolCalls) {
+		return false
+	}
+	if len(prev.ToolCalls) == 0 {
+		// Cả 2 đều không có ToolCalls, Role+Content đã khớp -> coi là trùng
+		// (áp dụng cho user/assistant message thuần văn bản bị gửi lặp do retry).
+		return true
+	}
+	prevIDs := make(map[string]bool, len(prev.ToolCalls))
+	for _, tc := range prev.ToolCalls {
+		prevIDs[tc.ID] = true
+	}
+	for _, tc := range next.ToolCalls {
+		if !prevIDs[tc.ID] {
+			return false
+		}
+	}
+	return true
 }
 
 func (c *ClientState) GetMessages(count int) []*schema.Message {
@@ -295,15 +347,38 @@ func AlignToolMessages(messages []*schema.Message) []*schema.Message {
 				alignedMessages = append(alignedMessages, msg)
 			}
 		} else if msg.Role == schema.Assistant && len(msg.ToolCalls) > 0 {
-			// Xử lý tin nhắn assistant, kiểm tra tool_calls chưa được sử dụng
+			// Chỉ giữ lại các tool_calls ĐÃ có tin nhắn tool-result tương ứng.
+			// Nếu giữ nguyên msg.ToolCalls trong khi thiếu tool-result cho 1 vài phần tử,
+			// API sẽ báo lỗi "insufficient tool messages following tool_calls message".
+			keptToolCalls := make([]schema.ToolCall, 0, len(msg.ToolCalls))
 			for _, toolCall := range msg.ToolCalls {
-				if toolCall.ID != "" {
-					if usedToolCallIDs[toolCall.ID] {
-						alignedMessages = append(alignedMessages, msg)
-					} else {
-						continue
-					}
+				if toolCall.ID != "" && usedToolCallIDs[toolCall.ID] {
+					keptToolCalls = append(keptToolCalls, toolCall)
 				}
+			}
+
+			if len(keptToolCalls) == 0 {
+				// Không còn tool_call nào hợp lệ.
+				// Nếu message cũng không có nội dung text, bỏ hẳn (assistant message rỗng gây lỗi API).
+				if strings.TrimSpace(msg.Content) == "" {
+					continue
+				}
+				// Còn nội dung text: giữ lại message nhưng loại bỏ ToolCalls (tạo bản sao, không sửa msg gốc).
+				msgCopy := *msg
+				msgCopy.ToolCalls = nil
+				alignedMessages = append(alignedMessages, &msgCopy)
+				continue
+			}
+
+			if len(keptToolCalls) != len(msg.ToolCalls) {
+				// Một phần tool_calls không có tool-result khớp: tạo bản sao chỉ giữ phần hợp lệ,
+				// tránh sửa trực tiếp msg.ToolCalls (con trỏ này có thể đang được dùng chung ở nơi khác).
+				msgCopy := *msg
+				msgCopy.ToolCalls = keptToolCalls
+				alignedMessages = append(alignedMessages, &msgCopy)
+			} else {
+				// Tất cả tool_calls đều hợp lệ: giữ nguyên message, append đúng 1 lần.
+				alignedMessages = append(alignedMessages, msg)
 			}
 		} else {
 			// Các loại tin nhắn khác giữ nguyên

@@ -32,6 +32,7 @@ type AudioQueueElem struct {
 	Kind        int    // AudioQueueKindFrame / MediaFrame / SentenceStart / SentenceEnd / TtsStart / TtsStop
 	Data        []byte // Dùng khi Kind==Frame hoặc MediaFrame, được sao chép rồi đưa vào hàng đợi
 	Text        string // Dùng khi SentenceStart/SentenceEnd
+	Emotion     string // Dùng khi SentenceStart: cảm xúc đi kèm câu, gửi kèm xuống thiết bị qua SendEmotion
 	Err         error  // Tùy chọn khi SentenceEnd, thể hiện lỗi của đoạn này
 	IsStart     bool   // Khi SentenceStart: có phải là gói đầu tiên không (dùng để thống kê)
 	Generation  uint64 // Định danh thế hệ (generation); sau khi bị ngắt, phần tử thuộc thế hệ cũ sẽ bị loại bỏ
@@ -204,6 +205,11 @@ func (t *TTSManager) runSenderLoop(ctx context.Context) {
 		case AudioQueueKindSentenceStart:
 			if elem.OnStart != nil {
 				elem.OnStart()
+			}
+			if elem.Emotion != "" {
+				if err := t.serverTransport.SendEmotion(elem.Emotion); err != nil {
+					log.Errorf("Gửi emotion thất bại: %s, %v", elem.Emotion, err)
+				}
 			}
 			if elem.Text != "" {
 				if err := t.serverTransport.SendSentenceStart(elem.Text); err != nil {
@@ -1348,6 +1354,7 @@ func (t *TTSManager) handleTts(ctx context.Context, generation uint64, metricCyc
 	if !t.enqueueSessionElem(ctx, generation, AudioQueueElem{
 		Kind:    AudioQueueKindSentenceStart,
 		Text:    llmResponse.Text,
+		Emotion: llmResponse.Emotion,
 		IsStart: llmResponse.IsStart,
 		OnStart: onStartFunc,
 	}) {
