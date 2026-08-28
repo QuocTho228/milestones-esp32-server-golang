@@ -30,7 +30,7 @@ type SaveMessageRequest struct {
 	AgentID       string                 `json:"agent_id" binding:"required"`
 	SessionID     string                 `json:"session_id,omitempty"`
 	Role          string                 `json:"role" binding:"required,oneof=user assistant system tool"`
-	Content       string                 `json:"content" binding:"required_without=ToolCallsJSON"`
+	Content       string                 `json:"content" binding:"required"`
 	ToolCallID    string                 `json:"tool_call_id,omitempty"`    // ID gọi công cụ (dùng cho role Tool)
 	ToolCallsJSON *string                `json:"tool_calls_json,omitempty"` // JSON danh sách gọi công cụ (dùng cho role Assistant), nil nghĩa là NULL
 	AudioData     string                 `json:"audio_data,omitempty"`      // Mã hóa base64
